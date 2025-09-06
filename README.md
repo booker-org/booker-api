@@ -3,14 +3,11 @@
 ## Como rodar o projeto
 
 ### Requisitos
-- Java 21
 - Docker
-- Arquivo .env
+- Docker-compose
+- Arquivo .env (veja o .env.example)
 
-Rode o comando:
-
-``` docker-compose up --build ```
-
-Uma vez que o container for construído, basta usar apenas:
+Rode na raiz do projeto o comando:
 
 ``` docker-compose up ```
+
