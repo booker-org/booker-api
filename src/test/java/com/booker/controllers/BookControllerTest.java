@@ -18,7 +18,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(BookController.class)
-public class BookControllerTest {
+class BookControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -44,7 +44,7 @@ public class BookControllerTest {
     // ========== GET TESTS ==========
 
     @Test
-    public void shouldReturnBookWhenFindingByExistingId() throws Exception {
+    void getBookById_ShouldReturnBook_WhenBookExists() throws Exception {
         // Given - Preparar dados de teste
         Long bookId = 1L;
         Book bookMock = createBaseBook();
@@ -65,10 +65,10 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$.coverUrl").value("https://example.com/dom-casmurro.jpg"));
     }
 
-    // ========== PUT TESTS ==========
+    // ========== POST TESTS ==========
 
     @Test
-    public void shouldCreateNewBookSuccessfully() throws Exception {
+    void createBook_ShouldReturnCreatedBook_WhenValidRequest() throws Exception {
         // Given - Request without ID
         Book newBookRequest = createBaseBook();
 
@@ -90,10 +90,10 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$.pageCount").value(256));
     }
 
-    // ========== UPDATE TESTS ==========
+    // ========== PUT TESTS ==========
 
     @Test
-    public void shouldUpdateExistingBookSuccessfully() throws Exception {
+    void updateBook_ShouldReturnUpdatedBook_WhenValidRequest() throws Exception {
         // Given - Existing book ID and update data
         Long bookId = 1L;
         Book updateRequest = createBaseBook();
@@ -126,7 +126,7 @@ public class BookControllerTest {
     // ========== PATCH TESTS ==========
 
     @Test
-    public void shouldUpdateFieldsSuccessfully() throws Exception {
+    void patchBook_ShouldUpdateFields_WhenValidRequest() throws Exception {
         // Given - Existing book ID and partial update data
         Long bookId = 1L;
         Book updateRequest = new Book();
@@ -160,7 +160,7 @@ public class BookControllerTest {
     // ========== DELETE TESTS ==========
 
     @Test
-    public void shouldDeleteExistingBookSuccessfully() throws Exception {
+    void deleteBook_ShouldReturnNoContent_WhenBookExists() throws Exception {
         // Given - Existing book ID
         Long bookId = 1L;
 
@@ -177,7 +177,7 @@ public class BookControllerTest {
     // ========== GET TESTS ==========
 
     @Test
-    public void shouldReturn404WhenFindingByNonExistingId() throws Exception {
+    void getBookById_ShouldReturn404_WhenBookNotExists() throws Exception {
         // Given
         Long nonExistentBookId = 999L;
 
@@ -189,10 +189,10 @@ public class BookControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    // ========== PUT TESTS ==========
+    // ========== POST TESTS ==========
 
     @Test
-    public void shouldReturn400WhenCreatingBookWithNullRequest() throws Exception {
+    void createBook_ShouldReturn400_WhenNullRequest() throws Exception {
         // Given - Null request
 
         // When
@@ -206,7 +206,7 @@ public class BookControllerTest {
     }
 
     @Test
-    public void shouldReturn400WhenCreatingBookWithEmptyRequest() throws Exception {
+    void createBook_ShouldReturn400_WhenEmptyRequest() throws Exception {
         // Given - Empty request
         Book emptyBookRequest = new Book();
 
@@ -221,7 +221,7 @@ public class BookControllerTest {
     }
 
     @Test
-    public void shouldReturn400WhenCreatingBookWithInvalidTitle() throws Exception {
+    void createBook_ShouldReturn400_WhenInvalidTitle() throws Exception {
         // Given - Request with missing required fields (e.g., title)
         Book invalidBookRequest = createBaseBook();
         invalidBookRequest.setTitle(null); // Remove title
@@ -234,13 +234,18 @@ public class BookControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidBookRequest)))
                 .andExpect(status().isBadRequest());
+    }
 
-        // Additional invalid case
+    @Test
+    void createBook_ShouldReturn400_WhenTitleTooShort() throws Exception {
+        // Given - Request with too short title
+        Book invalidBookRequest = createBaseBook();
         invalidBookRequest.setTitle("A"); // Too short title
 
         when(bookService.save(any(Book.class)))
                 .thenThrow(new IllegalArgumentException("Título deve ter entre 2 e 100 caracteres"));
 
+        // Then
         mockMvc.perform(post("/books")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidBookRequest)))
@@ -249,7 +254,7 @@ public class BookControllerTest {
     }
 
     @Test
-    public void shouldReturn400WhenCreatingBookWithInvalidPageCount() throws Exception {
+    void createBook_ShouldReturn400_WhenInvalidPageCount() throws Exception {
         // Given - Request with invalid page count
         Book invalidBookRequest = createBaseBook();
         invalidBookRequest.setPageCount(-10); // Invalid page count
@@ -266,7 +271,7 @@ public class BookControllerTest {
     }
 
     @Test
-    public void shouldReturn400WhenCreatingBookWithInvalidAuthorId() throws Exception {
+    void createBook_ShouldReturn400_WhenInvalidAuthorId() throws Exception {
         // Given - Request with invalid author ID
         Book invalidBookRequest = createBaseBook();
         invalidBookRequest.setAuthorId(-1L); // Invalid author ID
@@ -282,7 +287,7 @@ public class BookControllerTest {
     }
 
     @Test
-    public void shouldReturn400WhenCreatingBookWithInvalidCoverUrl() throws Exception {
+    void createBook_ShouldReturn400_WhenInvalidCoverUrl() throws Exception {
         // Given - Request with invalid cover URL
         Book invalidBookRequest = createBaseBook();
         invalidBookRequest.setCoverUrl("invalid-url"); // Invalid URL
@@ -297,10 +302,10 @@ public class BookControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    // ========== UPDATE TESTS ==========
+    // ========== PUT TESTS ==========
 
     @Test
-    public void shouldReturn404WhenUpdatingNonExistingBook() throws Exception {
+    void updateBook_ShouldReturn404_WhenBookNotExists() throws Exception {
         // Given - Non-existing book ID
         Long nonExistentBookId = 999L;
         Book updateRequest = createBaseBook();
@@ -317,7 +322,7 @@ public class BookControllerTest {
     }
 
     @Test
-    public void shouldReturn400WhenUpdatingBookWithInvalidData() throws Exception {
+    void updateBook_ShouldReturn400_WhenInvalidData() throws Exception {
         // Given
         Long bookId = 1L;
         Book invalidUpdateRequest = createBaseBook();
@@ -337,7 +342,7 @@ public class BookControllerTest {
     // ========== PATCH TESTS ==========
 
     @Test
-    public void shouldReturn404WhenPatchingNonExistingBook() throws Exception {
+    void patchBook_ShouldReturn404_WhenBookNotExists() throws Exception {
         // Given - Non-existing book ID
         Long nonExistentBookId = 999L;
         Book patchRequest = new Book();
@@ -357,7 +362,7 @@ public class BookControllerTest {
     // ========== DELETE TESTS ==========
 
     @Test
-    public void shouldReturn404WhenDeletingNonExistingBook() throws Exception {
+    void deleteBook_ShouldReturn404_WhenBookNotExists() throws Exception {
         // Given - Non-existing book ID
         Long nonExistentBookId = 999L;
 
