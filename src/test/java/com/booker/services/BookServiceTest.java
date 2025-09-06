@@ -52,7 +52,7 @@ class BookServiceTest {
 
     @Test
     void findById_ShouldReturnBook_WhenBookExists() {
-        // Given
+        // Given - Existing ID
         when(bookRepository.findById(1L)).thenReturn(Optional.of(testBook));
 
         // When
@@ -67,7 +67,7 @@ class BookServiceTest {
 
     @Test
     void findById_ShouldReturnEmpty_WhenBookNotExists() {
-        // Given
+        // Given - Non-existent ID
         when(bookRepository.findById(999L)).thenReturn(Optional.empty());
 
         // When
@@ -82,7 +82,7 @@ class BookServiceTest {
 
     @Test
     void findAll_ShouldReturnPageOfBooks() {
-        // Given
+        // Given - Some books
         List<Book> books = Arrays.asList(testBook, createAnotherBook());
         Page<Book> bookPage = new PageImpl<>(books);
         Pageable pageable = PageRequest.of(0, 10);
@@ -100,7 +100,7 @@ class BookServiceTest {
 
     @Test
     void findAll_ShouldReturnEmptyPage_WhenNoBooksExist() {
-        // Given
+        // Given - No books
         Page<Book> emptyPage = new PageImpl<>(Arrays.asList());
         Pageable pageable = PageRequest.of(0, 10);
         
@@ -118,7 +118,7 @@ class BookServiceTest {
 
     @Test
     void save_ShouldReturnSavedBook_WhenValidBook() {
-        // Given
+        // Given - Valid book
         Book newBook = createBaseBook();
         Book savedBook = createBaseBook();
         savedBook.setId(1L);
@@ -137,6 +137,8 @@ class BookServiceTest {
 
     @Test
     void save_ShouldThrowException_WhenBookIsNull() {
+        // Given - Null book
+
         // When & Then
         assertThrows(IllegalArgumentException.class, () -> {
             bookService.save(null);
@@ -147,7 +149,7 @@ class BookServiceTest {
 
     @Test
     void save_ShouldThrowException_WhenTitleIsNull() {
-        // Given
+        // Given - Null title
         Book invalidBook = createBaseBook();
         invalidBook.setTitle(null);
 
@@ -162,7 +164,7 @@ class BookServiceTest {
 
     @Test
     void save_ShouldThrowException_WhenTitleIsTooShort() {
-        // Given
+        // Given - Title too short
         Book invalidBook = createBaseBook();
         invalidBook.setTitle("A");
 
@@ -171,13 +173,28 @@ class BookServiceTest {
             bookService.save(invalidBook);
         });
         
-        assertEquals("Título deve ter entre 2 e 100 caracteres", exception.getMessage());
+        assertEquals("Título deve ter entre 2 e 200 caracteres", exception.getMessage());
+        verify(bookRepository, never()).save(any());
+    }
+
+    @Test
+    void save_ShouldThrowException_WhenTitleIsTooLong() {
+        // Given - Title exceeding max length
+        Book invalidBook = createBaseBook();
+        invalidBook.setTitle("A".repeat(201));
+
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            bookService.save(invalidBook);
+        });
+        
+        assertEquals("Título deve ter entre 2 e 200 caracteres", exception.getMessage());
         verify(bookRepository, never()).save(any());
     }
 
     @Test
     void save_ShouldThrowException_WhenPageCountIsNegative() {
-        // Given
+        // Given - Negative page count
         Book invalidBook = createBaseBook();
         invalidBook.setPageCount(-10);
 
@@ -186,13 +203,13 @@ class BookServiceTest {
             bookService.save(invalidBook);
         });
         
-        assertEquals("Número de páginas deve ser positivo", exception.getMessage());
+        assertEquals("Número de páginas deve ser maior que zero", exception.getMessage());
         verify(bookRepository, never()).save(any());
     }
 
     @Test
     void save_ShouldThrowException_WhenAuthorIdIsNull() {
-        // Given
+        // Given - Null authorId
         Book invalidBook = createBaseBook();
         invalidBook.setAuthorId(null);
 
@@ -209,7 +226,7 @@ class BookServiceTest {
 
     @Test
     void update_ShouldReturnUpdatedBook_WhenBookExists() {
-        // Given
+        // Given - Existing ID
         Long bookId = 1L;
         Book updateRequest = createBaseBook();
         updateRequest.setTitle("Título Atualizado");
@@ -239,7 +256,7 @@ class BookServiceTest {
 
     @Test
     void update_ShouldReturnEmpty_WhenBookNotExists() {
-        // Given
+        // Given - Non-existent ID
         Long nonExistentId = 999L;
         Book updateRequest = createBaseBook();
         
@@ -256,11 +273,10 @@ class BookServiceTest {
 
     @Test
     void update_ShouldOnlyUpdateNonNullFields() {
-        // Given
+        // Given - Partial update (only title)
         Long bookId = 1L;
         Book updateRequest = new Book();
         updateRequest.setTitle("Novo Título");
-        // pageCount, synopsis, etc são null - não devem ser atualizados
 
         Book existingBook = createBaseBook();
         existingBook.setId(bookId);
@@ -288,7 +304,7 @@ class BookServiceTest {
 
     @Test
     void deleteById_ShouldReturnTrue_WhenBookExists() {
-        // Given
+        // Given - Existing ID
         when(bookRepository.existsById(1L)).thenReturn(true);
 
         // When
@@ -302,7 +318,7 @@ class BookServiceTest {
 
     @Test
     void deleteById_ShouldReturnFalse_WhenBookNotExists() {
-        // Given
+        // Given - Non-existent ID
         when(bookRepository.existsById(999L)).thenReturn(false);
 
         // When
