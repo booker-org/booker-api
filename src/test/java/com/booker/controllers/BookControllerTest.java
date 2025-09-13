@@ -1,18 +1,27 @@
 package com.booker.controllers;
 
-import com.booker.models.Book;
+import com.booker.entities.Author;
+import com.booker.entities.Book;
+import com.booker.entities.Genre;
 import com.booker.services.BookService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -29,12 +38,23 @@ class BookControllerTest {
         @Autowired
         private ObjectMapper objectMapper;
 
+        private final Genre genre1 = new Genre("Ficção", null);
+        private final Genre genre2 = new Genre("Clássico", null);
+
+        private Author createBaseAuthor() {
+                Author author = new Author();
+                author.setName("Machado de Assis");
+                author.setBiography("Considerado um dos maiores escritores brasileiros...");
+                return author;
+        }
+
         private Book createBaseBook() {
                 Book book = new Book();
                 book.setTitle("Dom Casmurro");
                 book.setSynopsis("A obra narra a vida de Bento Santiago...");
                 book.setPageCount(256);
-                book.setAuthorId(1L);
+                book.setAuthor(createBaseAuthor());
+                book.setGenres(Set.of(genre1, genre2));
                 book.setCoverUrl("https://example.com/dom-casmurro.jpg");
                 return book;
         }
@@ -61,7 +81,8 @@ class BookControllerTest {
                                 .andExpect(jsonPath("$.title").value("Dom Casmurro"))
                                 .andExpect(jsonPath("$.synopsis").value("A obra narra a vida de Bento Santiago..."))
                                 .andExpect(jsonPath("$.pageCount").value(256))
-                                .andExpect(jsonPath("$.authorId").value(1))
+                                .andExpect(jsonPath("$.author.name").value("Machado de Assis"))
+                                .andExpect(jsonPath("$.genres").isArray())
                                 .andExpect(jsonPath("$.coverUrl").value("https://example.com/dom-casmurro.jpg"));
         }
 
@@ -109,8 +130,8 @@ class BookControllerTest {
                 expectedResult.setPageCount(300);
                 expectedResult.setCoverUrl("https://example.com/dom-casmurro-updated.jpg");
 
-                // When - Mock retorna o resultado esperado
-                when(bookService.update(bookId, updateRequest)).thenReturn(Optional.of(expectedResult));
+                // When
+                when(bookService.update(eq(bookId), any(Book.class))).thenReturn(Optional.of(expectedResult));
 
                 // Then
                 mockMvc.perform(put("/books/{id}", bookId)
@@ -169,6 +190,75 @@ class BookControllerTest {
                 // Then
                 mockMvc.perform(delete("/books/{id}", bookId))
                                 .andExpect(status().isNoContent());
+        }
+
+        // ========== SEARCH TESTS ==========
+
+        @Test
+        void getBooksByTitle_ShouldReturnMatchingBooks() throws Exception {
+                // Given
+                Book book1 = createBaseBook();
+                book1.setId(1L);
+                book1.setTitle("Dom Casmurro");
+                
+                Book book2 = createBaseBook();
+                book2.setId(2L);
+                book2.setTitle("Dom Pedro");
+
+                List<Book> books = Arrays.asList(book1, book2);
+                Page<Book> bookPage = new PageImpl<>(books);
+
+                when(bookService.findByTitle(eq("Dom"), any(Pageable.class))).thenReturn(bookPage);
+
+                // When & Then
+                mockMvc.perform(get("/books")
+                                .param("title", "Dom")
+                                .param("page", "0")
+                                .param("size", "10"))
+                                .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(jsonPath("$.content").isArray())
+                                .andExpect(jsonPath("$.content.length()").value(2))
+                                .andExpect(jsonPath("$.content[0].title").value("Dom Casmurro"))
+                                .andExpect(jsonPath("$.content[1].title").value("Dom Pedro"));
+        }
+
+        @Test
+        void getBooksByAuthor_ShouldReturnBooksByAuthor() throws Exception {
+                // Given
+                Long authorId = 1L;
+                List<Book> books = Arrays.asList(createBaseBook());
+                Page<Book> bookPage = new PageImpl<>(books);
+
+                when(bookService.findByAuthor(eq(authorId), any(Pageable.class))).thenReturn(bookPage);
+
+                // When & Then
+                mockMvc.perform(get("/books")
+                                .param("authorId", "1")
+                                .param("page", "0")
+                                .param("size", "10"))
+                                .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(jsonPath("$.content").isArray())
+                                .andExpect(jsonPath("$.content.length()").value(1));
+        }
+
+        @Test
+        void getAllBooks_ShouldReturnPageOfBooks() throws Exception {
+                // Given
+                List<Book> books = Arrays.asList(createBaseBook(), createBaseBook());
+                Page<Book> bookPage = new PageImpl<>(books);
+
+                when(bookService.findAll(any(Pageable.class))).thenReturn(bookPage);
+
+                // When & Then
+                mockMvc.perform(get("/books")
+                                .param("page", "0")
+                                .param("size", "10"))
+                                .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(jsonPath("$.content").isArray())
+                                .andExpect(jsonPath("$.content.length()").value(2));
         }
 
         // FAILURE CASES - VALIDATION
@@ -234,7 +324,7 @@ class BookControllerTest {
                 invalidUpdateRequest.setTitle("");
 
                 // When
-                when(bookService.update(bookId, invalidUpdateRequest))
+                when(bookService.update(eq(bookId), any(Book.class)))
                                 .thenThrow(new IllegalArgumentException("Título deve ter entre 2 e 100 caracteres"));
 
                 // Then

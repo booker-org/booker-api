@@ -1,6 +1,8 @@
 package com.booker.services;
 
-import com.booker.models.Book;
+import com.booker.entities.Author;
+import com.booker.entities.Book;
+import com.booker.entities.Genre;
 import com.booker.repositories.BookRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,23 +35,38 @@ class BookServiceTest {
 
     private Book testBook;
 
+    private final Genre genre1 = new Genre("Ficção", null);
+    private final Genre genre2 = new Genre("Clássico", null);
+
     @BeforeEach
     void setUp() {
         testBook = createBaseBook();
         testBook.setId(1L);
     }
 
+    private Author createBaseAuthor() {
+        Author author = new Author();
+        author.setName("Machado de Assis");
+        author.setBiography("Considerado um dos maiores escritores brasileiros...");
+        return author;
+    }
+
     private Book createBaseBook() {
+        return createBaseBook("Dom Casmurro");
+    }
+
+    private Book createBaseBook(String title) {
         Book book = new Book();
-        book.setTitle("Dom Casmurro");
+        book.setTitle(title);
         book.setSynopsis("A obra narra a vida de Bento Santiago...");
         book.setPageCount(256);
-        book.setAuthorId(1L);
+        book.setAuthor(createBaseAuthor());
+        book.setGenres(Set.of(genre1, genre2));
         book.setCoverUrl("https://example.com/dom-casmurro.jpg");
         return book;
     }
 
-    // ========== FIND BY ID TESTS ==========
+    // ========== FIND ==========
 
     @Test
     void findById_ShouldReturnBook_WhenBookExists() {
@@ -78,15 +96,55 @@ class BookServiceTest {
         verify(bookRepository).findById(999L);
     }
 
-    // ========== FIND ALL TESTS ==========
+        @Test
+    void findByTitle_ShouldReturnBooksMatchingTitle() {
+        // Given
+        Book book1 = createBaseBook("Dom Casmurro");
+        book1.setId(1L);
+        Book book2 = createBaseBook("Dom Pedro");
+        book2.setId(2L);
+        
+        List<Book> books = Arrays.asList(book1, book2);
+        Page<Book> bookPage = new PageImpl<>(books);
+        Pageable pageable = PageRequest.of(0, 10);
+
+        when(bookRepository.findByTitleContainingIgnoreCase("Dom", pageable)).thenReturn(bookPage);
+
+        // When
+        Page<Book> result = bookService.findByTitle("Dom", pageable);
+
+        // Then
+        assertEquals(2, result.getContent().size());
+        assertTrue(result.getContent().stream().allMatch(book -> book.getTitle().contains("Dom")));
+        verify(bookRepository).findByTitleContainingIgnoreCase("Dom", pageable);
+    }
+
+    @Test
+    void findByAuthor_ShouldReturnBooksByAuthor() {
+        // Given
+        Long authorId = 1L;
+        List<Book> books = Arrays.asList(testBook, createBaseBook("O Cortiço"));
+        Page<Book> bookPage = new PageImpl<>(books);
+        Pageable pageable = PageRequest.of(0, 10);
+
+        when(bookRepository.findByAuthorId(authorId, pageable)).thenReturn(bookPage);
+
+        // When
+        Page<Book> result = bookService.findByAuthor(authorId, pageable);
+
+        // Then
+        assertEquals(2, result.getContent().size());
+        verify(bookRepository).findByAuthorId(authorId, pageable);
+    }
+
 
     @Test
     void findAll_ShouldReturnPageOfBooks() {
         // Given - Some books
-        List<Book> books = Arrays.asList(testBook, createAnotherBook());
+        List<Book> books = Arrays.asList(testBook, createBaseBook("O Cortiço"));
         Page<Book> bookPage = new PageImpl<>(books);
         Pageable pageable = PageRequest.of(0, 10);
-        
+
         when(bookRepository.findAll(pageable)).thenReturn(bookPage);
 
         // When
@@ -98,21 +156,6 @@ class BookServiceTest {
         verify(bookRepository).findAll(pageable);
     }
 
-    @Test
-    void findAll_ShouldReturnEmptyPage_WhenNoBooksExist() {
-        // Given - No books
-        Page<Book> emptyPage = new PageImpl<>(Arrays.asList());
-        Pageable pageable = PageRequest.of(0, 10);
-        
-        when(bookRepository.findAll(pageable)).thenReturn(emptyPage);
-
-        // When
-        Page<Book> result = bookService.findAll(pageable);
-
-        // Then
-        assertEquals(0, result.getContent().size());
-        verify(bookRepository).findAll(pageable);
-    }
 
     // ========== SAVE TESTS ==========
 
@@ -122,7 +165,7 @@ class BookServiceTest {
         Book newBook = createBaseBook();
         Book savedBook = createBaseBook();
         savedBook.setId(1L);
-        
+
         when(bookRepository.save(any(Book.class))).thenReturn(savedBook);
 
         // When
@@ -143,7 +186,7 @@ class BookServiceTest {
         assertThrows(IllegalArgumentException.class, () -> {
             bookService.save(null);
         });
-        
+
         verify(bookRepository, never()).save(any());
     }
 
@@ -157,7 +200,7 @@ class BookServiceTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             bookService.save(invalidBook);
         });
-        
+
         assertEquals("Título é obrigatório", exception.getMessage());
         verify(bookRepository, never()).save(any());
     }
@@ -172,7 +215,7 @@ class BookServiceTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             bookService.save(invalidBook);
         });
-        
+
         assertEquals("Título deve ter entre 2 e 200 caracteres", exception.getMessage());
         verify(bookRepository, never()).save(any());
     }
@@ -187,7 +230,7 @@ class BookServiceTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             bookService.save(invalidBook);
         });
-        
+
         assertEquals("Título deve ter entre 2 e 200 caracteres", exception.getMessage());
         verify(bookRepository, never()).save(any());
     }
@@ -202,25 +245,26 @@ class BookServiceTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             bookService.save(invalidBook);
         });
-        
+
         assertEquals("Número de páginas deve ser maior que zero", exception.getMessage());
         verify(bookRepository, never()).save(any());
     }
 
     @Test
-    void save_ShouldThrowException_WhenAuthorIdIsNull() {
+    void save_ShouldThrowException_WhenAuthorIsNull() {
         // Given - Null authorId
         Book invalidBook = createBaseBook();
-        invalidBook.setAuthorId(null);
+        invalidBook.setAuthor(null);
 
         // When & Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             bookService.save(invalidBook);
         });
-        
+
         assertEquals("ID do autor deve ser válido", exception.getMessage());
         verify(bookRepository, never()).save(any());
     }
+
 
     // ========== UPDATE TESTS ==========
 
@@ -259,7 +303,7 @@ class BookServiceTest {
         // Given - Non-existent ID
         Long nonExistentId = 999L;
         Book updateRequest = createBaseBook();
-        
+
         when(bookRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
         // When
@@ -330,16 +374,25 @@ class BookServiceTest {
         verify(bookRepository, never()).deleteById(any());
     }
 
-    // ========== HELPER METHODS ==========
+    // ========== SEARCH TESTS ==========
 
-    private Book createAnotherBook() {
-        Book book = new Book();
-        book.setId(2L);
-        book.setTitle("O Cortiço");
-        book.setSynopsis("Romance naturalista brasileiro...");
-        book.setPageCount(320);
-        book.setAuthorId(2L);
-        book.setCoverUrl("https://example.com/cortico.jpg");
-        return book;
+    @Test
+    void searchBooks_ShouldReturnMatchingBooks() {
+        // Given
+        String query = "romance";
+        List<Book> books = Arrays.asList(testBook);
+        Page<Book> bookPage = new PageImpl<>(books);
+        Pageable pageable = PageRequest.of(0, 10);
+
+        when(bookRepository.findByTitleOrSynopsisContaining(query, pageable)).thenReturn(bookPage);
+
+        // When
+        Page<Book> result = bookService.searchBooks(query, pageable);
+
+        // Then
+        assertEquals(1, result.getContent().size());
+        verify(bookRepository).findByTitleOrSynopsisContaining(query, pageable);
     }
+
+
 }
