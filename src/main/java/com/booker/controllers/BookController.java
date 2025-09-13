@@ -1,6 +1,6 @@
 package com.booker.controllers;
 
-import com.booker.models.Book;
+import com.booker.entities.Book;
 import com.booker.services.BookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,12 +29,12 @@ public class BookController {
     @GetMapping
     @Operation(summary = "Get all books", description = "Get paginated list of all books")
     public ResponseEntity<Page<Book>> getAllBooks(
-        @PageableDefault(size = 10, sort = "title") Pageable pageable,
-        @Parameter(description = "Filter by title") @RequestParam(required = false) String title,
-        @Parameter(description = "Filter by author ID") @RequestParam(required = false) Long authorId
-    ) {
+            @PageableDefault(size = 10, sort = "title") Pageable pageable,
+            @Parameter(description = "Filter by title") @RequestParam(required = false) String title,
+            @Parameter(description = "Filter by author ID") @RequestParam(required = false) Long authorId,
+            @Parameter(description = "Search in title and synopsis") @RequestParam(required = false) String search) {
         Page<Book> books;
-        
+
         if (title != null && !title.trim().isEmpty()) {
             books = bookService.findByTitle(title, pageable);
         } else if (authorId != null) {
@@ -42,7 +42,7 @@ public class BookController {
         } else {
             books = bookService.findAll(pageable);
         }
-        
+
         return ResponseEntity.ok(books);
     }
 
@@ -50,57 +50,101 @@ public class BookController {
     @GetMapping("/{id}")
     @Operation(summary = "Get book by ID", description = "Get a specific book by its ID")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Book found"),
-        @ApiResponse(responseCode = "404", description = "Book not found")
+            @ApiResponse(responseCode = "200", description = "Book found"),
+            @ApiResponse(responseCode = "404", description = "Book not found")
     })
     public ResponseEntity<Book> getBookById(
-        @Parameter(description = "Book ID") @PathVariable Long id
-    ) {
+            @Parameter(description = "Book ID") @PathVariable Long id) {
         Optional<Book> book = bookService.findById(id);
         return book.map(ResponseEntity::ok)
-                  .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.notFound().build());
     }
 
     // POST /books - Criar novo livro
     @PostMapping
     @Operation(summary = "Create new book", description = "Create a new book")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Book created successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid book data")
+            @ApiResponse(responseCode = "201", description = "Book created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid book data")
     })
     public ResponseEntity<Book> createBook(@RequestBody Book book) {
-        Book savedBook = bookService.save(book);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedBook);
+        try {
+            Book savedBook = bookService.save(book);
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedBook);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     // PUT /books/{id} - Atualizar livro
     @PutMapping("/{id}")
     @Operation(summary = "Update book", description = "Update an existing book")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Book updated successfully"),
-        @ApiResponse(responseCode = "404", description = "Book not found")
+            @ApiResponse(responseCode = "200", description = "Book updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Book not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid book data")
     })
     public ResponseEntity<Book> updateBook(
-        @Parameter(description = "Book ID") @PathVariable Long id,
-        @RequestBody Book book
-    ) {
-        Optional<Book> updatedBook = bookService.update(id, book);
+            @Parameter(description = "Book ID") @PathVariable Long id,
+            @RequestBody Book book) {
+        try {
+            Optional<Book> updatedBook = bookService.update(id, book);
+            return updatedBook.map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // PATCH /books/{id} - Atualização parcial
+    @PatchMapping("/{id}")
+    @Operation(summary = "Partially update book", description = "Partially update an existing book")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Book updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Book not found")
+    })
+    public ResponseEntity<Book> patchBook(
+            @Parameter(description = "Book ID") @PathVariable Long id,
+            @RequestBody Book book) {
+        Optional<Book> existingBook = bookService.findById(id);
+        if (existingBook.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Aplicar apenas campos não-nulos
+        Book bookToUpdate = existingBook.get();
+        if (book.getTitle() != null) {
+            bookToUpdate.setTitle(book.getTitle());
+        }
+        if (book.getSynopsis() != null) {
+            bookToUpdate.setSynopsis(book.getSynopsis());
+        }
+        if (book.getPageCount() != null) {
+            bookToUpdate.setPageCount(book.getPageCount());
+        }
+        if (book.getAuthor() != null) {
+            bookToUpdate.setAuthor(book.getAuthor());
+        }
+        if (book.getCoverUrl() != null) {
+            bookToUpdate.setCoverUrl(book.getCoverUrl());
+        }
+
+        Optional<Book> updatedBook = bookService.update(id, bookToUpdate);
         return updatedBook.map(ResponseEntity::ok)
-                         .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.notFound().build());
     }
 
     // DELETE /books/{id} - Deletar livro
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete book", description = "Delete a book by ID")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Book deleted successfully"),
-        @ApiResponse(responseCode = "404", description = "Book not found")
+            @ApiResponse(responseCode = "204", description = "Book deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Book not found")
     })
     public ResponseEntity<Void> deleteBook(
-        @Parameter(description = "Book ID") @PathVariable Long id
-    ) {
+            @Parameter(description = "Book ID") @PathVariable Long id) {
         boolean deleted = bookService.deleteById(id);
-        return deleted ? ResponseEntity.noContent().build() 
-                      : ResponseEntity.notFound().build();
+        return deleted ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 }
