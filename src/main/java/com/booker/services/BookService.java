@@ -41,10 +41,12 @@ public class BookService {
 
     public Book save(Book book, Long authorId, List<Long> genreIds) {
 
+        validateBook(book);
+        
         Author author = authorRepository.findById(authorId)
-                .orElseThrow(() -> new IllegalArgumentException("ID do autor inválido"));
+        .orElseThrow(() -> new IllegalArgumentException("ID do autor inválido"));
         book.setAuthor(author);
-
+        
         if (genreIds != null && !genreIds.isEmpty()) {
             Set<Genre> genres = new HashSet<>();
             for (Long genreId : genreIds) {
@@ -55,13 +57,15 @@ public class BookService {
             book.setGenres(genres);
         }
 
-        validateBook(book);
         return bookRepository.save(book);
     }
 
     public Optional<Book> update(Long id, Book bookData, Long authorId, List<Long> genreIds) {
         return bookRepository.findById(id)
                 .map(existingBook -> {
+
+                    validateBook(existingBook);
+                    
                     Author author = authorRepository.findById(authorId)
                             .orElseThrow(() -> new IllegalArgumentException("ID do autor inválido"));
                     existingBook.setAuthor(author);
@@ -83,7 +87,6 @@ public class BookService {
                     existingBook.setPageCount(bookData.getPageCount());
                     existingBook.setCoverUrl(bookData.getCoverUrl());
 
-                    validateBook(existingBook);
                     return bookRepository.save(existingBook);
                 });
     }
@@ -169,10 +172,6 @@ public class BookService {
 
         if (book.getPageCount() == null || book.getPageCount() <= 0) {
             throw new IllegalArgumentException("Número de páginas deve ser maior que zero");
-        }
-
-        if (book.getAuthor() == null) {
-            throw new IllegalArgumentException("ID do autor deve ser válido");
         }
     }
 }

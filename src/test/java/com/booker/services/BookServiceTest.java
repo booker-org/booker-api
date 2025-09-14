@@ -215,15 +215,6 @@ class BookServiceTest {
         Book invalidBook = createBaseBook();
         invalidBook.setTitle(null);
 
-        Author mockAuthor = createBaseAuthor();
-        when(authorRepository.findById(1L)).thenReturn(Optional.of(mockAuthor));
-
-        Genre mockGenre1 = new Genre();
-        mockGenre1.setId(1L);
-        mockGenre1.setName("Ficção");
-
-        when(genreRepository.findById(1L)).thenReturn(Optional.of(mockGenre1));
-
         // When & Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             bookService.save(invalidBook, 1L, List.of(1L));
@@ -238,15 +229,6 @@ class BookServiceTest {
         // Given - Title too short
         Book invalidBook = createBaseBook();
         invalidBook.setTitle("A");
-
-        Author mockAuthor = createBaseAuthor();
-        when(authorRepository.findById(1L)).thenReturn(Optional.of(mockAuthor));
-
-        Genre mockGenre1 = new Genre();
-        mockGenre1.setId(1L);
-        mockGenre1.setName("Ficção");
-
-        when(genreRepository.findById(1L)).thenReturn(Optional.of(mockGenre1));
 
         // When & Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -263,15 +245,6 @@ class BookServiceTest {
         Book invalidBook = createBaseBook();
         invalidBook.setTitle("A".repeat(201));
 
-        Author mockAuthor = createBaseAuthor();
-        when(authorRepository.findById(1L)).thenReturn(Optional.of(mockAuthor));
-
-        Genre mockGenre1 = new Genre();
-        mockGenre1.setId(1L);
-        mockGenre1.setName("Ficção");
-
-        when(genreRepository.findById(1L)).thenReturn(Optional.of(mockGenre1));
-
         // When & Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             bookService.save(invalidBook, 1L, List.of(1L));
@@ -286,15 +259,6 @@ class BookServiceTest {
         // Given - Negative page count
         Book invalidBook = createBaseBook();
         invalidBook.setPageCount(-10);
-
-        Author mockAuthor = createBaseAuthor();
-        when(authorRepository.findById(1L)).thenReturn(Optional.of(mockAuthor));
-
-        Genre mockGenre1 = new Genre();
-        mockGenre1.setId(1L);
-        mockGenre1.setName("Ficção");
-
-        when(genreRepository.findById(1L)).thenReturn(Optional.of(mockGenre1));
 
         // When & Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
