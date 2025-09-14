@@ -65,23 +65,23 @@ jobs:
           const emoji = success ? '✅' : '❌';
           const status = success ? 'ALL TESTS PASSED' : 'TESTS FAILED';
           
-          const body = `## ${emoji} Test Results - Booker API
+          const body = \`## \${emoji} Test Results - Booker API
 
 ### 📊 Summary
-- **Total Tests**: ${tests}
-- **Failures**: ${failures}
-- **Errors**: ${errors}
-- **Status**: **${status}**
+- **Total Tests**: \${tests}
+- **Failures**: \${failures}
+- **Errors**: \${errors}
+- **Status**: **\${status}**
 
-${success ? ' **Ready to merge!**' : '⚠️ **Please fix failing tests before merging**'}
+\${success ? '🎉 **Ready to merge!**' : '⚠️ **Please fix failing tests before merging**'}
 
 <details>
 <summary>📁 View Test Reports</summary>
 
-- [Full Test Reports](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
-- [Download Artifacts](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+- [Full Test Reports](https://github.com/\${context.repo.owner}/\${context.repo.repo}/actions/runs/\${context.runId})
+- [Download Artifacts](https://github.com/\${context.repo.owner}/\${context.repo.repo}/actions/runs/\${context.runId})
 
-</details>`;
+</details>\`;
 
           github.rest.issues.createComment({
             issue_number: context.issue.number,
