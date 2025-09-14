@@ -42,15 +42,27 @@ jobs:
     - name: Extract test results
       if: always()
       run: |
+        # Initialize default values
+        TESTS=0
+        FAILURES=0
+        ERRORS=0
+        
         if [ -f target/surefire-reports/TEST-*.xml ]; then
           TESTS=$(grep -o 'tests="[0-9]*"' target/surefire-reports/TEST-*.xml | grep -o '[0-9]*' | awk '{sum+=$1} END {print sum}')
           FAILURES=$(grep -o 'failures="[0-9]*"' target/surefire-reports/TEST-*.xml | grep -o '[0-9]*' | awk '{sum+=$1} END {print sum}')
           ERRORS=$(grep -o 'errors="[0-9]*"' target/surefire-reports/TEST-*.xml | grep -o '[0-9]*' | awk '{sum+=$1} END {print sum}')
-          
-          echo "TESTS=$TESTS" >> $GITHUB_ENV
-          echo "FAILURES=${FAILURES:-0}" >> $GITHUB_ENV
-          echo "ERRORS=${ERRORS:-0}" >> $GITHUB_ENV
         fi
+        
+        # Ensure variables have values (fallback to 0 if empty)
+        echo "TESTS=${TESTS:-0}" >> $GITHUB_ENV
+        echo "FAILURES=${FAILURES:-0}" >> $GITHUB_ENV
+        echo "ERRORS=${ERRORS:-0}" >> $GITHUB_ENV
+        
+        # Debug output
+        echo "Extracted test results:"
+        echo "TESTS=${TESTS:-0}"
+        echo "FAILURES=${FAILURES:-0}"
+        echo "ERRORS=${ERRORS:-0}"
 
     - name: Comment PR with results
       if: github.event_name == 'pull_request'
