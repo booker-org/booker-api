@@ -23,7 +23,7 @@
 
 > A formatação do código segue o padrão configurado em ```.editorconfig```, para utilizá-lo, instale a extensão **EditorConfig** no seu editor de código.
 
-> Os commits devem seguir o padrão do Conventional Commits, para facilitar a vizualição e o versionamento semântico.
+> Os commits devem seguir o padrão do Conventional Commits, para facilitar a visualização e o versionamento semântico.
 
 > É requisito abrir pull requests para contribuir com o projeto, e descrever detalhadamente as mudanças feitas.
 
