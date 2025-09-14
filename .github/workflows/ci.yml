@@ -47,7 +47,8 @@ jobs:
         FAILURES=0
         ERRORS=0
         
-        if [ -f target/surefire-reports/TEST-*.xml ]; then
+        # Check if any TEST-*.xml files exist
+        if ls target/surefire-reports/TEST-*.xml 1> /dev/null 2>&1; then
           TESTS=$(grep -o 'tests="[0-9]*"' target/surefire-reports/TEST-*.xml | grep -o '[0-9]*' | awk '{sum+=$1} END {print sum}')
           FAILURES=$(grep -o 'failures="[0-9]*"' target/surefire-reports/TEST-*.xml | grep -o '[0-9]*' | awk '{sum+=$1} END {print sum}')
           ERRORS=$(grep -o 'errors="[0-9]*"' target/surefire-reports/TEST-*.xml | grep -o '[0-9]*' | awk '{sum+=$1} END {print sum}')
