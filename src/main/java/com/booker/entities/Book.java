@@ -3,6 +3,8 @@ package com.booker.entities;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +17,7 @@ import lombok.AllArgsConstructor;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonPropertyOrder({"id", "title", "synopsis", "pageCount", "author", "genres", "coverUrl", "createdAt", "updatedAt"})
 public class Book extends BaseEntity{
     
     @Column(nullable = false)
