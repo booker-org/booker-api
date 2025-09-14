@@ -6,14 +6,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AuthorMapper {
-    
-    public AuthorDTO toDTO(Author author) {
-        if (author == null) return null;
-        
-        return new AuthorDTO(
-            author.getId(),
-            author.getName(),
-            author.getBiography()
-        );
-    }
+
+  public AuthorDTO toDTO(Author author) {
+    if (author == null)
+      return null;
+
+    return new AuthorDTO(
+        author.getId(),
+        author.getName(),
+        author.getBiography());
+  }
 }

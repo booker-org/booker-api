@@ -11,12 +11,12 @@ import com.booker.entities.Book;
 
 @Repository
 public interface BookRepository extends JpaRepository<Book, Long> {
-    
-    Page<Book> findByTitleContainingIgnoreCase(String title, Pageable pageable);
-    
-    Page<Book> findByAuthorId(Long authorId, Pageable pageable);
-    
-    // Customized search with JPQL
-    @Query("SELECT b FROM Book b WHERE b.title LIKE %:title% OR b.synopsis LIKE %:title%")
-    Page<Book> findByTitleOrSynopsisContaining(@Param("title") String title, Pageable pageable);
+
+  Page<Book> findByTitleContainingIgnoreCase(String title, Pageable pageable);
+
+  Page<Book> findByAuthorId(Long authorId, Pageable pageable);
+
+  // Customized search with JPQL
+  @Query("SELECT b FROM Book b WHERE b.title LIKE %:title% OR b.synopsis LIKE %:title%")
+  Page<Book> findByTitleOrSynopsisContaining(@Param("title") String title, Pageable pageable);
 }

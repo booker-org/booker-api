@@ -6,11 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.booker.entities.Author;
 import java.util.Optional;
 
-
 @Repository
 public interface AuthorRepository extends JpaRepository<Author, Long> {
 
-    Optional<Author> findById(Long id);
-    Optional<Author> findByName(String name);
+  Optional<Author> findById(Long id);
+
+  Optional<Author> findByName(String name);
 
 }

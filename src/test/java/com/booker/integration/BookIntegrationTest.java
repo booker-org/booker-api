@@ -32,313 +32,303 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class BookIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+  @Autowired
+  private ObjectMapper objectMapper;
 
-    @Autowired
-    private BookRepository bookRepository;
+  @Autowired
+  private BookRepository bookRepository;
 
-    @Autowired
-    private AuthorRepository authorRepository;
+  @Autowired
+  private AuthorRepository authorRepository;
 
-    @Autowired
-    private GenreRepository genreRepository;
+  @Autowired
+  private GenreRepository genreRepository;
 
-    private Author savedAuthor;
-    private Genre savedGenre1;
-    private Genre savedGenre2;
+  private Author savedAuthor;
+  private Genre savedGenre1;
+  private Genre savedGenre2;
 
-    @BeforeEach
-    void setUp() {
-        // Clear database before each test
-        bookRepository.deleteAll();
-        authorRepository.deleteAll();
-        genreRepository.deleteAll();
-        
-        // Create base data for tests
-        Author author = new Author();
-        author.setName("Machado de Assis");
-        author.setBiography("Considerado um dos maiores escritores brasileiros...");
-        savedAuthor = authorRepository.save(author);
+  @BeforeEach
+  void setUp() {
+    // Clear database before each test
+    bookRepository.deleteAll();
+    authorRepository.deleteAll();
+    genreRepository.deleteAll();
 
-        Genre genre1 = new Genre();
-        genre1.setName("Ficção");
-        savedGenre1 = genreRepository.save(genre1);
+    // Create base data for tests
+    Author author = new Author();
+    author.setName("Machado de Assis");
+    author.setBiography("Considerado um dos maiores escritores brasileiros...");
+    savedAuthor = authorRepository.save(author);
 
-        Genre genre2 = new Genre();
-        genre2.setName("Clássico");
-        savedGenre2 = genreRepository.save(genre2);
-    }
+    Genre genre1 = new Genre();
+    genre1.setName("Ficção");
+    savedGenre1 = genreRepository.save(genre1);
 
-    // ========== CREATE TESTS ==========
+    Genre genre2 = new Genre();
+    genre2.setName("Clássico");
+    savedGenre2 = genreRepository.save(genre2);
+  }
 
-    @Test
-    void createBook_ShouldReturnCreatedBook_WhenValidData() throws Exception {
-        // Given
-        BookCreateDTO createRequest = new BookCreateDTO(
-            "Dom Casmurro",
-            "A obra narra a vida de Bento Santiago...",
-            256,
-            savedAuthor.getId(),
-            List.of(savedGenre1.getId(), savedGenre2.getId()),
-            "https://example.com/dom-casmurro.jpg"
-        );
+  // ========== CREATE TESTS ==========
 
-        // When & Then
-        mockMvc.perform(post("/books")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createRequest)))
-                .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").isNotEmpty())
-                .andExpect(jsonPath("$.title").value("Dom Casmurro"))
-                .andExpect(jsonPath("$.synopsis").value("A obra narra a vida de Bento Santiago..."))
-                .andExpect(jsonPath("$.pageCount").value(256))
-                .andExpect(jsonPath("$.authorName").value("Machado de Assis"))
-                .andExpect(jsonPath("$.genres").isArray())
-                .andExpect(jsonPath("$.genres", hasSize(2)))
-                .andExpect(jsonPath("$.genres", containsInAnyOrder("Ficção", "Clássico")))
-                .andExpect(jsonPath("$.coverUrl").value("https://example.com/dom-casmurro.jpg"))
-                .andExpect(jsonPath("$.createdAt").isNotEmpty())
-                .andExpect(jsonPath("$.updatedAt").isNotEmpty());
+  @Test
+  void createBook_ShouldReturnCreatedBook_WhenValidData() throws Exception {
+    // Given
+    BookCreateDTO createRequest = new BookCreateDTO(
+        "Dom Casmurro",
+        "A obra narra a vida de Bento Santiago...",
+        256,
+        savedAuthor.getId(),
+        List.of(savedGenre1.getId(), savedGenre2.getId()),
+        "https://example.com/dom-casmurro.jpg");
 
-        // Verify it was saved in the database
-        List<Book> books = bookRepository.findAll();
-        assert books.size() == 1;
-        assert books.get(0).getTitle().equals("Dom Casmurro");
-    }
+    // When & Then
+    mockMvc.perform(post("/books")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(createRequest)))
+        .andExpect(status().isCreated())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.id").isNotEmpty())
+        .andExpect(jsonPath("$.title").value("Dom Casmurro"))
+        .andExpect(jsonPath("$.synopsis").value("A obra narra a vida de Bento Santiago..."))
+        .andExpect(jsonPath("$.pageCount").value(256))
+        .andExpect(jsonPath("$.authorName").value("Machado de Assis"))
+        .andExpect(jsonPath("$.genres").isArray())
+        .andExpect(jsonPath("$.genres", hasSize(2)))
+        .andExpect(jsonPath("$.genres", containsInAnyOrder("Ficção", "Clássico")))
+        .andExpect(jsonPath("$.coverUrl").value("https://example.com/dom-casmurro.jpg"))
+        .andExpect(jsonPath("$.createdAt").isNotEmpty())
+        .andExpect(jsonPath("$.updatedAt").isNotEmpty());
 
-    @Test
-    void createBook_ShouldReturn400_WhenInvalidData() throws Exception {
-        // Given
-        BookCreateDTO invalidRequest = new BookCreateDTO(
-            "A", // invalid title
-            "Sinopse qualquer",
-            256,
-            savedAuthor.getId(),
-            List.of(savedGenre1.getId()),
-            "https://example.com/cover.jpg"
-        );
+    // Verify it was saved in the database
+    List<Book> books = bookRepository.findAll();
+    assert books.size() == 1;
+    assert books.get(0).getTitle().equals("Dom Casmurro");
+  }
 
-        // When & Then
-        mockMvc.perform(post("/books")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidRequest)))
-                .andExpect(status().isBadRequest());
+  @Test
+  void createBook_ShouldReturn400_WhenInvalidData() throws Exception {
+    // Given
+    BookCreateDTO invalidRequest = new BookCreateDTO(
+        "A", // invalid title
+        "Sinopse qualquer",
+        256,
+        savedAuthor.getId(),
+        List.of(savedGenre1.getId()),
+        "https://example.com/cover.jpg");
 
-        // Verify nothing was saved in the database
-        List<Book> books = bookRepository.findAll();
-        assert books.isEmpty();
-    }
+    // When & Then
+    mockMvc.perform(post("/books")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(invalidRequest)))
+        .andExpect(status().isBadRequest());
 
-    @Test
-    void createBook_ShouldReturn400_WhenAuthorNotExists() throws Exception {
-        // Given
-        BookCreateDTO invalidRequest = new BookCreateDTO(
-            "Título Válido",
-            "Sinopse qualquer",
-            256,
-            999L, // non-existent author ID
-            List.of(savedGenre1.getId()),
-            "https://example.com/cover.jpg"
-        );
+    // Verify nothing was saved in the database
+    List<Book> books = bookRepository.findAll();
+    assert books.isEmpty();
+  }
 
-        // When & Then
-        mockMvc.perform(post("/books")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidRequest)))
-                .andExpect(status().isBadRequest());
-    }
+  @Test
+  void createBook_ShouldReturn400_WhenAuthorNotExists() throws Exception {
+    // Given
+    BookCreateDTO invalidRequest = new BookCreateDTO(
+        "Título Válido",
+        "Sinopse qualquer",
+        256,
+        999L, // non-existent author ID
+        List.of(savedGenre1.getId()),
+        "https://example.com/cover.jpg");
 
-    // ========== READ TESTS ==========
+    // When & Then
+    mockMvc.perform(post("/books")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(invalidRequest)))
+        .andExpect(status().isBadRequest());
+  }
 
-    @Test
-    void getBookById_ShouldReturnBook_WhenBookExists() throws Exception {
-        // Given
-        BookCreateDTO createRequest = new BookCreateDTO(
-            "Dom Casmurro",
-            "A obra narra a vida de Bento Santiago...",
-            256,
-            savedAuthor.getId(),
-            List.of(savedGenre1.getId(), savedGenre2.getId()),
-            "https://example.com/dom-casmurro.jpg"
-        );
+  // ========== READ TESTS ==========
 
-        // Create the book via API first
-        String createResponse = mockMvc.perform(post("/books")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createRequest)))
-                .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+  @Test
+  void getBookById_ShouldReturnBook_WhenBookExists() throws Exception {
+    // Given
+    BookCreateDTO createRequest = new BookCreateDTO(
+        "Dom Casmurro",
+        "A obra narra a vida de Bento Santiago...",
+        256,
+        savedAuthor.getId(),
+        List.of(savedGenre1.getId(), savedGenre2.getId()),
+        "https://example.com/dom-casmurro.jpg");
 
-        Long bookId = objectMapper.readTree(createResponse).path("id").asLong();
+    // Create the book via API first
+    String createResponse = mockMvc.perform(post("/books")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(createRequest)))
+        .andExpect(status().isCreated())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
 
-        // When & Then
-        mockMvc.perform(get("/books/{id}", bookId))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(bookId))
-                .andExpect(jsonPath("$.title").value("Dom Casmurro"))
-                .andExpect(jsonPath("$.author.name").value("Machado de Assis"))
-                .andExpect(jsonPath("$.genres", hasSize(2)));
-    }
+    Long bookId = objectMapper.readTree(createResponse).path("id").asLong();
 
-    @Test
-    void getBookById_ShouldReturn404_WhenBookNotExists() throws Exception {
-        // When & Then
-        mockMvc.perform(get("/books/{id}", 999L))
-                .andExpect(status().isNotFound());
-    }
+    // When & Then
+    mockMvc.perform(get("/books/{id}", bookId))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.id").value(bookId))
+        .andExpect(jsonPath("$.title").value("Dom Casmurro"))
+        .andExpect(jsonPath("$.author.name").value("Machado de Assis"))
+        .andExpect(jsonPath("$.genres", hasSize(2)));
+  }
 
-    @Test
-    void getAllBooks_ShouldReturnPageOfBooks() throws Exception {
-        // Given
-        BookCreateDTO book1Request = new BookCreateDTO(
-            "Dom Casmurro",
-            "Uma história de amor",
-            256,
-            savedAuthor.getId(),
-            List.of(savedGenre1.getId()),
-            "https://example.com/dom-casmurro.jpg"
-        );
+  @Test
+  void getBookById_ShouldReturn404_WhenBookNotExists() throws Exception {
+    // When & Then
+    mockMvc.perform(get("/books/{id}", 999L))
+        .andExpect(status().isNotFound());
+  }
 
-        BookCreateDTO book2Request = new BookCreateDTO(
-            "O Cortiço",
-            "Aventuras no espaço",
-            300,
-            savedAuthor.getId(),
-            List.of(savedGenre2.getId()),
-            "https://example.com/o-cortico.jpg"
-        );
+  @Test
+  void getAllBooks_ShouldReturnPageOfBooks() throws Exception {
+    // Given
+    BookCreateDTO book1Request = new BookCreateDTO(
+        "Dom Casmurro",
+        "Uma história de amor",
+        256,
+        savedAuthor.getId(),
+        List.of(savedGenre1.getId()),
+        "https://example.com/dom-casmurro.jpg");
 
-        // Create books via API
-        mockMvc.perform(post("/books")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(book1Request)))
-                .andExpect(status().isCreated());
+    BookCreateDTO book2Request = new BookCreateDTO(
+        "O Cortiço",
+        "Aventuras no espaço",
+        300,
+        savedAuthor.getId(),
+        List.of(savedGenre2.getId()),
+        "https://example.com/o-cortico.jpg");
 
-        mockMvc.perform(post("/books")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(book2Request)))
-                .andExpect(status().isCreated());
+    // Create books via API
+    mockMvc.perform(post("/books")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(book1Request)))
+        .andExpect(status().isCreated());
 
-        // When & Then
-        mockMvc.perform(get("/books")
-                .param("size", "10")
-                .param("page", "0"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.content", hasSize(2)))
-                .andExpect(jsonPath("$.totalElements").value(2))
-                .andExpect(jsonPath("$.totalPages").value(1));
-    }
+    mockMvc.perform(post("/books")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(book2Request)))
+        .andExpect(status().isCreated());
 
-    // ========== UPDATE TESTS ==========
+    // When & Then
+    mockMvc.perform(get("/books")
+        .param("size", "10")
+        .param("page", "0"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content", hasSize(2)))
+        .andExpect(jsonPath("$.totalElements").value(2))
+        .andExpect(jsonPath("$.totalPages").value(1));
+  }
 
-    @Test
-    void updateBook_ShouldReturnUpdatedBook_WhenValidData() throws Exception {
-        // Given - Create a book first
-        BookCreateDTO createRequest = new BookCreateDTO(
-            "Dom Casmurro Original",
-            "Sinopse original",
-            256,
-            savedAuthor.getId(),
-            List.of(savedGenre1.getId()),
-            "https://example.com/original.jpg"
-        );
+  // ========== UPDATE TESTS ==========
 
-        String createResponse = mockMvc.perform(post("/books")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createRequest)))
-                .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+  @Test
+  void updateBook_ShouldReturnUpdatedBook_WhenValidData() throws Exception {
+    // Given - Create a book first
+    BookCreateDTO createRequest = new BookCreateDTO(
+        "Dom Casmurro Original",
+        "Sinopse original",
+        256,
+        savedAuthor.getId(),
+        List.of(savedGenre1.getId()),
+        "https://example.com/original.jpg");
 
-        Long bookId = objectMapper.readTree(createResponse).path("id").asLong();
+    String createResponse = mockMvc.perform(post("/books")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(createRequest)))
+        .andExpect(status().isCreated())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
 
-        BookCreateDTO updateRequest = new BookCreateDTO(
-            "Dom Casmurro - Edição Revisada",
-            "Nova sinopse atualizada",
-            300,
-            savedAuthor.getId(),
-            List.of(savedGenre1.getId()),
-            "https://example.com/new-cover.jpg"
-        );
+    Long bookId = objectMapper.readTree(createResponse).path("id").asLong();
 
-        // When & Then
-        mockMvc.perform(put("/books/{id}", bookId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(bookId))
-                .andExpect(jsonPath("$.title").value("Dom Casmurro - Edição Revisada"))
-                .andExpect(jsonPath("$.synopsis").value("Nova sinopse atualizada"))
-                .andExpect(jsonPath("$.pageCount").value(300))
-                .andExpect(jsonPath("$.genres", hasSize(1)));
-    }
+    BookCreateDTO updateRequest = new BookCreateDTO(
+        "Dom Casmurro - Edição Revisada",
+        "Nova sinopse atualizada",
+        300,
+        savedAuthor.getId(),
+        List.of(savedGenre1.getId()),
+        "https://example.com/new-cover.jpg");
 
-    @Test
-    void updateBook_ShouldReturn404_WhenBookNotExists() throws Exception {
-        // Given
-        BookCreateDTO updateRequest = new BookCreateDTO(
-            "Título Qualquer",
-            "Sinopse qualquer",
-            256,
-            savedAuthor.getId(),
-            List.of(savedGenre1.getId()),
-            "https://example.com/cover.jpg"
-        );
+    // When & Then
+    mockMvc.perform(put("/books/{id}", bookId)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(updateRequest)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(bookId))
+        .andExpect(jsonPath("$.title").value("Dom Casmurro - Edição Revisada"))
+        .andExpect(jsonPath("$.synopsis").value("Nova sinopse atualizada"))
+        .andExpect(jsonPath("$.pageCount").value(300))
+        .andExpect(jsonPath("$.genres", hasSize(1)));
+  }
 
-        // When & Then
-        mockMvc.perform(put("/books/{id}", 999L)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isNotFound());
-    }
+  @Test
+  void updateBook_ShouldReturn404_WhenBookNotExists() throws Exception {
+    // Given
+    BookCreateDTO updateRequest = new BookCreateDTO(
+        "Título Qualquer",
+        "Sinopse qualquer",
+        256,
+        savedAuthor.getId(),
+        List.of(savedGenre1.getId()),
+        "https://example.com/cover.jpg");
 
-    // ========== DELETE TESTS ==========
+    // When & Then
+    mockMvc.perform(put("/books/{id}", 999L)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(updateRequest)))
+        .andExpect(status().isNotFound());
+  }
 
-    @Test
-    void deleteBook_ShouldReturnNoContent_WhenBookExists() throws Exception {
-        // Given - Criar um livro primeiro
-        BookCreateDTO createRequest = new BookCreateDTO(
-            "Dom Casmurro",
-            "A obra narra a vida de Bento Santiago...",
-            256,
-            savedAuthor.getId(),
-            List.of(savedGenre1.getId()),
-            "https://example.com/dom-casmurro.jpg"
-        );
+  // ========== DELETE TESTS ==========
 
-        String createResponse = mockMvc.perform(post("/books")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createRequest)))
-                .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+  @Test
+  void deleteBook_ShouldReturnNoContent_WhenBookExists() throws Exception {
+    // Given - Criar um livro primeiro
+    BookCreateDTO createRequest = new BookCreateDTO(
+        "Dom Casmurro",
+        "A obra narra a vida de Bento Santiago...",
+        256,
+        savedAuthor.getId(),
+        List.of(savedGenre1.getId()),
+        "https://example.com/dom-casmurro.jpg");
 
-        Long bookId = objectMapper.readTree(createResponse).path("id").asLong();
+    String createResponse = mockMvc.perform(post("/books")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(createRequest)))
+        .andExpect(status().isCreated())
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
 
-        // When & Then
-        mockMvc.perform(delete("/books/{id}", bookId))
-                .andExpect(status().isNoContent());
+    Long bookId = objectMapper.readTree(createResponse).path("id").asLong();
 
-        // Verify it was deleted from the database
-        assert bookRepository.findById(bookId).isEmpty();
-    }
+    // When & Then
+    mockMvc.perform(delete("/books/{id}", bookId))
+        .andExpect(status().isNoContent());
 
-    @Test
-    void deleteBook_ShouldReturn404_WhenBookNotExists() throws Exception {
-        // When & Then
-        mockMvc.perform(delete("/books/{id}", 999L))
-                .andExpect(status().isNotFound());
-    }
+    // Verify it was deleted from the database
+    assert bookRepository.findById(bookId).isEmpty();
+  }
+
+  @Test
+  void deleteBook_ShouldReturn404_WhenBookNotExists() throws Exception {
+    // When & Then
+    mockMvc.perform(delete("/books/{id}", 999L))
+        .andExpect(status().isNotFound());
+  }
 }

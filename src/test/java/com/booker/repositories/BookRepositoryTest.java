@@ -23,223 +23,221 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("test")
 class BookRepositoryTest {
 
-    @Autowired
-    private BookRepository bookRepository;
+  @Autowired
+  private BookRepository bookRepository;
 
-    @Autowired
-    private TestEntityManager entityManager;
+  @Autowired
+  private TestEntityManager entityManager;
 
-    private Author createBaseAuthor() {
-        Author author = new Author();
-        author.setName("Machado de Assis");
-        author.setBiography("Considerado um dos maiores escritores brasileiros...");
-        return author;
-    }
+  private Author createBaseAuthor() {
+    Author author = new Author();
+    author.setName("Machado de Assis");
+    author.setBiography("Considerado um dos maiores escritores brasileiros...");
+    return author;
+  }
 
-    private Author createAndSaveAuthor() {
-        Author author = createBaseAuthor();
-        return entityManager.persistAndFlush(author);
-    }
+  private Author createAndSaveAuthor() {
+    Author author = createBaseAuthor();
+    return entityManager.persistAndFlush(author);
+  }
 
-    private Book createAndSaveBookWithAuthor(String title, String synopsis, Author author) {
-        Book book = new Book();
-        book.setTitle(title);
-        book.setSynopsis(synopsis);
-        book.setPageCount(200);
-        book.setAuthor(author);
-        book.setCoverUrl("https://example.com/" + title.toLowerCase().replace(" ", "-") + ".jpg");
-        return entityManager.persistAndFlush(book);
-    }
+  private Book createAndSaveBookWithAuthor(String title, String synopsis, Author author) {
+    Book book = new Book();
+    book.setTitle(title);
+    book.setSynopsis(synopsis);
+    book.setPageCount(200);
+    book.setAuthor(author);
+    book.setCoverUrl("https://example.com/" + title.toLowerCase().replace(" ", "-") + ".jpg");
+    return entityManager.persistAndFlush(book);
+  }
 
-    private Book createAndSaveBook(String title, String synopsis, Long authorId) {
-        Author author = createAndSaveAuthor();
-        
-        Book book = new Book();
-        book.setTitle(title);
-        book.setSynopsis(synopsis);
-        book.setPageCount(200);
-        book.setAuthor(author);
-        book.setCoverUrl("https://example.com/" + title.toLowerCase().replace(" ", "-") + ".jpg");
-        return entityManager.persistAndFlush(book);
-    }
+  private Book createAndSaveBook(String title, String synopsis, Long authorId) {
+    Author author = createAndSaveAuthor();
 
-    // ========== TESTS ==========
+    Book book = new Book();
+    book.setTitle(title);
+    book.setSynopsis(synopsis);
+    book.setPageCount(200);
+    book.setAuthor(author);
+    book.setCoverUrl("https://example.com/" + title.toLowerCase().replace(" ", "-") + ".jpg");
+    return entityManager.persistAndFlush(book);
+  }
 
-    @Test
-    void findByTitleContainingIgnoreCase_ShouldReturnBooksMatchingTitle_WhenTitleExists() {
-        // Given
-        createAndSaveBook("Dom Casmurro", "Romance brasileiro", 1L);
-        createAndSaveBook("O Cortiço", "Romance naturalista", 1L);
-        createAndSaveBook("Machado de Assis Biography", "Biografia", 2L);
+  // ========== TESTS ==========
 
-        Pageable pageable = PageRequest.of(0, 10);
+  @Test
+  void findByTitleContainingIgnoreCase_ShouldReturnBooksMatchingTitle_WhenTitleExists() {
+    // Given
+    createAndSaveBook("Dom Casmurro", "Romance brasileiro", 1L);
+    createAndSaveBook("O Cortiço", "Romance naturalista", 1L);
+    createAndSaveBook("Machado de Assis Biography", "Biografia", 2L);
 
-        // When - Searching with different case
-        Page<Book> result = bookRepository.findByTitleContainingIgnoreCase("dom", pageable);
+    Pageable pageable = PageRequest.of(0, 10);
 
-        // Then
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getTitle()).isEqualTo("Dom Casmurro");
-    }
+    // When - Searching with different case
+    Page<Book> result = bookRepository.findByTitleContainingIgnoreCase("dom", pageable);
 
-    @Test
-    void findByTitleContainingIgnoreCase_ShouldBeCaseInsensitive() {
-        // Given
-        createAndSaveBook("Dom Casmurro", "Romance brasileiro", 1L);
+    // Then
+    assertThat(result.getContent()).hasSize(1);
+    assertThat(result.getContent().get(0).getTitle()).isEqualTo("Dom Casmurro");
+  }
 
-        Pageable pageable = PageRequest.of(0, 10);
+  @Test
+  void findByTitleContainingIgnoreCase_ShouldBeCaseInsensitive() {
+    // Given
+    createAndSaveBook("Dom Casmurro", "Romance brasileiro", 1L);
 
-        // When - Searching with different case
-        Page<Book> result = bookRepository.findByTitleContainingIgnoreCase("DOM", pageable);
+    Pageable pageable = PageRequest.of(0, 10);
 
-        // Then
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getTitle()).isEqualTo("Dom Casmurro");
-    }
+    // When - Searching with different case
+    Page<Book> result = bookRepository.findByTitleContainingIgnoreCase("DOM", pageable);
 
-    @Test
-    void findByAuthorId_ShouldReturnBooksFromSpecificAuthor_WhenAuthorExists() {
-        // Given
-        Author author1 = createAndSaveAuthor();
-        Author author2 = createAndSaveAuthor();
-        
-        createAndSaveBookWithAuthor("Dom Casmurro", "Romance", author1);
-        createAndSaveBookWithAuthor("Memórias Póstumas", "Romance", author1);
-        createAndSaveBookWithAuthor("O Cortiço", "Romance", author2);
+    // Then
+    assertThat(result.getContent()).hasSize(1);
+    assertThat(result.getContent().get(0).getTitle()).isEqualTo("Dom Casmurro");
+  }
 
-        Pageable pageable = PageRequest.of(0, 10);
+  @Test
+  void findByAuthorId_ShouldReturnBooksFromSpecificAuthor_WhenAuthorExists() {
+    // Given
+    Author author1 = createAndSaveAuthor();
+    Author author2 = createAndSaveAuthor();
 
-        // When - Searching for books by author1's ID
-        Page<Book> result = bookRepository.findByAuthorId(author1.getId(), pageable);
+    createAndSaveBookWithAuthor("Dom Casmurro", "Romance", author1);
+    createAndSaveBookWithAuthor("Memórias Póstumas", "Romance", author1);
+    createAndSaveBookWithAuthor("O Cortiço", "Romance", author2);
 
-        // Then
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent())
-                .extracting(book -> book.getAuthor().getId())
-                .containsOnly(author1.getId());
-    }
+    Pageable pageable = PageRequest.of(0, 10);
 
-    @Test
-    void findByTitleOrSynopsisContaining_ShouldSearchInBothFields() {
-        // Given
-        createAndSaveBook("Dom Casmurro", "Romance sobre ciúme", 1L);
-        createAndSaveBook("O Cortiço", "Romance naturalista sobre moradia", 2L);
-        createAndSaveBook("Helena", "Drama familiar", 1L);
+    // When - Searching for books by author1's ID
+    Page<Book> result = bookRepository.findByAuthorId(author1.getId(), pageable);
 
-        Pageable pageable = PageRequest.of(0, 10);
+    // Then
+    assertThat(result.getContent()).hasSize(2);
+    assertThat(result.getContent())
+        .extracting(book -> book.getAuthor().getId())
+        .containsOnly(author1.getId());
+  }
 
-        // When - Searching for "moradia" which is in the synopsis of "O Cortiço"
-        Page<Book> result = bookRepository.findByTitleOrSynopsisContaining("moradia", pageable);
+  @Test
+  void findByTitleOrSynopsisContaining_ShouldSearchInBothFields() {
+    // Given
+    createAndSaveBook("Dom Casmurro", "Romance sobre ciúme", 1L);
+    createAndSaveBook("O Cortiço", "Romance naturalista sobre moradia", 2L);
+    createAndSaveBook("Helena", "Drama familiar", 1L);
 
-        // Then
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getTitle()).isEqualTo("O Cortiço");
-    }
+    Pageable pageable = PageRequest.of(0, 10);
 
-    @Test
-    void findByTitleOrSynopsisContaining_ShouldReturnEmptyPage_WhenNoMatch() {
-        // Given
-        createAndSaveBook("Dom Casmurro", "Romance brasileiro", 1L);
+    // When - Searching for "moradia" which is in the synopsis of "O Cortiço"
+    Page<Book> result = bookRepository.findByTitleOrSynopsisContaining("moradia", pageable);
 
-        Pageable pageable = PageRequest.of(0, 10);
+    // Then
+    assertThat(result.getContent()).hasSize(1);
+    assertThat(result.getContent().get(0).getTitle()).isEqualTo("O Cortiço");
+  }
 
-        // When - Searching for a term that doesn't exist
-        Page<Book> result = bookRepository.findByTitleOrSynopsisContaining("ficção científica", pageable);
+  @Test
+  void findByTitleOrSynopsisContaining_ShouldReturnEmptyPage_WhenNoMatch() {
+    // Given
+    createAndSaveBook("Dom Casmurro", "Romance brasileiro", 1L);
 
-        // Then
-        assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isZero();
-    }
+    Pageable pageable = PageRequest.of(0, 10);
 
-    @Test
-    void findById_ShouldReturnBook_WhenBookExists() {
-        // Given
-        Book savedBook = createAndSaveBook("Dom Casmurro", "Romance brasileiro", 1L);
+    // When - Searching for a term that doesn't exist
+    Page<Book> result = bookRepository.findByTitleOrSynopsisContaining("ficção científica", pageable);
 
-        // When
-        Book result = bookRepository.findById(savedBook.getId()).orElse(null);
+    // Then
+    assertThat(result.getContent()).isEmpty();
+    assertThat(result.getTotalElements()).isZero();
+  }
 
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getTitle()).isEqualTo("Dom Casmurro");
-    }
+  @Test
+  void findById_ShouldReturnBook_WhenBookExists() {
+    // Given
+    Book savedBook = createAndSaveBook("Dom Casmurro", "Romance brasileiro", 1L);
 
+    // When
+    Book result = bookRepository.findById(savedBook.getId()).orElse(null);
 
-    @Test
-    void findAll_ShouldReturnPageOfBooks() {
-        // Given
-        createAndSaveBook("Dom Casmurro", "Romance", 1L);
-        createAndSaveBook("O Cortiço", "Romance", 1L);
+    // Then
+    assertThat(result).isNotNull();
+    assertThat(result.getTitle()).isEqualTo("Dom Casmurro");
+  }
 
-        Pageable pageable = PageRequest.of(0, 10);
+  @Test
+  void findAll_ShouldReturnPageOfBooks() {
+    // Given
+    createAndSaveBook("Dom Casmurro", "Romance", 1L);
+    createAndSaveBook("O Cortiço", "Romance", 1L);
 
-        // When
-        Page<Book> result = bookRepository.findAll(pageable);
+    Pageable pageable = PageRequest.of(0, 10);
 
-        // Then
-        assertThat(result.getContent()).hasSize(2);
-    }
+    // When
+    Page<Book> result = bookRepository.findAll(pageable);
 
+    // Then
+    assertThat(result.getContent()).hasSize(2);
+  }
 
-    @Test
-    void save_ShouldPersistBook_WhenValidBook() {
-        // Given
-        Author author = createAndSaveAuthor();
-        
-        Book book = new Book();
-        book.setTitle("Dom Casmurro");
-        book.setSynopsis("Romance brasileiro");
-        book.setPageCount(256);
-        book.setAuthor(author);
+  @Test
+  void save_ShouldPersistBook_WhenValidBook() {
+    // Given
+    Author author = createAndSaveAuthor();
 
-        // When
-        Book savedBook = bookRepository.save(book);
+    Book book = new Book();
+    book.setTitle("Dom Casmurro");
+    book.setSynopsis("Romance brasileiro");
+    book.setPageCount(256);
+    book.setAuthor(author);
 
-        // Then
-        assertThat(savedBook.getId()).isNotNull();
-        assertThat(savedBook.getTitle()).isEqualTo("Dom Casmurro");
-    }
+    // When
+    Book savedBook = bookRepository.save(book);
 
-    @Test
-    void deleteById_ShouldRemoveBook_WhenBookExists() {
-        // Given
-        Book savedBook = createAndSaveBook("Dom Casmurro", "Romance", 1L);
-        Long bookId = savedBook.getId();
+    // Then
+    assertThat(savedBook.getId()).isNotNull();
+    assertThat(savedBook.getTitle()).isEqualTo("Dom Casmurro");
+  }
 
-        // When
-        bookRepository.deleteById(bookId);
+  @Test
+  void deleteById_ShouldRemoveBook_WhenBookExists() {
+    // Given
+    Book savedBook = createAndSaveBook("Dom Casmurro", "Romance", 1L);
+    Long bookId = savedBook.getId();
 
-        // Then
-        assertThat(bookRepository.findById(bookId)).isEmpty();
-    }
+    // When
+    bookRepository.deleteById(bookId);
 
-    // ========== SEARCH TESTS ==========
+    // Then
+    assertThat(bookRepository.findById(bookId)).isEmpty();
+  }
 
-    @Test
-    void findByAuthorId_ShouldReturnEmptyPage_WhenAuthorHasNoBooks() {
-        // Given
-        createAndSaveBook("Dom Casmurro", "Romance", 1L);
+  // ========== SEARCH TESTS ==========
 
-        Pageable pageable = PageRequest.of(0, 10);
+  @Test
+  void findByAuthorId_ShouldReturnEmptyPage_WhenAuthorHasNoBooks() {
+    // Given
+    createAndSaveBook("Dom Casmurro", "Romance", 1L);
 
-        // When - Searching for books by non-existent author
-        Page<Book> result = bookRepository.findByAuthorId(999L, pageable);
+    Pageable pageable = PageRequest.of(0, 10);
 
-        // Then
-        assertThat(result.getContent()).isEmpty();
-    }
+    // When - Searching for books by non-existent author
+    Page<Book> result = bookRepository.findByAuthorId(999L, pageable);
 
-    @Test
-    void findByTitleContainingIgnoreCase_ShouldReturnEmptyPage_WhenNoMatch() {
-        // Given
-        createAndSaveBook("Dom Casmurro", "Romance brasileiro", 1L);
+    // Then
+    assertThat(result.getContent()).isEmpty();
+  }
 
-        Pageable pageable = PageRequest.of(0, 10);
+  @Test
+  void findByTitleContainingIgnoreCase_ShouldReturnEmptyPage_WhenNoMatch() {
+    // Given
+    createAndSaveBook("Dom Casmurro", "Romance brasileiro", 1L);
 
-        // When - Searching for non-existent title
-        Page<Book> result = bookRepository.findByTitleContainingIgnoreCase("inexistente", pageable);
+    Pageable pageable = PageRequest.of(0, 10);
 
-        // Then
-        assertThat(result.getContent()).isEmpty();
-    }
+    // When - Searching for non-existent title
+    Page<Book> result = bookRepository.findByTitleContainingIgnoreCase("inexistente", pageable);
+
+    // Then
+    assertThat(result.getContent()).isEmpty();
+  }
 }

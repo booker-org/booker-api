@@ -8,19 +8,19 @@ import java.util.List;
 
 @Component
 public class GenreMapper {
-    
-    public GenreDTO toDTO(Genre genre) {
-        if (genre == null) return null;
-        
-        return new GenreDTO(
-            genre.getId(),
-            genre.getName()
-        );
-    }
-    
-    public List<GenreDTO> toDTOList(List<Genre> genres) {
-        return genres.stream()
-                .map(this::toDTO)
-                .toList();
-    }
+
+  public GenreDTO toDTO(Genre genre) {
+    if (genre == null)
+      return null;
+
+    return new GenreDTO(
+        genre.getId(),
+        genre.getName());
+  }
+
+  public List<GenreDTO> toDTOList(List<Genre> genres) {
+    return genres.stream()
+        .map(this::toDTO)
+        .toList();
+  }
 }
