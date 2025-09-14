@@ -3,7 +3,11 @@ package com.booker.services;
 import com.booker.entities.Author;
 import com.booker.entities.Book;
 import com.booker.entities.Genre;
+import com.booker.repositories.AuthorRepository;
 import com.booker.repositories.BookRepository;
+import com.booker.repositories.GenreRepository;
+import jakarta.persistence.EntityNotFoundException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,6 +34,12 @@ class BookServiceTest {
     @Mock
     private BookRepository bookRepository;
 
+    @Mock
+    private AuthorRepository authorRepository;
+
+    @Mock
+    private GenreRepository genreRepository;
+
     @InjectMocks
     private BookService bookService;
 
@@ -46,6 +56,7 @@ class BookServiceTest {
 
     private Author createBaseAuthor() {
         Author author = new Author();
+        author.setId(1L);
         author.setName("Machado de Assis");
         author.setBiography("Considerado um dos maiores escritores brasileiros...");
         return author;
@@ -96,14 +107,14 @@ class BookServiceTest {
         verify(bookRepository).findById(999L);
     }
 
-        @Test
+    @Test
     void findByTitle_ShouldReturnBooksMatchingTitle() {
         // Given
         Book book1 = createBaseBook("Dom Casmurro");
         book1.setId(1L);
         Book book2 = createBaseBook("Dom Pedro");
         book2.setId(2L);
-        
+
         List<Book> books = Arrays.asList(book1, book2);
         Page<Book> bookPage = new PageImpl<>(books);
         Pageable pageable = PageRequest.of(0, 10);
@@ -137,7 +148,6 @@ class BookServiceTest {
         verify(bookRepository).findByAuthorId(authorId, pageable);
     }
 
-
     @Test
     void findAll_ShouldReturnPageOfBooks() {
         // Given - Some books
@@ -156,7 +166,6 @@ class BookServiceTest {
         verify(bookRepository).findAll(pageable);
     }
 
-
     // ========== SAVE TESTS ==========
 
     @Test
@@ -166,16 +175,26 @@ class BookServiceTest {
         Book savedBook = createBaseBook();
         savedBook.setId(1L);
 
+        Author mockAuthor = createBaseAuthor();
+        when(authorRepository.findById(1L)).thenReturn(Optional.of(mockAuthor));
+
+        Genre mockGenre1 = new Genre();
+        mockGenre1.setId(1L);
+        mockGenre1.setName("Ficção");
+
+        when(genreRepository.findById(1L)).thenReturn(Optional.of(mockGenre1));
         when(bookRepository.save(any(Book.class))).thenReturn(savedBook);
 
         // When
-        Book result = bookService.save(newBook);
+        Book result = bookService.save(newBook, 1L, List.of(1L));
 
         // Then
         assertNotNull(result.getId());
         assertEquals(newBook.getTitle(), result.getTitle());
         assertEquals(newBook.getSynopsis(), result.getSynopsis());
-        verify(bookRepository).save(newBook);
+        verify(authorRepository).findById(1L);
+        verify(genreRepository).findById(1L);
+        verify(bookRepository).save(any(Book.class));
     }
 
     @Test
@@ -184,7 +203,7 @@ class BookServiceTest {
 
         // When & Then
         assertThrows(IllegalArgumentException.class, () -> {
-            bookService.save(null);
+            bookService.save(null, 1L, List.of(1L, 2L));
         });
 
         verify(bookRepository, never()).save(any());
@@ -192,13 +211,22 @@ class BookServiceTest {
 
     @Test
     void save_ShouldThrowException_WhenTitleIsNull() {
-        // Given - Null title
+        // Given
         Book invalidBook = createBaseBook();
         invalidBook.setTitle(null);
 
+        Author mockAuthor = createBaseAuthor();
+        when(authorRepository.findById(1L)).thenReturn(Optional.of(mockAuthor));
+
+        Genre mockGenre1 = new Genre();
+        mockGenre1.setId(1L);
+        mockGenre1.setName("Ficção");
+
+        when(genreRepository.findById(1L)).thenReturn(Optional.of(mockGenre1));
+
         // When & Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            bookService.save(invalidBook);
+            bookService.save(invalidBook, 1L, List.of(1L));
         });
 
         assertEquals("Título é obrigatório", exception.getMessage());
@@ -211,9 +239,18 @@ class BookServiceTest {
         Book invalidBook = createBaseBook();
         invalidBook.setTitle("A");
 
+        Author mockAuthor = createBaseAuthor();
+        when(authorRepository.findById(1L)).thenReturn(Optional.of(mockAuthor));
+
+        Genre mockGenre1 = new Genre();
+        mockGenre1.setId(1L);
+        mockGenre1.setName("Ficção");
+
+        when(genreRepository.findById(1L)).thenReturn(Optional.of(mockGenre1));
+
         // When & Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            bookService.save(invalidBook);
+            bookService.save(invalidBook, 1L, List.of(1L));
         });
 
         assertEquals("Título deve ter entre 2 e 200 caracteres", exception.getMessage());
@@ -226,9 +263,18 @@ class BookServiceTest {
         Book invalidBook = createBaseBook();
         invalidBook.setTitle("A".repeat(201));
 
+        Author mockAuthor = createBaseAuthor();
+        when(authorRepository.findById(1L)).thenReturn(Optional.of(mockAuthor));
+
+        Genre mockGenre1 = new Genre();
+        mockGenre1.setId(1L);
+        mockGenre1.setName("Ficção");
+
+        when(genreRepository.findById(1L)).thenReturn(Optional.of(mockGenre1));
+
         // When & Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            bookService.save(invalidBook);
+            bookService.save(invalidBook, 1L, List.of(1L));
         });
 
         assertEquals("Título deve ter entre 2 e 200 caracteres", exception.getMessage());
@@ -241,9 +287,18 @@ class BookServiceTest {
         Book invalidBook = createBaseBook();
         invalidBook.setPageCount(-10);
 
+        Author mockAuthor = createBaseAuthor();
+        when(authorRepository.findById(1L)).thenReturn(Optional.of(mockAuthor));
+
+        Genre mockGenre1 = new Genre();
+        mockGenre1.setId(1L);
+        mockGenre1.setName("Ficção");
+
+        when(genreRepository.findById(1L)).thenReturn(Optional.of(mockGenre1));
+
         // When & Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            bookService.save(invalidBook);
+            bookService.save(invalidBook, 1L, List.of(1L));
         });
 
         assertEquals("Número de páginas deve ser maior que zero", exception.getMessage());
@@ -251,20 +306,39 @@ class BookServiceTest {
     }
 
     @Test
-    void save_ShouldThrowException_WhenAuthorIsNull() {
-        // Given - Null authorId
-        Book invalidBook = createBaseBook();
-        invalidBook.setAuthor(null);
+    void save_ShouldThrowException_WhenAuthorNotFound() {
+        // Given - Author not found
+        Book validBook = createBaseBook();
+        when(authorRepository.findById(999L)).thenReturn(Optional.empty());
 
         // When & Then
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            bookService.save(invalidBook);
+            bookService.save(validBook, 999L, List.of(1L));
         });
 
-        assertEquals("ID do autor deve ser válido", exception.getMessage());
+        assertTrue(exception.getMessage().contains("ID do autor"));
+        verify(authorRepository).findById(999L);
         verify(bookRepository, never()).save(any());
     }
 
+    @Test
+    void save_ShouldThrowException_WhenGenreNotFound() {
+        // Given - Genre not found
+        Book validBook = createBaseBook();
+
+        Author mockAuthor = createBaseAuthor();
+        when(authorRepository.findById(1L)).thenReturn(Optional.of(mockAuthor));
+        when(genreRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
+            bookService.save(validBook, 1L, List.of(999L));
+        });
+
+        assertTrue(exception.getMessage().contains("Gênero não encontrado"));
+        verify(genreRepository).findById(999L);
+        verify(bookRepository, never()).save(any());
+    }
 
     // ========== UPDATE TESTS ==========
 
@@ -284,16 +358,27 @@ class BookServiceTest {
         updatedBook.setTitle("Título Atualizado");
         updatedBook.setPageCount(300);
 
+        Author mockAuthor = createBaseAuthor();
+        when(authorRepository.findById(1L)).thenReturn(Optional.of(mockAuthor));
+
+        Genre mockGenre1 = new Genre();
+        mockGenre1.setId(1L);
+        mockGenre1.setName("Ficção");
+
+        when(genreRepository.findById(1L)).thenReturn(Optional.of(mockGenre1));
+
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(existingBook));
         when(bookRepository.save(any(Book.class))).thenReturn(updatedBook);
 
         // When
-        Optional<Book> result = bookService.update(bookId, updateRequest);
+        Optional<Book> result = bookService.update(bookId, updateRequest, 1L, List.of(1L));
 
         // Then
         assertTrue(result.isPresent());
         assertEquals("Título Atualizado", result.get().getTitle());
         assertEquals(300, result.get().getPageCount());
+        verify(authorRepository).findById(1L);
+        verify(genreRepository).findById(1L);
         verify(bookRepository).findById(bookId);
         verify(bookRepository).save(any(Book.class));
     }
@@ -307,7 +392,62 @@ class BookServiceTest {
         when(bookRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
         // When
-        Optional<Book> result = bookService.update(nonExistentId, updateRequest);
+        Optional<Book> result = bookService.update(nonExistentId, updateRequest, 1L, List.of(1L, 2L));
+
+        // Then
+        assertFalse(result.isPresent());
+        verify(bookRepository).findById(nonExistentId);
+        verify(bookRepository, never()).save(any());
+    }
+
+    // ========== PARTIAL UPDATE TESTS ==========
+
+    @Test
+    void partialUpdate_ShouldUpdateOnlyProvidedFields() {
+        // Given - Partial update
+        Long bookId = 1L;
+        Book partialUpdate = new Book();
+        partialUpdate.setTitle("Título Parcialmente Atualizado");
+        partialUpdate.setPageCount(400);
+
+        Book existingBook = createBaseBook();
+        existingBook.setId(bookId);
+        existingBook.setTitle("Título Original");
+        existingBook.setSynopsis("Synopsis Original");
+        existingBook.setPageCount(200);
+        existingBook.setCoverUrl("url-original.jpg");
+
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(existingBook));
+        when(bookRepository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        Optional<Book> result = bookService.partialUpdate(bookId, partialUpdate, null, null);
+
+        // Then
+        assertTrue(result.isPresent());
+        Book updatedBook = result.get();
+        
+        assertEquals("Título Parcialmente Atualizado", updatedBook.getTitle());
+        assertEquals(400, updatedBook.getPageCount());
+        
+        assertEquals("Synopsis Original", updatedBook.getSynopsis());
+        assertEquals("url-original.jpg", updatedBook.getCoverUrl());
+        
+        verify(bookRepository).findById(bookId);
+        verify(bookRepository).save(any(Book.class));
+    }
+
+    @Test
+    void partialUpdate_ShouldReturnEmpty_WhenBookNotExists() {
+        // Given - Non-existent Book
+        Long nonExistentId = 999L;
+        Book partialUpdate = new Book();
+        partialUpdate.setTitle("Título Qualquer");
+
+        when(bookRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+        // When
+        Optional<Book> result = bookService.partialUpdate(nonExistentId, partialUpdate, null, null);
 
         // Then
         assertFalse(result.isPresent());
@@ -316,31 +456,63 @@ class BookServiceTest {
     }
 
     @Test
-    void update_ShouldOnlyUpdateNonNullFields() {
-        // Given - Partial update (only title)
+    void partialUpdate_ShouldValidateNonNullFields() {
+        // Given - Partial update with invalid pageCount
         Long bookId = 1L;
-        Book updateRequest = new Book();
-        updateRequest.setTitle("Novo Título");
+        Book partialUpdate = new Book();
+        partialUpdate.setPageCount(-10);
 
         Book existingBook = createBaseBook();
         existingBook.setId(bookId);
 
-        Book expectedUpdatedBook = createBaseBook();
-        expectedUpdatedBook.setId(bookId);
-        expectedUpdatedBook.setTitle("Novo Título");
+        when(bookRepository.findById(bookId)).thenReturn(Optional.of(existingBook));
+
+        // When & Then
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            bookService.partialUpdate(bookId, partialUpdate, null, null);
+        });
+
+        assertEquals("Número de páginas deve ser maior que zero", exception.getMessage());
+        verify(bookRepository, never()).save(any());
+    }
+
+    @Test
+    void partialUpdate_ShouldUpdateAuthorAndGenres_WhenProvided() {
+        // Given - Update with new author and genres
+        Long bookId = 1L;
+        Book partialUpdate = new Book();
+        partialUpdate.setTitle("Novo Título");
+
+        Book existingBook = createBaseBook();
+        existingBook.setId(bookId);
+
+        Author newAuthor = new Author();
+        newAuthor.setId(2L);
+        newAuthor.setName("Novo Autor");
+
+        Genre newGenre = new Genre();
+        newGenre.setId(3L);
+        newGenre.setName("Novo Gênero");
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(existingBook));
-        when(bookRepository.save(any(Book.class))).thenReturn(expectedUpdatedBook);
+        when(authorRepository.findById(2L)).thenReturn(Optional.of(newAuthor));
+        when(genreRepository.findById(3L)).thenReturn(Optional.of(newGenre));
+        when(bookRepository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
-        Optional<Book> result = bookService.update(bookId, updateRequest);
+        Optional<Book> result = bookService.partialUpdate(bookId, partialUpdate, 2L, List.of(3L));
 
         // Then
         assertTrue(result.isPresent());
-        assertEquals("Novo Título", result.get().getTitle());
-        // Campos originais devem ser mantidos
-        assertEquals("A obra narra a vida de Bento Santiago...", result.get().getSynopsis());
-        assertEquals(256, result.get().getPageCount());
+        Book updatedBook = result.get();
+        
+        assertEquals("Novo Título", updatedBook.getTitle());
+        assertEquals("Novo Autor", updatedBook.getAuthor().getName());
+        assertEquals(1, updatedBook.getGenres().size());
+        assertTrue(updatedBook.getGenres().stream().anyMatch(g -> "Novo Gênero".equals(g.getName())));
+        
+        verify(authorRepository).findById(2L);
+        verify(genreRepository).findById(3L);
         verify(bookRepository).save(any(Book.class));
     }
 
@@ -393,6 +565,5 @@ class BookServiceTest {
         assertEquals(1, result.getContent().size());
         verify(bookRepository).findByTitleOrSynopsisContaining(query, pageable);
     }
-
 
 }

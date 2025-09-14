@@ -1,13 +1,19 @@
 package com.booker.controllers;
 
+import com.booker.dtos.BookCreateDTO;
 import com.booker.entities.Author;
 import com.booker.entities.Book;
 import com.booker.entities.Genre;
+import com.booker.mappers.AuthorMapper;
+import com.booker.mappers.BookMapper;
+import com.booker.mappers.GenreMapper;
 import com.booker.services.BookService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -26,17 +32,18 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(BookController.class)
+@WebMvcTest(controllers = BookController.class, includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {
+                BookMapper.class, AuthorMapper.class, GenreMapper.class }))
 class BookControllerTest {
 
         @Autowired
         private MockMvc mockMvc;
 
-        @MockitoBean
-        private BookService bookService;
-
         @Autowired
         private ObjectMapper objectMapper;
+
+        @MockitoBean
+        private BookService bookService;
 
         private final Genre genre1 = new Genre("Ficção", null);
         private final Genre genre2 = new Genre("Clássico", null);
@@ -90,15 +97,20 @@ class BookControllerTest {
 
         @Test
         void createBook_ShouldReturnCreatedBook_WhenValidRequest() throws Exception {
-                // Given - Request without ID
-                Book newBookRequest = createBaseBook();
+                // Given
+                BookCreateDTO newBookRequest = new BookCreateDTO(
+                                "Dom Casmurro",
+                                "A obra narra a vida de Bento Santiago...",
+                                256,
+                                1L, // authorId
+                                List.of(1L, 2L), // genreIds
+                                "https://example.com/dom-casmurro.jpg");
 
-                // Given - Response with generated ID
                 Book savedBook = createBaseBook();
                 savedBook.setId(1L);
 
                 // When
-                when(bookService.save(any(Book.class))).thenReturn(savedBook);
+                when(bookService.save(any(Book.class), eq(1L), eq(List.of(1L, 2L)))).thenReturn(savedBook);
 
                 // Then
                 mockMvc.perform(post("/books")
@@ -115,13 +127,15 @@ class BookControllerTest {
 
         @Test
         void updateBook_ShouldReturnUpdatedBook_WhenValidRequest() throws Exception {
-                // Given - Existing book ID and update data
+                // Given - Existing book ID and update data using DTO
                 Long bookId = 1L;
-                Book updateRequest = createBaseBook();
-                updateRequest.setTitle("Dom Casmurro - Updated");
-                updateRequest.setSynopsis("Updated synopsis...");
-                updateRequest.setPageCount(300);
-                updateRequest.setCoverUrl("https://example.com/dom-casmurro-updated.jpg");
+                BookCreateDTO updateRequest = new BookCreateDTO(
+                                "Dom Casmurro - Updated",
+                                "Updated synopsis...",
+                                300,
+                                1L,
+                                List.of(1L, 2L),
+                                "https://example.com/dom-casmurro-updated.jpg");
 
                 Book expectedResult = createBaseBook();
                 expectedResult.setId(bookId);
@@ -131,7 +145,8 @@ class BookControllerTest {
                 expectedResult.setCoverUrl("https://example.com/dom-casmurro-updated.jpg");
 
                 // When
-                when(bookService.update(eq(bookId), any(Book.class))).thenReturn(Optional.of(expectedResult));
+                when(bookService.update(eq(bookId), any(Book.class), eq(1L), eq(List.of(1L, 2L))))
+                                .thenReturn(Optional.of(expectedResult));
 
                 // Then
                 mockMvc.perform(put("/books/{id}", bookId)
@@ -148,33 +163,35 @@ class BookControllerTest {
 
         @Test
         void patchBook_ShouldUpdateFields_WhenValidRequest() throws Exception {
-                // Given - Existing book ID and partial update data
+                // Given - Existing book with original data
                 Long bookId = 1L;
-                Book updateRequest = new Book();
-                updateRequest.setTitle("Novo Título");
-                updateRequest.setPageCount(400);
-
-                Book existingBook = createBaseBook();
-                existingBook.setId(bookId);
+                BookCreateDTO patchRequest = new BookCreateDTO(
+                                "Novo Título",
+                                null,
+                                null,
+                                1L,
+                                List.of(1L, 2L),
+                                null
+                );
 
                 Book expectedResult = createBaseBook();
                 expectedResult.setId(bookId);
                 expectedResult.setTitle("Novo Título");
-                expectedResult.setPageCount(400);
 
                 // When - Mock behavior
-                when(bookService.findById(bookId)).thenReturn(Optional.of(existingBook));
-                when(bookService.update(bookId, existingBook)).thenReturn(Optional.of(expectedResult));
+                when(bookService.partialUpdate(eq(bookId), any(Book.class), eq(1L), eq(List.of(1L, 2L))))
+                                .thenReturn(Optional.of(expectedResult));
 
                 // Then
                 mockMvc.perform(patch("/books/{id}", bookId)
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(updateRequest)))
+                                .content(objectMapper.writeValueAsString(patchRequest)))
                                 .andExpect(status().isOk())
-                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(jsonPath("$.id").value(bookId))
                                 .andExpect(jsonPath("$.title").value("Novo Título"))
-                                .andExpect(jsonPath("$.pageCount").value(400));
+                                .andExpect(jsonPath("$.synopsis").value("A obra narra a vida de Bento Santiago..."))
+                                .andExpect(jsonPath("$.pageCount").value(256))
+                                .andExpect(jsonPath("$.coverUrl").value("https://example.com/dom-casmurro.jpg"));
         }
 
         // ========== DELETE TESTS ==========
@@ -200,7 +217,7 @@ class BookControllerTest {
                 Book book1 = createBaseBook();
                 book1.setId(1L);
                 book1.setTitle("Dom Casmurro");
-                
+
                 Book book2 = createBaseBook();
                 book2.setId(2L);
                 book2.setTitle("Dom Pedro");
@@ -282,12 +299,17 @@ class BookControllerTest {
 
         @Test
         void createBook_ShouldReturn400_WhenServiceThrowsException() throws Exception {
-                // Given - Any invalid request (service layer handles validation details)
-                Book invalidBookRequest = createBaseBook();
-                invalidBookRequest.setTitle(null); // Example invalid data
+                // Given - Invalid request using DTO
+                BookCreateDTO invalidBookRequest = new BookCreateDTO(
+                                null, // título inválido
+                                "A obra narra a vida de Bento Santiago...",
+                                256,
+                                1L, // authorId
+                                List.of(1L, 2L), // genreIds
+                                "https://example.com/dom-casmurro.jpg");
 
                 // When
-                when(bookService.save(any(Book.class)))
+                when(bookService.save(any(Book.class), eq(1L), eq(List.of(1L, 2L))))
                                 .thenThrow(new IllegalArgumentException("Dados do livro inválidos"));
 
                 // Then
@@ -301,13 +323,19 @@ class BookControllerTest {
 
         @Test
         void updateBook_ShouldReturn404_WhenBookNotExists() throws Exception {
-                // Given - Non-existing book ID
+                // Given - Non-existing book ID using DTO
                 Long nonExistentBookId = 999L;
-                Book updateRequest = createBaseBook();
-                updateRequest.setTitle("Updated Title");
+                BookCreateDTO updateRequest = new BookCreateDTO(
+                                "Updated Title",
+                                "Updated synopsis",
+                                256,
+                                1L,
+                                List.of(1L, 2L),
+                                "https://example.com/updated.jpg");
 
                 // When
-                when(bookService.update(nonExistentBookId, updateRequest)).thenReturn(Optional.empty());
+                when(bookService.update(eq(nonExistentBookId), any(Book.class), eq(1L), eq(List.of(1L, 2L))))
+                                .thenReturn(Optional.empty());
 
                 // Then
                 mockMvc.perform(put("/books/{id}", nonExistentBookId)
@@ -318,13 +346,18 @@ class BookControllerTest {
 
         @Test
         void updateBook_ShouldReturn400_WhenServiceThrowsException() throws Exception {
-                // Given - Existing book ID with invalid update data
+                // Given - Existing book ID with invalid update data using DTO
                 Long bookId = 1L;
-                Book invalidUpdateRequest = createBaseBook();
-                invalidUpdateRequest.setTitle("");
+                BookCreateDTO invalidUpdateRequest = new BookCreateDTO(
+                                "",
+                                "A obra narra a vida de Bento Santiago...",
+                                256,
+                                1L,
+                                List.of(1L, 2L),
+                                "https://example.com/dom-casmurro.jpg");
 
                 // When
-                when(bookService.update(eq(bookId), any(Book.class)))
+                when(bookService.update(eq(bookId), any(Book.class), eq(1L), eq(List.of(1L, 2L))))
                                 .thenThrow(new IllegalArgumentException("Título deve ter entre 2 e 100 caracteres"));
 
                 // Then
@@ -338,14 +371,19 @@ class BookControllerTest {
 
         @Test
         void patchBook_ShouldReturn404_WhenBookNotExists() throws Exception {
-                // Given - Non-existing book ID
+                // Given - Non-existing book ID using DTO
                 Long nonExistentBookId = 999L;
-                Book patchRequest = new Book();
-                patchRequest.setTitle("Updated Title");
+                BookCreateDTO patchRequest = new BookCreateDTO(
+                                "Updated Title",
+                                null,
+                                null,
+                                1L,
+                                List.of(1L, 2L),
+                                null);
 
                 // When
-                when(bookService.findById(nonExistentBookId)).thenReturn(Optional.empty());
-                when(bookService.update(nonExistentBookId, patchRequest)).thenReturn(Optional.empty());
+                when(bookService.partialUpdate(eq(nonExistentBookId), any(Book.class), eq(1L), eq(List.of(1L, 2L))))
+                                .thenReturn(Optional.empty());
 
                 // Then
                 mockMvc.perform(patch("/books/{id}", nonExistentBookId)
