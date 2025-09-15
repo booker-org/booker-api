@@ -1,282 +1,409 @@
 package com.booker.controllers;
 
-import com.booker.models.Book;
+import com.booker.dtos.BookCreateDTO;
+import com.booker.entities.Author;
+import com.booker.entities.Book;
+import com.booker.entities.Genre;
+import com.booker.mappers.AuthorMapper;
+import com.booker.mappers.BookMapper;
+import com.booker.mappers.GenreMapper;
 import com.booker.services.BookService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(BookController.class)
+@WebMvcTest(controllers = BookController.class, includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {
+    BookMapper.class, AuthorMapper.class, GenreMapper.class }))
 class BookControllerTest {
 
-        @Autowired
-        private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-        @MockitoBean
-        private BookService bookService;
+  @Autowired
+  private ObjectMapper objectMapper;
 
-        @Autowired
-        private ObjectMapper objectMapper;
+  @MockitoBean
+  private BookService bookService;
 
-        private Book createBaseBook() {
-                Book book = new Book();
-                book.setTitle("Dom Casmurro");
-                book.setSynopsis("A obra narra a vida de Bento Santiago...");
-                book.setPageCount(256);
-                book.setAuthorId(1L);
-                book.setCoverUrl("https://example.com/dom-casmurro.jpg");
-                return book;
-        }
+  private final Genre genre1 = new Genre("Ficção", null);
+  private final Genre genre2 = new Genre("Clássico", null);
 
-        // SUCCESS CASES
+  private Author createBaseAuthor() {
+    Author author = new Author();
+    author.setName("Machado de Assis");
+    author.setBiography("Considerado um dos maiores escritores brasileiros...");
+    return author;
+  }
 
-        // ========== GET TESTS ==========
+  private Book createBaseBook() {
+    Book book = new Book();
+    book.setTitle("Dom Casmurro");
+    book.setSynopsis("A obra narra a vida de Bento Santiago...");
+    book.setPageCount(256);
+    book.setAuthor(createBaseAuthor());
+    book.setGenres(Set.of(genre1, genre2));
+    book.setCoverUrl("https://example.com/dom-casmurro.jpg");
+    return book;
+  }
 
-        @Test
-        void getBookById_ShouldReturnBook_WhenBookExists() throws Exception {
-                // Given - Preparar dados de teste
-                Long bookId = 1L;
-                Book bookMock = createBaseBook();
-                bookMock.setId(bookId);
+  // SUCCESS CASES
 
-                // When - Configurar comportamento do mock
-                when(bookService.findById(bookId)).thenReturn(Optional.of(bookMock));
+  // ========== GET TESTS ==========
 
-                // Then - Executar e verificar
-                mockMvc.perform(get("/books/{id}", bookId))
-                                .andExpect(status().isOk())
-                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(jsonPath("$.id").value(bookId))
-                                .andExpect(jsonPath("$.title").value("Dom Casmurro"))
-                                .andExpect(jsonPath("$.synopsis").value("A obra narra a vida de Bento Santiago..."))
-                                .andExpect(jsonPath("$.pageCount").value(256))
-                                .andExpect(jsonPath("$.authorId").value(1))
-                                .andExpect(jsonPath("$.coverUrl").value("https://example.com/dom-casmurro.jpg"));
-        }
+  @Test
+  void getBookById_ShouldReturnBook_WhenBookExists() throws Exception {
+    // Given - Preparar dados de teste
+    Long bookId = 1L;
+    Book bookMock = createBaseBook();
+    bookMock.setId(bookId);
 
-        // ========== POST TESTS ==========
+    // When - Configurar comportamento do mock
+    when(bookService.findById(bookId)).thenReturn(Optional.of(bookMock));
 
-        @Test
-        void createBook_ShouldReturnCreatedBook_WhenValidRequest() throws Exception {
-                // Given - Request without ID
-                Book newBookRequest = createBaseBook();
+    // Then - Executar e verificar
+    mockMvc.perform(get("/books/{id}", bookId))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.id").value(bookId))
+        .andExpect(jsonPath("$.title").value("Dom Casmurro"))
+        .andExpect(jsonPath("$.synopsis").value("A obra narra a vida de Bento Santiago..."))
+        .andExpect(jsonPath("$.pageCount").value(256))
+        .andExpect(jsonPath("$.author.name").value("Machado de Assis"))
+        .andExpect(jsonPath("$.genres").isArray())
+        .andExpect(jsonPath("$.coverUrl").value("https://example.com/dom-casmurro.jpg"));
+  }
 
-                // Given - Response with generated ID
-                Book savedBook = createBaseBook();
-                savedBook.setId(1L);
+  // ========== POST TESTS ==========
 
-                // When
-                when(bookService.save(any(Book.class))).thenReturn(savedBook);
+  @Test
+  void createBook_ShouldReturnCreatedBook_WhenValidRequest() throws Exception {
+    // Given
+    BookCreateDTO newBookRequest = new BookCreateDTO(
+        "Dom Casmurro",
+        "A obra narra a vida de Bento Santiago...",
+        256,
+        1L, // authorId
+        List.of(1L, 2L), // genreIds
+        "https://example.com/dom-casmurro.jpg");
 
-                // Then
-                mockMvc.perform(post("/books")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(newBookRequest)))
-                                .andExpect(status().isCreated())
-                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(jsonPath("$.id").value(1))
-                                .andExpect(jsonPath("$.title").value("Dom Casmurro"))
-                                .andExpect(jsonPath("$.pageCount").value(256));
-        }
+    Book savedBook = createBaseBook();
+    savedBook.setId(1L);
 
-        // ========== PUT TESTS ==========
+    // When
+    when(bookService.save(any(Book.class), eq(1L), eq(List.of(1L, 2L)))).thenReturn(savedBook);
 
-        @Test
-        void updateBook_ShouldReturnUpdatedBook_WhenValidRequest() throws Exception {
-                // Given - Existing book ID and update data
-                Long bookId = 1L;
-                Book updateRequest = createBaseBook();
-                updateRequest.setTitle("Dom Casmurro - Updated");
-                updateRequest.setSynopsis("Updated synopsis...");
-                updateRequest.setPageCount(300);
-                updateRequest.setCoverUrl("https://example.com/dom-casmurro-updated.jpg");
+    // Then
+    mockMvc.perform(post("/books")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(newBookRequest)))
+        .andExpect(status().isCreated())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.id").value(1))
+        .andExpect(jsonPath("$.title").value("Dom Casmurro"))
+        .andExpect(jsonPath("$.pageCount").value(256));
+  }
 
-                Book expectedResult = createBaseBook();
-                expectedResult.setId(bookId);
-                expectedResult.setTitle("Dom Casmurro - Updated");
-                expectedResult.setSynopsis("Updated synopsis...");
-                expectedResult.setPageCount(300);
-                expectedResult.setCoverUrl("https://example.com/dom-casmurro-updated.jpg");
+  // ========== PUT TESTS ==========
 
-                // When - Mock retorna o resultado esperado
-                when(bookService.update(bookId, updateRequest)).thenReturn(Optional.of(expectedResult));
+  @Test
+  void updateBook_ShouldReturnUpdatedBook_WhenValidRequest() throws Exception {
+    // Given - Existing book ID and update data using DTO
+    Long bookId = 1L;
+    BookCreateDTO updateRequest = new BookCreateDTO(
+        "Dom Casmurro - Updated",
+        "Updated synopsis...",
+        300,
+        1L,
+        List.of(1L, 2L),
+        "https://example.com/dom-casmurro-updated.jpg");
 
-                // Then
-                mockMvc.perform(put("/books/{id}", bookId)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(updateRequest)))
-                                .andExpect(status().isOk())
-                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(jsonPath("$.id").value(bookId))
-                                .andExpect(jsonPath("$.title").value("Dom Casmurro - Updated"))
-                                .andExpect(jsonPath("$.pageCount").value(300));
-        }
+    Book expectedResult = createBaseBook();
+    expectedResult.setId(bookId);
+    expectedResult.setTitle("Dom Casmurro - Updated");
+    expectedResult.setSynopsis("Updated synopsis...");
+    expectedResult.setPageCount(300);
+    expectedResult.setCoverUrl("https://example.com/dom-casmurro-updated.jpg");
 
-        // ========== PATCH TESTS ==========
+    // When
+    when(bookService.update(eq(bookId), any(Book.class), eq(1L), eq(List.of(1L, 2L))))
+        .thenReturn(Optional.of(expectedResult));
 
-        @Test
-        void patchBook_ShouldUpdateFields_WhenValidRequest() throws Exception {
-                // Given - Existing book ID and partial update data
-                Long bookId = 1L;
-                Book updateRequest = new Book();
-                updateRequest.setTitle("Novo Título");
-                updateRequest.setPageCount(400);
+    // Then
+    mockMvc.perform(put("/books/{id}", bookId)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(updateRequest)))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.id").value(bookId))
+        .andExpect(jsonPath("$.title").value("Dom Casmurro - Updated"))
+        .andExpect(jsonPath("$.pageCount").value(300));
+  }
 
-                Book existingBook = createBaseBook();
-                existingBook.setId(bookId);
+  // ========== PATCH TESTS ==========
 
-                Book expectedResult = createBaseBook();
-                expectedResult.setId(bookId);
-                expectedResult.setTitle("Novo Título");
-                expectedResult.setPageCount(400);
+  @Test
+  void patchBook_ShouldUpdateFields_WhenValidRequest() throws Exception {
+    // Given - Existing book with original data
+    Long bookId = 1L;
+    BookCreateDTO patchRequest = new BookCreateDTO(
+        "Novo Título",
+        null,
+        null,
+        1L,
+        List.of(1L, 2L),
+        null);
 
-                // When - Mock behavior
-                when(bookService.findById(bookId)).thenReturn(Optional.of(existingBook));
-                when(bookService.update(bookId, existingBook)).thenReturn(Optional.of(expectedResult));
+    Book expectedResult = createBaseBook();
+    expectedResult.setId(bookId);
+    expectedResult.setTitle("Novo Título");
 
-                // Then
-                mockMvc.perform(patch("/books/{id}", bookId)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(updateRequest)))
-                                .andExpect(status().isOk())
-                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(jsonPath("$.id").value(bookId))
-                                .andExpect(jsonPath("$.title").value("Novo Título"))
-                                .andExpect(jsonPath("$.pageCount").value(400));
-        }
+    // When - Mock behavior
+    when(bookService.partialUpdate(eq(bookId), any(Book.class), eq(1L), eq(List.of(1L, 2L))))
+        .thenReturn(Optional.of(expectedResult));
 
-        // ========== DELETE TESTS ==========
+    // Then
+    mockMvc.perform(patch("/books/{id}", bookId)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(patchRequest)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(bookId))
+        .andExpect(jsonPath("$.title").value("Novo Título"))
+        .andExpect(jsonPath("$.synopsis").value("A obra narra a vida de Bento Santiago..."))
+        .andExpect(jsonPath("$.pageCount").value(256))
+        .andExpect(jsonPath("$.coverUrl").value("https://example.com/dom-casmurro.jpg"));
+  }
 
-        @Test
-        void deleteBook_ShouldReturnNoContent_WhenBookExists() throws Exception {
-                // Given - Existing book ID
-                Long bookId = 1L;
+  // ========== DELETE TESTS ==========
 
-                // When - Mock confirma que o livro foi deletado
-                when(bookService.deleteById(bookId)).thenReturn(true);
+  @Test
+  void deleteBook_ShouldReturnNoContent_WhenBookExists() throws Exception {
+    // Given - Existing book ID
+    Long bookId = 1L;
 
-                // Then
-                mockMvc.perform(delete("/books/{id}", bookId))
-                                .andExpect(status().isNoContent());
-        }
+    // When - Mock confirma que o livro foi deletado
+    when(bookService.deleteById(bookId)).thenReturn(true);
 
-        // FAILURE CASES - VALIDATION
+    // Then
+    mockMvc.perform(delete("/books/{id}", bookId))
+        .andExpect(status().isNoContent());
+  }
 
-        // ========== GET TESTS ==========
+  // ========== SEARCH TESTS ==========
 
-        @Test
-        void getBookById_ShouldReturn404_WhenBookNotExists() throws Exception {
-                // Given
-                Long nonExistentBookId = 999L;
+  @Test
+  void getBooksByTitle_ShouldReturnMatchingBooks() throws Exception {
+    // Given
+    Book book1 = createBaseBook();
+    book1.setId(1L);
+    book1.setTitle("Dom Casmurro");
 
-                // When
-                when(bookService.findById(nonExistentBookId)).thenReturn(Optional.empty());
+    Book book2 = createBaseBook();
+    book2.setId(2L);
+    book2.setTitle("Dom Pedro");
 
-                // Then
-                mockMvc.perform(get("/books/{id}", nonExistentBookId))
-                                .andExpect(status().isNotFound());
-        }
+    List<Book> books = Arrays.asList(book1, book2);
+    Page<Book> bookPage = new PageImpl<>(books);
 
-        // ========== POST TESTS ==========
+    when(bookService.findByTitle(eq("Dom"), any(Pageable.class))).thenReturn(bookPage);
 
-        @Test
-        void createBook_ShouldReturn400_WhenServiceThrowsException() throws Exception {
-                // Given - Any invalid request (service layer handles validation details)
-                Book invalidBookRequest = createBaseBook();
-                invalidBookRequest.setTitle(null); // Example invalid data
+    // When & Then
+    mockMvc.perform(get("/books")
+        .param("title", "Dom")
+        .param("page", "0")
+        .param("size", "10"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(2))
+        .andExpect(jsonPath("$.content[0].title").value("Dom Casmurro"))
+        .andExpect(jsonPath("$.content[1].title").value("Dom Pedro"));
+  }
 
-                // When
-                when(bookService.save(any(Book.class)))
-                                .thenThrow(new IllegalArgumentException("Dados do livro inválidos"));
+  @Test
+  void getBooksByAuthor_ShouldReturnBooksByAuthor() throws Exception {
+    // Given
+    Long authorId = 1L;
+    List<Book> books = Arrays.asList(createBaseBook());
+    Page<Book> bookPage = new PageImpl<>(books);
 
-                // Then
-                mockMvc.perform(post("/books")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(invalidBookRequest)))
-                                .andExpect(status().isBadRequest());
-        }
+    when(bookService.findByAuthor(eq(authorId), any(Pageable.class))).thenReturn(bookPage);
 
-        // ========== PUT TESTS ==========
+    // When & Then
+    mockMvc.perform(get("/books")
+        .param("authorId", "1")
+        .param("page", "0")
+        .param("size", "10"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(1));
+  }
 
-        @Test
-        void updateBook_ShouldReturn404_WhenBookNotExists() throws Exception {
-                // Given - Non-existing book ID
-                Long nonExistentBookId = 999L;
-                Book updateRequest = createBaseBook();
-                updateRequest.setTitle("Updated Title");
+  @Test
+  void getAllBooks_ShouldReturnPageOfBooks() throws Exception {
+    // Given
+    List<Book> books = Arrays.asList(createBaseBook(), createBaseBook());
+    Page<Book> bookPage = new PageImpl<>(books);
 
-                // When
-                when(bookService.update(nonExistentBookId, updateRequest)).thenReturn(Optional.empty());
+    when(bookService.findAll(any(Pageable.class))).thenReturn(bookPage);
 
-                // Then
-                mockMvc.perform(put("/books/{id}", nonExistentBookId)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(updateRequest)))
-                                .andExpect(status().isNotFound());
-        }
+    // When & Then
+    mockMvc.perform(get("/books")
+        .param("page", "0")
+        .param("size", "10"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.content").isArray())
+        .andExpect(jsonPath("$.content.length()").value(2));
+  }
 
-        @Test
-        void updateBook_ShouldReturn400_WhenServiceThrowsException() throws Exception {
-                // Given - Existing book ID with invalid update data
-                Long bookId = 1L;
-                Book invalidUpdateRequest = createBaseBook();
-                invalidUpdateRequest.setTitle("");
+  // FAILURE CASES - VALIDATION
 
-                // When
-                when(bookService.update(bookId, invalidUpdateRequest))
-                                .thenThrow(new IllegalArgumentException("Título deve ter entre 2 e 100 caracteres"));
+  // ========== GET TESTS ==========
 
-                // Then
-                mockMvc.perform(put("/books/{id}", bookId)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(invalidUpdateRequest)))
-                                .andExpect(status().isBadRequest());
-        }
+  @Test
+  void getBookById_ShouldReturn404_WhenBookNotExists() throws Exception {
+    // Given
+    Long nonExistentBookId = 999L;
 
-        // ========== PATCH TESTS ==========
+    // When
+    when(bookService.findById(nonExistentBookId)).thenReturn(Optional.empty());
 
-        @Test
-        void patchBook_ShouldReturn404_WhenBookNotExists() throws Exception {
-                // Given - Non-existing book ID
-                Long nonExistentBookId = 999L;
-                Book patchRequest = new Book();
-                patchRequest.setTitle("Updated Title");
+    // Then
+    mockMvc.perform(get("/books/{id}", nonExistentBookId))
+        .andExpect(status().isNotFound());
+  }
 
-                // When
-                when(bookService.findById(nonExistentBookId)).thenReturn(Optional.empty());
-                when(bookService.update(nonExistentBookId, patchRequest)).thenReturn(Optional.empty());
+  // ========== POST TESTS ==========
 
-                // Then
-                mockMvc.perform(patch("/books/{id}", nonExistentBookId)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(patchRequest)))
-                                .andExpect(status().isNotFound());
-        }
+  @Test
+  void createBook_ShouldReturn400_WhenServiceThrowsException() throws Exception {
+    // Given - Invalid request using DTO
+    BookCreateDTO invalidBookRequest = new BookCreateDTO(
+        null, // título inválido
+        "A obra narra a vida de Bento Santiago...",
+        256,
+        1L, // authorId
+        List.of(1L, 2L), // genreIds
+        "https://example.com/dom-casmurro.jpg");
 
-        // ========== DELETE TESTS ==========
+    // When
+    when(bookService.save(any(Book.class), eq(1L), eq(List.of(1L, 2L))))
+        .thenThrow(new IllegalArgumentException("Dados do livro inválidos"));
 
-        @Test
-        void deleteBook_ShouldReturn404_WhenBookNotExists() throws Exception {
-                // Given - Non-existing book ID
-                Long nonExistentBookId = 999L;
+    // Then
+    mockMvc.perform(post("/books")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(invalidBookRequest)))
+        .andExpect(status().isBadRequest());
+  }
 
-                // When
-                when(bookService.deleteById(nonExistentBookId)).thenReturn(false);
+  // ========== PUT TESTS ==========
 
-                // Then
-                mockMvc.perform(delete("/books/{id}", nonExistentBookId))
-                                .andExpect(status().isNotFound());
-        }
+  @Test
+  void updateBook_ShouldReturn404_WhenBookNotExists() throws Exception {
+    // Given - Non-existing book ID using DTO
+    Long nonExistentBookId = 999L;
+    BookCreateDTO updateRequest = new BookCreateDTO(
+        "Updated Title",
+        "Updated synopsis",
+        256,
+        1L,
+        List.of(1L, 2L),
+        "https://example.com/updated.jpg");
+
+    // When
+    when(bookService.update(eq(nonExistentBookId), any(Book.class), eq(1L), eq(List.of(1L, 2L))))
+        .thenReturn(Optional.empty());
+
+    // Then
+    mockMvc.perform(put("/books/{id}", nonExistentBookId)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(updateRequest)))
+        .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void updateBook_ShouldReturn400_WhenServiceThrowsException() throws Exception {
+    // Given - Existing book ID with invalid update data using DTO
+    Long bookId = 1L;
+    BookCreateDTO invalidUpdateRequest = new BookCreateDTO(
+        "",
+        "A obra narra a vida de Bento Santiago...",
+        256,
+        1L,
+        List.of(1L, 2L),
+        "https://example.com/dom-casmurro.jpg");
+
+    // When
+    when(bookService.update(eq(bookId), any(Book.class), eq(1L), eq(List.of(1L, 2L))))
+        .thenThrow(new IllegalArgumentException("Título deve ter entre 2 e 100 caracteres"));
+
+    // Then
+    mockMvc.perform(put("/books/{id}", bookId)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(invalidUpdateRequest)))
+        .andExpect(status().isBadRequest());
+  }
+
+  // ========== PATCH TESTS ==========
+
+  @Test
+  void patchBook_ShouldReturn404_WhenBookNotExists() throws Exception {
+    // Given - Non-existing book ID using DTO
+    Long nonExistentBookId = 999L;
+    BookCreateDTO patchRequest = new BookCreateDTO(
+        "Updated Title",
+        null,
+        null,
+        1L,
+        List.of(1L, 2L),
+        null);
+
+    // When
+    when(bookService.partialUpdate(eq(nonExistentBookId), any(Book.class), eq(1L), eq(List.of(1L, 2L))))
+        .thenReturn(Optional.empty());
+
+    // Then
+    mockMvc.perform(patch("/books/{id}", nonExistentBookId)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(patchRequest)))
+        .andExpect(status().isNotFound());
+  }
+
+  // ========== DELETE TESTS ==========
+
+  @Test
+  void deleteBook_ShouldReturn404_WhenBookNotExists() throws Exception {
+    // Given - Non-existing book ID
+    Long nonExistentBookId = 999L;
+
+    // When
+    when(bookService.deleteById(nonExistentBookId)).thenReturn(false);
+
+    // Then
+    mockMvc.perform(delete("/books/{id}", nonExistentBookId))
+        .andExpect(status().isNotFound());
+  }
 
 }

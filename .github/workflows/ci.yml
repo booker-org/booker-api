@@ -3,17 +3,37 @@ name: CI Pipeline
 on:
   push:
     branches: [ main, develop ]
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
+      - '.editorconfig'
+      - '.gitignore'
+      - 'docs/**'
+      - '*.yml'
+      - '*.yaml'
+      - 'LICENSE'
   pull_request:
     branches: [ main, develop ]
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
+      - '.editorconfig'
+      - '.gitignore'
+      - 'docs/**'
+      - '*.yml'
+      - '*.yaml'
+      - 'LICENSE'
 
 permissions:
   contents: read
   issues: read
   checks: write
   pull-requests: write
+  statuses: write
 
 jobs:
   test:
+    name: Build and Create Reports
     runs-on: ubuntu-latest
 
     steps:
@@ -38,11 +58,75 @@ jobs:
       env:
         SPRING_PROFILES_ACTIVE: test
 
+    - name: Extract test results
+      if: always()
+      run: |
+        # Initialize default values
+        TESTS=0
+        FAILURES=0
+        ERRORS=0
+        
+        # Check if any TEST-*.xml files exist
+        if ls target/surefire-reports/TEST-*.xml 1> /dev/null 2>&1; then
+          TESTS=$(grep -o 'tests="[0-9]*"' target/surefire-reports/TEST-*.xml | grep -o '[0-9]*' | awk '{sum+=$1} END {print sum}')
+          FAILURES=$(grep -o 'failures="[0-9]*"' target/surefire-reports/TEST-*.xml | grep -o '[0-9]*' | awk '{sum+=$1} END {print sum}')
+          ERRORS=$(grep -o 'errors="[0-9]*"' target/surefire-reports/TEST-*.xml | grep -o '[0-9]*' | awk '{sum+=$1} END {print sum}')
+        fi
+        
+        # Ensure variables have values (fallback to 0 if empty)
+        echo "TESTS=${TESTS:-0}" >> $GITHUB_ENV
+        echo "FAILURES=${FAILURES:-0}" >> $GITHUB_ENV
+        echo "ERRORS=${ERRORS:-0}" >> $GITHUB_ENV
+        
+        # Debug output
+        echo "Extracted test results:"
+        echo "TESTS=${TESTS:-0}"
+        echo "FAILURES=${FAILURES:-0}"
+        echo "ERRORS=${ERRORS:-0}"
+
+    - name: Comment PR with results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const tests = process.env.TESTS || '0';
+          const failures = process.env.FAILURES || '0';
+          const errors = process.env.ERRORS || '0';
+          const success = failures === '0' && errors === '0';
+          
+          const emoji = success ? '✅' : '❌';
+          const status = success ? 'ALL TESTS PASSED' : 'TESTS FAILED';
+          
+          const body = `## ${emoji} Test Results - Booker API
+          
+          ### 📊 Summary
+          - **Total Tests**: ${tests}
+          - **Failures**: ${failures}
+          - **Errors**: ${errors}
+          - **Status**: **${status}**
+          
+          ${success ? '🎉 **Ready to merge!**' : '⚠️ **Please fix failing tests before merging**'}
+          
+          <details>
+          <summary>📁 View Test Reports</summary>
+          
+          - [Full Test Reports](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+          - [Download Artifacts](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+          
+          </details>`;
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: body
+          });
+
     - name: Generate test report
       uses: dorny/test-reporter@v1
       if: success() || failure()
       with:
-        name: Maven Tests
+        name: Maven Tests Report
         path: target/surefire-reports/*.xml
         reporter: java-junit
 
