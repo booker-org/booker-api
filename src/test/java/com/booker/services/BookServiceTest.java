@@ -26,6 +26,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,6 +40,9 @@ class BookServiceTest {
 
   @Mock
   private GenreRepository genreRepository;
+
+  @Mock
+  private SupabaseStorageService storageService;
 
   @InjectMocks
   private BookService bookService;
@@ -483,31 +487,59 @@ class BookServiceTest {
   // ========== DELETE TESTS ==========
 
   @Test
-  void deleteById_ShouldReturnTrue_WhenBookExists() {
-    // Given - Existing ID
-    when(bookRepository.existsById(1L)).thenReturn(true);
+  void deleteById_ShouldReturnTrue_WhenBookExists() throws Exception {
+    // Given - Existing book with cover
+    Book bookWithCover = createBaseBook();
+    bookWithCover.setId(1L);
+    bookWithCover.setCoverUrl("https://supabase.co/storage/v1/object/public/bucket/covers/test.jpg");
+
+    when(bookRepository.findById(1L)).thenReturn(Optional.of(bookWithCover));
+    when(storageService.extractFileNameFromUrl(anyString())).thenReturn("covers/test.jpg");
 
     // When
     boolean result = bookService.deleteById(1L);
 
     // Then
     assertTrue(result);
-    verify(bookRepository).existsById(1L);
+    verify(bookRepository).findById(1L);
+    verify(storageService).extractFileNameFromUrl(bookWithCover.getCoverUrl());
+    verify(storageService).deleteCover("covers/test.jpg");
+    verify(bookRepository).deleteById(1L);
+  }
+
+  @Test
+  void deleteById_ShouldReturnTrue_WhenBookExistsWithoutCover() throws Exception {
+    // Given - Existing book without cover
+    Book bookWithoutCover = createBaseBook();
+    bookWithoutCover.setId(1L);
+    bookWithoutCover.setCoverUrl(null);
+
+    when(bookRepository.findById(1L)).thenReturn(Optional.of(bookWithoutCover));
+
+    // When
+    boolean result = bookService.deleteById(1L);
+
+    // Then
+    assertTrue(result);
+    verify(bookRepository).findById(1L);
+    verify(storageService, never()).extractFileNameFromUrl(any());
+    verify(storageService, never()).deleteCover(any());
     verify(bookRepository).deleteById(1L);
   }
 
   @Test
   void deleteById_ShouldReturnFalse_WhenBookNotExists() {
     // Given - Non-existent ID
-    when(bookRepository.existsById(999L)).thenReturn(false);
+    when(bookRepository.findById(999L)).thenReturn(Optional.empty());
 
     // When
     boolean result = bookService.deleteById(999L);
 
     // Then
     assertFalse(result);
-    verify(bookRepository).existsById(999L);
+    verify(bookRepository).findById(999L);
     verify(bookRepository, never()).deleteById(any());
+    verify(storageService, never()).deleteCover(any());
   }
 
   // ========== SEARCH TESTS ==========

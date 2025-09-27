@@ -15,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,6 +24,7 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -83,13 +85,17 @@ class BookIntegrationTest {
         "A obra narra a vida de Bento Santiago...",
         256,
         savedAuthor.getId(),
-        List.of(savedGenre1.getId(), savedGenre2.getId()),
-        "https://example.com/dom-casmurro.jpg");
+        List.of(savedGenre1.getId(), savedGenre2.getId()));
 
     // When & Then
-    mockMvc.perform(post("/books")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(createRequest)))
+    MockMultipartFile bookPart = new MockMultipartFile(
+        "book",
+        "book.json",
+        MediaType.APPLICATION_JSON_VALUE,
+        objectMapper.writeValueAsBytes(createRequest));
+
+    mockMvc.perform(multipart("/books")
+        .file(bookPart))
         .andExpect(status().isCreated())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").isNotEmpty())
@@ -100,7 +106,6 @@ class BookIntegrationTest {
         .andExpect(jsonPath("$.genres").isArray())
         .andExpect(jsonPath("$.genres", hasSize(2)))
         .andExpect(jsonPath("$.genres", containsInAnyOrder("Ficção", "Clássico")))
-        .andExpect(jsonPath("$.coverUrl").value("https://example.com/dom-casmurro.jpg"))
         .andExpect(jsonPath("$.createdAt").isNotEmpty())
         .andExpect(jsonPath("$.updatedAt").isNotEmpty());
 
@@ -118,13 +123,17 @@ class BookIntegrationTest {
         "Sinopse qualquer",
         256,
         savedAuthor.getId(),
-        List.of(savedGenre1.getId()),
-        "https://example.com/cover.jpg");
+        List.of(savedGenre1.getId()));
 
     // When & Then
-    mockMvc.perform(post("/books")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(invalidRequest)))
+    MockMultipartFile bookPart = new MockMultipartFile(
+        "book",
+        "book.json",
+        MediaType.APPLICATION_JSON_VALUE,
+        objectMapper.writeValueAsBytes(invalidRequest));
+
+    mockMvc.perform(multipart("/books")
+        .file(bookPart))
         .andExpect(status().isBadRequest());
 
     // Verify nothing was saved in the database
@@ -140,13 +149,17 @@ class BookIntegrationTest {
         "Sinopse qualquer",
         256,
         999L, // non-existent author ID
-        List.of(savedGenre1.getId()),
-        "https://example.com/cover.jpg");
+        List.of(savedGenre1.getId()));
 
     // When & Then
-    mockMvc.perform(post("/books")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(invalidRequest)))
+    MockMultipartFile bookPart = new MockMultipartFile(
+        "book",
+        "book.json",
+        MediaType.APPLICATION_JSON_VALUE,
+        objectMapper.writeValueAsBytes(invalidRequest));
+
+    mockMvc.perform(multipart("/books")
+        .file(bookPart))
         .andExpect(status().isBadRequest());
   }
 
@@ -160,13 +173,17 @@ class BookIntegrationTest {
         "A obra narra a vida de Bento Santiago...",
         256,
         savedAuthor.getId(),
-        List.of(savedGenre1.getId(), savedGenre2.getId()),
-        "https://example.com/dom-casmurro.jpg");
+        List.of(savedGenre1.getId(), savedGenre2.getId()));
 
     // Create the book via API first
-    String createResponse = mockMvc.perform(post("/books")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(createRequest)))
+    MockMultipartFile bookPart = new MockMultipartFile(
+        "book",
+        "book.json",
+        MediaType.APPLICATION_JSON_VALUE,
+        objectMapper.writeValueAsBytes(createRequest));
+
+    String createResponse = mockMvc.perform(multipart("/books")
+        .file(bookPart))
         .andExpect(status().isCreated())
         .andReturn()
         .getResponse()
@@ -199,26 +216,34 @@ class BookIntegrationTest {
         "Uma história de amor",
         256,
         savedAuthor.getId(),
-        List.of(savedGenre1.getId()),
-        "https://example.com/dom-casmurro.jpg");
+        List.of(savedGenre1.getId()));
 
     BookCreateDTO book2Request = new BookCreateDTO(
         "O Cortiço",
         "Aventuras no espaço",
         300,
         savedAuthor.getId(),
-        List.of(savedGenre2.getId()),
-        "https://example.com/o-cortico.jpg");
+        List.of(savedGenre2.getId()));
 
     // Create books via API
-    mockMvc.perform(post("/books")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(book1Request)))
+    MockMultipartFile bookPart1 = new MockMultipartFile(
+        "book",
+        "book.json",
+        MediaType.APPLICATION_JSON_VALUE,
+        objectMapper.writeValueAsBytes(book1Request));
+
+    mockMvc.perform(multipart("/books")
+        .file(bookPart1))
         .andExpect(status().isCreated());
 
-    mockMvc.perform(post("/books")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(book2Request)))
+    MockMultipartFile bookPart2 = new MockMultipartFile(
+        "book",
+        "book.json",
+        MediaType.APPLICATION_JSON_VALUE,
+        objectMapper.writeValueAsBytes(book2Request));
+
+    mockMvc.perform(multipart("/books")
+        .file(bookPart2))
         .andExpect(status().isCreated());
 
     // When & Then
@@ -243,12 +268,16 @@ class BookIntegrationTest {
         "Sinopse original",
         256,
         savedAuthor.getId(),
-        List.of(savedGenre1.getId()),
-        "https://example.com/original.jpg");
+        List.of(savedGenre1.getId()));
 
-    String createResponse = mockMvc.perform(post("/books")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(createRequest)))
+    MockMultipartFile createBookPart = new MockMultipartFile(
+        "book",
+        "book.json",
+        MediaType.APPLICATION_JSON_VALUE,
+        objectMapper.writeValueAsBytes(createRequest));
+
+    String createResponse = mockMvc.perform(multipart("/books")
+        .file(createBookPart))
         .andExpect(status().isCreated())
         .andReturn()
         .getResponse()
@@ -261,13 +290,21 @@ class BookIntegrationTest {
         "Nova sinopse atualizada",
         300,
         savedAuthor.getId(),
-        List.of(savedGenre1.getId()),
-        "https://example.com/new-cover.jpg");
+        List.of(savedGenre1.getId()));
 
     // When & Then
-    mockMvc.perform(put("/books/{id}", bookId)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(updateRequest)))
+    MockMultipartFile updateBookPart = new MockMultipartFile(
+        "book",
+        "book.json",
+        MediaType.APPLICATION_JSON_VALUE,
+        objectMapper.writeValueAsBytes(updateRequest));
+
+    mockMvc.perform(multipart("/books/{id}", bookId)
+        .file(updateBookPart)
+        .with(request -> {
+          request.setMethod("PUT");
+          return request;
+        }))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(bookId))
         .andExpect(jsonPath("$.title").value("Dom Casmurro - Edição Revisada"))
@@ -284,13 +321,21 @@ class BookIntegrationTest {
         "Sinopse qualquer",
         256,
         savedAuthor.getId(),
-        List.of(savedGenre1.getId()),
-        "https://example.com/cover.jpg");
+        List.of(savedGenre1.getId()));
 
     // When & Then
-    mockMvc.perform(put("/books/{id}", 999L)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(updateRequest)))
+    MockMultipartFile bookPart = new MockMultipartFile(
+        "book",
+        "book.json",
+        MediaType.APPLICATION_JSON_VALUE,
+        objectMapper.writeValueAsBytes(updateRequest));
+
+    mockMvc.perform(multipart("/books/{id}", 999L)
+        .file(bookPart)
+        .with(request -> {
+          request.setMethod("PUT");
+          return request;
+        }))
         .andExpect(status().isNotFound());
   }
 
@@ -304,12 +349,16 @@ class BookIntegrationTest {
         "A obra narra a vida de Bento Santiago...",
         256,
         savedAuthor.getId(),
-        List.of(savedGenre1.getId()),
-        "https://example.com/dom-casmurro.jpg");
+        List.of(savedGenre1.getId()));
 
-    String createResponse = mockMvc.perform(post("/books")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(createRequest)))
+    MockMultipartFile bookPart = new MockMultipartFile(
+        "book",
+        "book.json",
+        MediaType.APPLICATION_JSON_VALUE,
+        objectMapper.writeValueAsBytes(createRequest));
+
+    String createResponse = mockMvc.perform(multipart("/books")
+        .file(bookPart))
         .andExpect(status().isCreated())
         .andReturn()
         .getResponse()

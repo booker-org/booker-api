@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -30,6 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(controllers = BookController.class, includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {
@@ -103,19 +105,65 @@ class BookControllerTest {
         "A obra narra a vida de Bento Santiago...",
         256,
         1L, // authorId
-        List.of(1L, 2L), // genreIds
-        "https://example.com/dom-casmurro.jpg");
+        List.of(1L, 2L)); // genreIds
 
     Book savedBook = createBaseBook();
     savedBook.setId(1L);
 
     // When
-    when(bookService.save(any(Book.class), eq(1L), eq(List.of(1L, 2L)))).thenReturn(savedBook);
+    when(bookService.save(any(Book.class), eq(1L), eq(List.of(1L, 2L)), eq(null))).thenReturn(savedBook);
+
+    // Create MockMultipartFile for the book data as JSON
+    MockMultipartFile bookPart = new MockMultipartFile(
+        "book",
+        "",
+        "application/json",
+        objectMapper.writeValueAsString(newBookRequest).getBytes());
 
     // Then
-    mockMvc.perform(post("/books")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(newBookRequest)))
+    mockMvc.perform(multipart("/books")
+        .file(bookPart))
+        .andExpect(status().isCreated())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.id").value(1))
+        .andExpect(jsonPath("$.title").value("Dom Casmurro"))
+        .andExpect(jsonPath("$.pageCount").value(256));
+  }
+
+  @Test
+  void createBook_ShouldReturnCreatedBook_WhenValidRequestWithCover() throws Exception {
+    // Given
+    BookCreateDTO newBookRequest = new BookCreateDTO(
+        "Dom Casmurro",
+        "A obra narra a vida de Bento Santiago...",
+        256,
+        1L, // authorId
+        List.of(1L, 2L)); // genreIds
+
+    Book savedBook = createBaseBook();
+    savedBook.setId(1L);
+
+    // Create mock cover file
+    MockMultipartFile coverFile = new MockMultipartFile(
+        "cover",
+        "cover.jpg",
+        "image/jpeg",
+        "fake image content".getBytes());
+
+    // When
+    when(bookService.save(any(Book.class), eq(1L), eq(List.of(1L, 2L)), any())).thenReturn(savedBook);
+
+    // Create MockMultipartFile for the book data as JSON
+    MockMultipartFile bookPart = new MockMultipartFile(
+        "book",
+        "",
+        "application/json",
+        objectMapper.writeValueAsString(newBookRequest).getBytes());
+
+    // Then
+    mockMvc.perform(multipart("/books")
+        .file(bookPart)
+        .file(coverFile))
         .andExpect(status().isCreated())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value(1))
@@ -134,8 +182,7 @@ class BookControllerTest {
         "Updated synopsis...",
         300,
         1L,
-        List.of(1L, 2L),
-        "https://example.com/dom-casmurro-updated.jpg");
+        List.of(1L, 2L));
 
     Book expectedResult = createBaseBook();
     expectedResult.setId(bookId);
@@ -147,11 +194,22 @@ class BookControllerTest {
     // When
     when(bookService.update(eq(bookId), any(Book.class), eq(1L), eq(List.of(1L, 2L))))
         .thenReturn(Optional.of(expectedResult));
+    when(bookService.update(eq(bookId), any(Book.class), eq(1L), eq(List.of(1L, 2L)), eq(null)))
+        .thenReturn(Optional.of(expectedResult));
 
     // Then
-    mockMvc.perform(put("/books/{id}", bookId)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(updateRequest)))
+    MockMultipartFile bookPart = new MockMultipartFile(
+        "book",
+        "book.json",
+        MediaType.APPLICATION_JSON_VALUE,
+        objectMapper.writeValueAsBytes(updateRequest));
+
+    mockMvc.perform(multipart("/books/{id}", bookId)
+        .file(bookPart)
+        .with(request -> {
+          request.setMethod("PUT");
+          return request;
+        }))
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.id").value(bookId))
@@ -170,8 +228,7 @@ class BookControllerTest {
         null,
         null,
         1L,
-        List.of(1L, 2L),
-        null);
+        List.of(1L, 2L));
 
     Book expectedResult = createBaseBook();
     expectedResult.setId(bookId);
@@ -180,11 +237,22 @@ class BookControllerTest {
     // When - Mock behavior
     when(bookService.partialUpdate(eq(bookId), any(Book.class), eq(1L), eq(List.of(1L, 2L))))
         .thenReturn(Optional.of(expectedResult));
+    when(bookService.partialUpdate(eq(bookId), any(Book.class), eq(1L), eq(List.of(1L, 2L)), eq(null)))
+        .thenReturn(Optional.of(expectedResult));
 
     // Then
-    mockMvc.perform(patch("/books/{id}", bookId)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(patchRequest)))
+    MockMultipartFile bookPart = new MockMultipartFile(
+        "book",
+        "book.json",
+        MediaType.APPLICATION_JSON_VALUE,
+        objectMapper.writeValueAsBytes(patchRequest));
+
+    mockMvc.perform(multipart("/books/{id}", bookId)
+        .file(bookPart)
+        .with(request -> {
+          request.setMethod("PATCH");
+          return request;
+        }))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(bookId))
         .andExpect(jsonPath("$.title").value("Novo Título"))
@@ -304,17 +372,18 @@ class BookControllerTest {
         "A obra narra a vida de Bento Santiago...",
         256,
         1L, // authorId
-        List.of(1L, 2L), // genreIds
-        "https://example.com/dom-casmurro.jpg");
+        List.of(1L, 2L)); // genreIds
 
     // When
     when(bookService.save(any(Book.class), eq(1L), eq(List.of(1L, 2L))))
         .thenThrow(new IllegalArgumentException("Dados do livro inválidos"));
+    when(bookService.save(any(Book.class), eq(1L), eq(List.of(1L, 2L)), eq(null)))
+        .thenThrow(new IllegalArgumentException("Dados do livro inválidos"));
 
     // Then
     mockMvc.perform(post("/books")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(invalidBookRequest)))
+        .contentType(MediaType.MULTIPART_FORM_DATA)
+        .param("book", objectMapper.writeValueAsString(invalidBookRequest)))
         .andExpect(status().isBadRequest());
   }
 
@@ -329,17 +398,27 @@ class BookControllerTest {
         "Updated synopsis",
         256,
         1L,
-        List.of(1L, 2L),
-        "https://example.com/updated.jpg");
+        List.of(1L, 2L));
 
     // When
     when(bookService.update(eq(nonExistentBookId), any(Book.class), eq(1L), eq(List.of(1L, 2L))))
         .thenReturn(Optional.empty());
+    when(bookService.update(eq(nonExistentBookId), any(Book.class), eq(1L), eq(List.of(1L, 2L)), eq(null)))
+        .thenReturn(Optional.empty());
 
     // Then
-    mockMvc.perform(put("/books/{id}", nonExistentBookId)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(updateRequest)))
+    MockMultipartFile bookPart = new MockMultipartFile(
+        "book",
+        "book.json",
+        MediaType.APPLICATION_JSON_VALUE,
+        objectMapper.writeValueAsBytes(updateRequest));
+
+    mockMvc.perform(multipart("/books/{id}", nonExistentBookId)
+        .file(bookPart)
+        .with(request -> {
+          request.setMethod("PUT");
+          return request;
+        }))
         .andExpect(status().isNotFound());
   }
 
@@ -352,17 +431,27 @@ class BookControllerTest {
         "A obra narra a vida de Bento Santiago...",
         256,
         1L,
-        List.of(1L, 2L),
-        "https://example.com/dom-casmurro.jpg");
+        List.of(1L, 2L));
 
     // When
     when(bookService.update(eq(bookId), any(Book.class), eq(1L), eq(List.of(1L, 2L))))
         .thenThrow(new IllegalArgumentException("Título deve ter entre 2 e 100 caracteres"));
+    when(bookService.update(eq(bookId), any(Book.class), eq(1L), eq(List.of(1L, 2L)), eq(null)))
+        .thenThrow(new IllegalArgumentException("Título deve ter entre 2 e 100 caracteres"));
 
     // Then
-    mockMvc.perform(put("/books/{id}", bookId)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(invalidUpdateRequest)))
+    MockMultipartFile bookPart = new MockMultipartFile(
+        "book",
+        "book.json",
+        MediaType.APPLICATION_JSON_VALUE,
+        objectMapper.writeValueAsBytes(invalidUpdateRequest));
+
+    mockMvc.perform(multipart("/books/{id}", bookId)
+        .file(bookPart)
+        .with(request -> {
+          request.setMethod("PUT");
+          return request;
+        }))
         .andExpect(status().isBadRequest());
   }
 
@@ -377,17 +466,18 @@ class BookControllerTest {
         null,
         null,
         1L,
-        List.of(1L, 2L),
-        null);
+        List.of(1L, 2L));
 
     // When
     when(bookService.partialUpdate(eq(nonExistentBookId), any(Book.class), eq(1L), eq(List.of(1L, 2L))))
         .thenReturn(Optional.empty());
+    when(bookService.partialUpdate(eq(nonExistentBookId), any(Book.class), eq(1L), eq(List.of(1L, 2L)), eq(null)))
+        .thenReturn(Optional.empty());
 
     // Then
     mockMvc.perform(patch("/books/{id}", nonExistentBookId)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(patchRequest)))
+        .contentType(MediaType.MULTIPART_FORM_DATA)
+        .param("book", objectMapper.writeValueAsString(patchRequest)))
         .andExpect(status().isNotFound());
   }
 
