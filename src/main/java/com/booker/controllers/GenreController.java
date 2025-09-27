@@ -41,7 +41,7 @@ public class GenreController {
   public ResponseEntity<List<GenreDTO>> getAllGenres(
       @ParameterObject @PageableDefault(size = 10, sort = "name") Pageable pageable,
       @Parameter(description = "Get paginated results") @RequestParam(required = false, defaultValue = "false") boolean paginated) {
-    
+
     if (paginated) {
       Page<Genre> genres = genreService.findAll(pageable);
       List<GenreDTO> genreDTOs = genreMapper.toDTOList(genres.getContent());

@@ -49,15 +49,15 @@ public class AuthorService {
     Optional<Author> existingAuthor = authorRepository.findById(id);
     if (existingAuthor.isPresent()) {
       Author authorToUpdate = existingAuthor.get();
-      
+
       if (author.getName() != null && !author.getName().trim().isEmpty()) {
         authorToUpdate.setName(author.getName());
       }
-      
+
       if (author.getBiography() != null) {
         authorToUpdate.setBiography(author.getBiography());
       }
-      
+
       return Optional.of(authorRepository.save(authorToUpdate));
     }
     return Optional.empty();

@@ -7,6 +7,5 @@ public record BookCreateDTO(
     String synopsis,
     Integer pageCount,
     Long authorId,
-    List<Long> genreIds,
-    String coverUrl) {
+    List<Long> genreIds) {
 }
