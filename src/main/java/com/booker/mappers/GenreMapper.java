@@ -1,6 +1,7 @@
 package com.booker.mappers;
 
 import com.booker.dtos.GenreDTO;
+import com.booker.dtos.GenreCreateDTO;
 import com.booker.entities.Genre;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +17,15 @@ public class GenreMapper {
     return new GenreDTO(
         genre.getId(),
         genre.getName());
+  }
+
+  public Genre toEntity(GenreCreateDTO genreCreateDTO) {
+    if (genreCreateDTO == null)
+      return null;
+
+    Genre genre = new Genre();
+    genre.setName(genreCreateDTO.name());
+    return genre;
   }
 
   public List<GenreDTO> toDTOList(List<Genre> genres) {
