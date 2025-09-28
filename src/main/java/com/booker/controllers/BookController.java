@@ -10,7 +10,6 @@ import com.booker.services.BookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -77,17 +77,16 @@ public class BookController {
   }
 
   // POST /books - Criar novo livro
-  @PostMapping(consumes = "multipart/form-data")
+  @PostMapping
   @Operation(summary = "Create new book", description = "Create a new book")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "201", description = "Book created successfully"),
       @ApiResponse(responseCode = "400", description = "Invalid book data")
   })
   public ResponseEntity<BookDTO> createBook(
-      @Parameter(description = "Book data", content = @Content(mediaType = "application/json", schema = @Schema(implementation = BookCreateDTO.class))) @RequestPart("book") BookCreateDTO book,
-      @Parameter(description = "Cover image file (optional)") @RequestPart(value = "cover", required = false) MultipartFile coverFile) {
+      @RequestBody BookCreateDTO book) {
     try {
-      Book savedBook = bookService.save(bookMapper.toEntity(book), book.authorId(), book.genreIds(), coverFile);
+      Book savedBook = bookService.save(bookMapper.toEntity(book), book.authorId(), book.genreIds());
       return ResponseEntity.status(HttpStatus.CREATED).body(bookMapper.toDTO(savedBook));
     } catch (IllegalArgumentException e) {
       return ResponseEntity.badRequest().build();
@@ -95,7 +94,7 @@ public class BookController {
   }
 
   // PUT /books/{id} - Atualizar livro
-  @PutMapping(value = "/{id}", consumes = "multipart/form-data")
+  @PutMapping(value = "/{id}")
   @Operation(summary = "Update book", description = "Update an existing book")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Book updated successfully"),
@@ -104,11 +103,10 @@ public class BookController {
   })
   public ResponseEntity<BookDTO> updateBook(
       @Parameter(description = "Book ID") @PathVariable Long id,
-      @Parameter(description = "Book data", content = @Content(mediaType = "application/json", schema = @Schema(implementation = BookCreateDTO.class))) @RequestPart("book") BookCreateDTO bookDTO,
-      @Parameter(description = "Cover image file (optional)") @RequestPart(value = "cover", required = false) org.springframework.web.multipart.MultipartFile coverFile) {
+      @RequestBody BookCreateDTO bookDTO) {
     try {
       Optional<Book> updatedBook = bookService.update(id, bookMapper.toEntity(bookDTO), bookDTO.authorId(),
-          bookDTO.genreIds(), coverFile);
+          bookDTO.genreIds());
       return updatedBook.map(bookMapper::toDTO).map(ResponseEntity::ok)
           .orElse(ResponseEntity.notFound().build());
     } catch (IllegalArgumentException e) {
@@ -117,7 +115,7 @@ public class BookController {
   }
 
   // PATCH /books/{id} - Atualização parcial
-  @PatchMapping(value = "/{id}", consumes = "multipart/form-data")
+  @PatchMapping(value = "/{id}")
   @Operation(summary = "Partially update book", description = "Partially update an existing book")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Book updated successfully"),
@@ -126,19 +124,52 @@ public class BookController {
   })
   public ResponseEntity<BookDTO> patchBook(
       @Parameter(description = "Book ID") @PathVariable Long id,
-      @Parameter(description = "Book data", content = @Content(mediaType = "application/json", schema = @Schema(implementation = BookCreateDTO.class))) @RequestPart(value = "book", required = false) BookCreateDTO book,
-      @Parameter(description = "Cover image file (optional)") @RequestPart(value = "cover", required = false) MultipartFile coverFile) {
+      @RequestBody(required = false) BookCreateDTO book) {
     try {
       BookCreateDTO bookData = book != null ? book : new BookCreateDTO(null, null, null, null, null);
 
       Optional<Book> updatedBook = bookService.partialUpdate(id, bookMapper.toEntity(bookData),
-          book != null ? book.authorId() : null, book != null ? book.genreIds() : null, coverFile);
+          book != null ? book.authorId() : null, book != null ? book.genreIds() : null);
       return updatedBook.map(bookMapper::toDTO)
           .map(ResponseEntity::ok)
           .orElse(ResponseEntity.notFound().build());
     } catch (IllegalArgumentException e) {
       return ResponseEntity.badRequest().build();
     }
+  }
+
+  @PutMapping(value = "/{id}/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @Operation(summary = "Upload or replace book cover", description = "Upload a new cover image for the book")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Cover uploaded successfully"),
+      @ApiResponse(responseCode = "404", description = "Book not found", content = @Content),
+      @ApiResponse(responseCode = "400", description = "Invalid file", content = @Content)
+  })
+  public ResponseEntity<BookDTO> uploadCover(
+      @Parameter(description = "Book ID") @PathVariable Long id,
+      @Parameter(description = "Cover image file", required = true) @RequestPart("cover") MultipartFile coverFile) {
+    try {
+      Optional<Book> updatedBook = bookService.updateCover(id, coverFile);
+      return updatedBook.map(bookMapper::toDTO)
+          .map(ResponseEntity::ok)
+          .orElse(ResponseEntity.notFound().build());
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.badRequest().build();
+    }
+  }
+
+  @DeleteMapping("/{id}/cover")
+  @Operation(summary = "Remove book cover", description = "Delete the existing cover image for the book")
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "204", description = "Cover removed successfully"),
+      @ApiResponse(responseCode = "404", description = "Book not found", content = @Content)
+  })
+  public ResponseEntity<Void> deleteCover(@Parameter(description = "Book ID") @PathVariable Long id) {
+    Optional<Book> book = bookService.removeCover(id);
+    if (book.isEmpty()) {
+      return ResponseEntity.notFound().build();
+    }
+    return ResponseEntity.noContent().build();
   }
 
   // DELETE /books/{id} - Deletar livro

@@ -45,10 +45,6 @@ public class BookService {
   }
 
   public Book save(Book book, Long authorId, List<Long> genreIds) {
-    return save(book, authorId, genreIds, null);
-  }
-
-  public Book save(Book book, Long authorId, List<Long> genreIds, MultipartFile coverFile) {
     validateBook(book);
 
     Author author = authorRepository.findById(authorId)
@@ -65,27 +61,13 @@ public class BookService {
       book.setGenres(genres);
     }
 
-    if (coverFile != null && !coverFile.isEmpty()) {
-      try {
-        String coverUrl = storageService.uploadCover(coverFile);
-        book.setCoverUrl(coverUrl);
-      } catch (IOException e) {
-        throw new RuntimeException("Erro no upload da capa: " + e.getMessage());
-      }
-    }
-
     return bookRepository.save(book);
   }
 
   public Optional<Book> update(Long id, Book bookData, Long authorId, List<Long> genreIds) {
-    return update(id, bookData, authorId, genreIds, null);
-  }
-
-  public Optional<Book> update(Long id, Book bookData, Long authorId, List<Long> genreIds, MultipartFile coverFile) {
     return bookRepository.findById(id)
         .map(existingBook -> {
-
-          validateBook(existingBook);
+          validateBook(bookData);
 
           Author author = authorRepository.findById(authorId)
               .orElseThrow(() -> new IllegalArgumentException("ID do autor inválido"));
@@ -107,27 +89,11 @@ public class BookService {
           existingBook.setSynopsis(bookData.getSynopsis());
           existingBook.setPageCount(bookData.getPageCount());
 
-          if (coverFile != null && !coverFile.isEmpty()) {
-            try {
-              String newCoverUrl = storageService.uploadOrReplaceCover(existingBook.getCoverUrl(), coverFile);
-              existingBook.setCoverUrl(newCoverUrl);
-            } catch (IOException e) {
-              throw new RuntimeException("Erro no upload da capa: " + e.getMessage());
-            }
-          } else if (bookData.getCoverUrl() != null) {
-            existingBook.setCoverUrl(bookData.getCoverUrl());
-          }
-
           return bookRepository.save(existingBook);
         });
   }
 
   public Optional<Book> partialUpdate(Long id, Book bookData, Long authorId, List<Long> genreIds) {
-    return partialUpdate(id, bookData, authorId, genreIds, null);
-  }
-
-  public Optional<Book> partialUpdate(Long id, Book bookData, Long authorId, List<Long> genreIds,
-      MultipartFile coverFile) {
     return bookRepository.findById(id)
         .map(existingBook -> {
           // Validar apenas se novos dados são fornecidos
@@ -167,18 +133,39 @@ public class BookService {
             existingBook.setGenres(genres);
           }
 
-          if (coverFile != null && !coverFile.isEmpty()) {
-            try {
-              String newCoverUrl = storageService.uploadOrReplaceCover(existingBook.getCoverUrl(), coverFile);
-              existingBook.setCoverUrl(newCoverUrl);
-            } catch (IOException e) {
-              throw new RuntimeException("Erro no upload da capa: " + e.getMessage());
-            }
-          } else if (bookData.getCoverUrl() != null) {
-            existingBook.setCoverUrl(bookData.getCoverUrl());
-          }
-
           return bookRepository.save(existingBook);
+        });
+  }
+
+  public Optional<Book> updateCover(Long id, MultipartFile coverFile) {
+    if (coverFile == null || coverFile.isEmpty()) {
+      throw new IllegalArgumentException("Arquivo de capa é obrigatório");
+    }
+
+    return bookRepository.findById(id)
+        .map(existingBook -> {
+          try {
+            String newCoverUrl = storageService.uploadOrReplaceCover(existingBook.getCoverUrl(), coverFile);
+            existingBook.setCoverUrl(newCoverUrl);
+            return bookRepository.save(existingBook);
+          } catch (IOException e) {
+            throw new RuntimeException("Erro no upload da capa: " + e.getMessage());
+          }
+        });
+  }
+
+  public Optional<Book> removeCover(Long id) {
+    return bookRepository.findById(id)
+        .map(existingBook -> {
+          if (existingBook.getCoverUrl() != null && !existingBook.getCoverUrl().isEmpty()) {
+            String fileName = storageService.extractFileNameFromUrl(existingBook.getCoverUrl());
+            if (fileName != null) {
+              storageService.deleteCover(fileName);
+            }
+            existingBook.setCoverUrl(null);
+            return bookRepository.save(existingBook);
+          }
+          return existingBook;
         });
   }
 
