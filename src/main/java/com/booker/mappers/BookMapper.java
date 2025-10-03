@@ -28,7 +28,6 @@ public class BookMapper {
     book.setTitle(dto.title());
     book.setSynopsis(dto.synopsis());
     book.setPageCount(dto.pageCount());
-    book.setCoverUrl(dto.coverUrl());
     return book;
   }
 

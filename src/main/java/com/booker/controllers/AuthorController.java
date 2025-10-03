@@ -41,7 +41,7 @@ public class AuthorController {
   public ResponseEntity<List<AuthorDTO>> getAllAuthors(
       @ParameterObject @PageableDefault(size = 10, sort = "name") Pageable pageable,
       @Parameter(description = "Get paginated results") @RequestParam(required = false, defaultValue = "false") boolean paginated) {
-    
+
     if (paginated) {
       Page<Author> authors = authorService.findAll(pageable);
       List<AuthorDTO> authorDTOs = authorMapper.toDTOList(authors.getContent());

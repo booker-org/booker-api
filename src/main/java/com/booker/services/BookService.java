@@ -13,7 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +33,9 @@ public class BookService {
   @Autowired
   private GenreRepository genreRepository;
 
+  @Autowired
+  private SupabaseStorageService storageService;
+
   public Page<Book> findAll(Pageable pageable) {
     return bookRepository.findAll(pageable);
   }
@@ -40,7 +45,6 @@ public class BookService {
   }
 
   public Book save(Book book, Long authorId, List<Long> genreIds) {
-
     validateBook(book);
 
     Author author = authorRepository.findById(authorId)
@@ -63,8 +67,7 @@ public class BookService {
   public Optional<Book> update(Long id, Book bookData, Long authorId, List<Long> genreIds) {
     return bookRepository.findById(id)
         .map(existingBook -> {
-
-          validateBook(existingBook);
+          validateBook(bookData);
 
           Author author = authorRepository.findById(authorId)
               .orElseThrow(() -> new IllegalArgumentException("ID do autor inválido"));
@@ -85,7 +88,6 @@ public class BookService {
           existingBook.setTitle(bookData.getTitle());
           existingBook.setSynopsis(bookData.getSynopsis());
           existingBook.setPageCount(bookData.getPageCount());
-          existingBook.setCoverUrl(bookData.getCoverUrl());
 
           return bookRepository.save(existingBook);
         });
@@ -113,9 +115,6 @@ public class BookService {
           if (bookData.getAuthor() != null) {
             existingBook.setAuthor(bookData.getAuthor());
           }
-          if (bookData.getCoverUrl() != null) {
-            existingBook.setCoverUrl(bookData.getCoverUrl());
-          }
 
           if (authorId != null) {
             Author author = authorRepository.findById(authorId)
@@ -133,16 +132,63 @@ public class BookService {
             }
             existingBook.setGenres(genres);
           }
+
           return bookRepository.save(existingBook);
         });
   }
 
-  public boolean deleteById(Long id) {
-    if (bookRepository.existsById(id)) {
-      bookRepository.deleteById(id);
-      return true;
+  public Optional<Book> updateCover(Long id, MultipartFile coverFile) {
+    if (coverFile == null || coverFile.isEmpty()) {
+      throw new IllegalArgumentException("Arquivo de capa é obrigatório");
     }
-    return false;
+
+    return bookRepository.findById(id)
+        .map(existingBook -> {
+          try {
+            String newCoverUrl = storageService.uploadOrReplaceCover(existingBook.getCoverUrl(), coverFile);
+            existingBook.setCoverUrl(newCoverUrl);
+            return bookRepository.save(existingBook);
+          } catch (IOException e) {
+            throw new RuntimeException("Erro no upload da capa: " + e.getMessage());
+          }
+        });
+  }
+
+  public Optional<Book> removeCover(Long id) {
+    return bookRepository.findById(id)
+        .map(existingBook -> {
+          if (existingBook.getCoverUrl() != null && !existingBook.getCoverUrl().isEmpty()) {
+            String fileName = storageService.extractFileNameFromUrl(existingBook.getCoverUrl());
+            if (fileName != null) {
+              storageService.deleteCover(fileName);
+            }
+            existingBook.setCoverUrl(null);
+            return bookRepository.save(existingBook);
+          }
+          return existingBook;
+        });
+  }
+
+  public boolean deleteById(Long id) {
+    return bookRepository.findById(id)
+        .map(book -> {
+          // Deleta a capa do Supabase se existir
+          if (book.getCoverUrl() != null && !book.getCoverUrl().isEmpty()) {
+            try {
+              String fileName = storageService.extractFileNameFromUrl(book.getCoverUrl());
+              if (fileName != null) {
+                storageService.deleteCover(fileName);
+              }
+            } catch (Exception e) {
+              // Log do erro, mas não falha a deleção do livro
+              System.err.println("Erro ao deletar capa do livro " + id + ": " + e.getMessage());
+            }
+          }
+
+          bookRepository.deleteById(id);
+          return true;
+        })
+        .orElse(false);
   }
 
   public Page<Book> findByTitle(String title, Pageable pageable) {

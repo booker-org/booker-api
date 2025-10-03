@@ -77,16 +77,13 @@ class BookIntegrationTest {
 
   @Test
   void createBook_ShouldReturnCreatedBook_WhenValidData() throws Exception {
-    // Given
     BookCreateDTO createRequest = new BookCreateDTO(
         "Dom Casmurro",
         "A obra narra a vida de Bento Santiago...",
         256,
         savedAuthor.getId(),
-        List.of(savedGenre1.getId(), savedGenre2.getId()),
-        "https://example.com/dom-casmurro.jpg");
+        List.of(savedGenre1.getId(), savedGenre2.getId()));
 
-    // When & Then
     mockMvc.perform(post("/books")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(createRequest)))
@@ -100,11 +97,9 @@ class BookIntegrationTest {
         .andExpect(jsonPath("$.genres").isArray())
         .andExpect(jsonPath("$.genres", hasSize(2)))
         .andExpect(jsonPath("$.genres", containsInAnyOrder("Ficção", "Clássico")))
-        .andExpect(jsonPath("$.coverUrl").value("https://example.com/dom-casmurro.jpg"))
         .andExpect(jsonPath("$.createdAt").isNotEmpty())
         .andExpect(jsonPath("$.updatedAt").isNotEmpty());
 
-    // Verify it was saved in the database
     List<Book> books = bookRepository.findAll();
     assert books.size() == 1;
     assert books.get(0).getTitle().equals("Dom Casmurro");
@@ -112,38 +107,31 @@ class BookIntegrationTest {
 
   @Test
   void createBook_ShouldReturn400_WhenInvalidData() throws Exception {
-    // Given
     BookCreateDTO invalidRequest = new BookCreateDTO(
-        "A", // invalid title
+        "A",
         "Sinopse qualquer",
         256,
         savedAuthor.getId(),
-        List.of(savedGenre1.getId()),
-        "https://example.com/cover.jpg");
+        List.of(savedGenre1.getId()));
 
-    // When & Then
     mockMvc.perform(post("/books")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(invalidRequest)))
         .andExpect(status().isBadRequest());
 
-    // Verify nothing was saved in the database
     List<Book> books = bookRepository.findAll();
     assert books.isEmpty();
   }
 
   @Test
   void createBook_ShouldReturn400_WhenAuthorNotExists() throws Exception {
-    // Given
     BookCreateDTO invalidRequest = new BookCreateDTO(
         "Título Válido",
         "Sinopse qualquer",
         256,
-        999L, // non-existent author ID
-        List.of(savedGenre1.getId()),
-        "https://example.com/cover.jpg");
+        999L,
+        List.of(savedGenre1.getId()));
 
-    // When & Then
     mockMvc.perform(post("/books")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(invalidRequest)))
@@ -160,8 +148,7 @@ class BookIntegrationTest {
         "A obra narra a vida de Bento Santiago...",
         256,
         savedAuthor.getId(),
-        List.of(savedGenre1.getId(), savedGenre2.getId()),
-        "https://example.com/dom-casmurro.jpg");
+        List.of(savedGenre1.getId(), savedGenre2.getId()));
 
     // Create the book via API first
     String createResponse = mockMvc.perform(post("/books")
@@ -199,16 +186,14 @@ class BookIntegrationTest {
         "Uma história de amor",
         256,
         savedAuthor.getId(),
-        List.of(savedGenre1.getId()),
-        "https://example.com/dom-casmurro.jpg");
+        List.of(savedGenre1.getId()));
 
     BookCreateDTO book2Request = new BookCreateDTO(
         "O Cortiço",
         "Aventuras no espaço",
         300,
         savedAuthor.getId(),
-        List.of(savedGenre2.getId()),
-        "https://example.com/o-cortico.jpg");
+        List.of(savedGenre2.getId()));
 
     // Create books via API
     mockMvc.perform(post("/books")
@@ -243,8 +228,7 @@ class BookIntegrationTest {
         "Sinopse original",
         256,
         savedAuthor.getId(),
-        List.of(savedGenre1.getId()),
-        "https://example.com/original.jpg");
+        List.of(savedGenre1.getId()));
 
     String createResponse = mockMvc.perform(post("/books")
         .contentType(MediaType.APPLICATION_JSON)
@@ -261,8 +245,7 @@ class BookIntegrationTest {
         "Nova sinopse atualizada",
         300,
         savedAuthor.getId(),
-        List.of(savedGenre1.getId()),
-        "https://example.com/new-cover.jpg");
+        List.of(savedGenre1.getId()));
 
     // When & Then
     mockMvc.perform(put("/books/{id}", bookId)
@@ -284,8 +267,7 @@ class BookIntegrationTest {
         "Sinopse qualquer",
         256,
         savedAuthor.getId(),
-        List.of(savedGenre1.getId()),
-        "https://example.com/cover.jpg");
+        List.of(savedGenre1.getId()));
 
     // When & Then
     mockMvc.perform(put("/books/{id}", 999L)
@@ -304,8 +286,7 @@ class BookIntegrationTest {
         "A obra narra a vida de Bento Santiago...",
         256,
         savedAuthor.getId(),
-        List.of(savedGenre1.getId()),
-        "https://example.com/dom-casmurro.jpg");
+        List.of(savedGenre1.getId()));
 
     String createResponse = mockMvc.perform(post("/books")
         .contentType(MediaType.APPLICATION_JSON)
