@@ -31,7 +31,8 @@ public class SupabaseStorageService {
     HttpHeaders headers = new HttpHeaders();
     headers.setBearerAuth(SUPABASE_API_KEY);
     headers.set("apikey", SUPABASE_API_KEY);
-    headers.setContentType(MediaType.parseMediaType(file.getContentType()));
+    String contentType = file.getContentType();
+    headers.setContentType(MediaType.parseMediaType(contentType != null ? contentType : "application/octet-stream"));
 
     HttpEntity<byte[]> entity = new HttpEntity<>(file.getBytes(), headers);
 
@@ -74,7 +75,8 @@ public class SupabaseStorageService {
     HttpHeaders headers = new HttpHeaders();
     headers.setBearerAuth(SUPABASE_API_KEY);
     headers.set("apikey", SUPABASE_API_KEY);
-    headers.setContentType(MediaType.parseMediaType(newFile.getContentType()));
+    String contentType = newFile.getContentType();
+    headers.setContentType(MediaType.parseMediaType(contentType != null ? contentType : "application/octet-stream"));
 
     HttpEntity<byte[]> entity = new HttpEntity<>(newFile.getBytes(), headers);
 

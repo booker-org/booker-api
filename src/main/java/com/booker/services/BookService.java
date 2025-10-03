@@ -3,6 +3,8 @@ package com.booker.services;
 import com.booker.entities.Author;
 import com.booker.entities.Book;
 import com.booker.entities.Genre;
+import com.booker.exceptions.CoverException;
+import com.booker.exceptions.ResourceNotFoundException;
 import com.booker.repositories.AuthorRepository;
 import com.booker.repositories.BookRepository;
 import com.booker.repositories.GenreRepository;
@@ -127,7 +129,7 @@ public class BookService {
             for (Long genreId : genreIds) {
               Genre genre = genreRepository.findById(genreId)
                   .orElseThrow(
-                      () -> new EntityNotFoundException("Gênero não encontrado: " + genreId));
+                      () -> new ResourceNotFoundException("Gênero não encontrado: " + genreId));
               genres.add(genre);
             }
             existingBook.setGenres(genres);
@@ -149,7 +151,7 @@ public class BookService {
             existingBook.setCoverUrl(newCoverUrl);
             return bookRepository.save(existingBook);
           } catch (IOException e) {
-            throw new RuntimeException("Erro no upload da capa: " + e.getMessage());
+            throw new CoverException("Erro no upload da capa: " + e.getMessage());
           }
         });
   }

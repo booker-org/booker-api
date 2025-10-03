@@ -76,13 +76,9 @@ public class AuthorController {
       @ApiResponse(responseCode = "400", description = "Invalid author data")
   })
   public ResponseEntity<AuthorDTO> createAuthor(@RequestBody AuthorCreateDTO authorCreateDTO) {
-    try {
-      Author author = authorMapper.toEntity(authorCreateDTO);
-      Author savedAuthor = authorService.save(author);
-      return ResponseEntity.status(HttpStatus.CREATED).body(authorMapper.toDTO(savedAuthor));
-    } catch (IllegalArgumentException e) {
-      return ResponseEntity.badRequest().build();
-    }
+    Author author = authorMapper.toEntity(authorCreateDTO);
+    Author savedAuthor = authorService.save(author);
+    return ResponseEntity.status(HttpStatus.CREATED).body(authorMapper.toDTO(savedAuthor));
   }
 
   // PUT /authors/{id} - Atualizar autor
@@ -96,15 +92,11 @@ public class AuthorController {
   public ResponseEntity<AuthorDTO> updateAuthor(
       @Parameter(description = "Author ID") @PathVariable Long id,
       @RequestBody AuthorCreateDTO authorCreateDTO) {
-    try {
-      Author author = authorMapper.toEntity(authorCreateDTO);
-      Optional<Author> updatedAuthor = authorService.update(id, author);
-      return updatedAuthor.map(authorMapper::toDTO)
-          .map(ResponseEntity::ok)
-          .orElse(ResponseEntity.notFound().build());
-    } catch (IllegalArgumentException e) {
-      return ResponseEntity.badRequest().build();
-    }
+    Author author = authorMapper.toEntity(authorCreateDTO);
+    Optional<Author> updatedAuthor = authorService.update(id, author);
+    return updatedAuthor.map(authorMapper::toDTO)
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
   }
 
   // PATCH /authors/{id} - Atualização parcial
@@ -118,15 +110,11 @@ public class AuthorController {
   public ResponseEntity<AuthorDTO> patchAuthor(
       @Parameter(description = "Author ID") @PathVariable Long id,
       @RequestBody AuthorCreateDTO authorCreateDTO) {
-    try {
-      Author author = authorMapper.toEntity(authorCreateDTO);
-      Optional<Author> updatedAuthor = authorService.partialUpdate(id, author);
-      return updatedAuthor.map(authorMapper::toDTO)
-          .map(ResponseEntity::ok)
-          .orElse(ResponseEntity.notFound().build());
-    } catch (IllegalArgumentException e) {
-      return ResponseEntity.badRequest().build();
-    }
+    Author author = authorMapper.toEntity(authorCreateDTO);
+    Optional<Author> updatedAuthor = authorService.partialUpdate(id, author);
+    return updatedAuthor.map(authorMapper::toDTO)
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
   }
 
   // DELETE /authors/{id} - Deletar autor
