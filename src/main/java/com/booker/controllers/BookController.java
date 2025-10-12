@@ -85,12 +85,8 @@ public class BookController {
   })
   public ResponseEntity<BookDTO> createBook(
       @RequestBody BookCreateDTO book) {
-    try {
-      Book savedBook = bookService.save(bookMapper.toEntity(book), book.authorId(), book.genreIds());
-      return ResponseEntity.status(HttpStatus.CREATED).body(bookMapper.toDTO(savedBook));
-    } catch (IllegalArgumentException e) {
-      return ResponseEntity.badRequest().build();
-    }
+    Book savedBook = bookService.save(bookMapper.toEntity(book), book.authorId(), book.genreIds());
+    return ResponseEntity.status(HttpStatus.CREATED).body(bookMapper.toDTO(savedBook));
   }
 
   // PUT /books/{id} - Atualizar livro
@@ -104,14 +100,10 @@ public class BookController {
   public ResponseEntity<BookDTO> updateBook(
       @Parameter(description = "Book ID") @PathVariable Long id,
       @RequestBody BookCreateDTO bookDTO) {
-    try {
-      Optional<Book> updatedBook = bookService.update(id, bookMapper.toEntity(bookDTO), bookDTO.authorId(),
-          bookDTO.genreIds());
-      return updatedBook.map(bookMapper::toDTO).map(ResponseEntity::ok)
-          .orElse(ResponseEntity.notFound().build());
-    } catch (IllegalArgumentException e) {
-      return ResponseEntity.badRequest().build();
-    }
+    Optional<Book> updatedBook = bookService.update(id, bookMapper.toEntity(bookDTO), bookDTO.authorId(),
+        bookDTO.genreIds());
+    return updatedBook.map(bookMapper::toDTO).map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
   }
 
   // PATCH /books/{id} - Atualização parcial
@@ -125,17 +117,13 @@ public class BookController {
   public ResponseEntity<BookDTO> patchBook(
       @Parameter(description = "Book ID") @PathVariable Long id,
       @RequestBody(required = false) BookCreateDTO book) {
-    try {
-      BookCreateDTO bookData = book != null ? book : new BookCreateDTO(null, null, null, null, null);
+    BookCreateDTO bookData = book != null ? book : new BookCreateDTO(null, null, null, null, null);
 
-      Optional<Book> updatedBook = bookService.partialUpdate(id, bookMapper.toEntity(bookData),
-          book != null ? book.authorId() : null, book != null ? book.genreIds() : null);
-      return updatedBook.map(bookMapper::toDTO)
-          .map(ResponseEntity::ok)
-          .orElse(ResponseEntity.notFound().build());
-    } catch (IllegalArgumentException e) {
-      return ResponseEntity.badRequest().build();
-    }
+    Optional<Book> updatedBook = bookService.partialUpdate(id, bookMapper.toEntity(bookData),
+        book != null ? book.authorId() : null, book != null ? book.genreIds() : null);
+    return updatedBook.map(bookMapper::toDTO)
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
   }
 
   @PutMapping(value = "/{id}/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -148,14 +136,10 @@ public class BookController {
   public ResponseEntity<BookDTO> uploadCover(
       @Parameter(description = "Book ID") @PathVariable Long id,
       @Parameter(description = "Cover image file", required = true) @RequestPart("cover") MultipartFile coverFile) {
-    try {
-      Optional<Book> updatedBook = bookService.updateCover(id, coverFile);
-      return updatedBook.map(bookMapper::toDTO)
-          .map(ResponseEntity::ok)
-          .orElse(ResponseEntity.notFound().build());
-    } catch (IllegalArgumentException e) {
-      return ResponseEntity.badRequest().build();
-    }
+    Optional<Book> updatedBook = bookService.updateCover(id, coverFile);
+    return updatedBook.map(bookMapper::toDTO)
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
   }
 
   @DeleteMapping("/{id}/cover")

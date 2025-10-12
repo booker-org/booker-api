@@ -76,13 +76,9 @@ public class GenreController {
       @ApiResponse(responseCode = "400", description = "Invalid genre data")
   })
   public ResponseEntity<GenreDTO> createGenre(@RequestBody GenreCreateDTO genreCreateDTO) {
-    try {
-      Genre genre = genreMapper.toEntity(genreCreateDTO);
-      Genre savedGenre = genreService.save(genre);
-      return ResponseEntity.status(HttpStatus.CREATED).body(genreMapper.toDTO(savedGenre));
-    } catch (IllegalArgumentException e) {
-      return ResponseEntity.badRequest().build();
-    }
+    Genre genre = genreMapper.toEntity(genreCreateDTO);
+    Genre savedGenre = genreService.save(genre);
+    return ResponseEntity.status(HttpStatus.CREATED).body(genreMapper.toDTO(savedGenre));
   }
 
   // PUT /genres/{id} - Atualizar gênero
@@ -96,15 +92,11 @@ public class GenreController {
   public ResponseEntity<GenreDTO> updateGenre(
       @Parameter(description = "Genre ID") @PathVariable Long id,
       @RequestBody GenreCreateDTO genreCreateDTO) {
-    try {
-      Genre genre = genreMapper.toEntity(genreCreateDTO);
-      Optional<Genre> updatedGenre = genreService.update(id, genre);
-      return updatedGenre.map(genreMapper::toDTO)
-          .map(ResponseEntity::ok)
-          .orElse(ResponseEntity.notFound().build());
-    } catch (IllegalArgumentException e) {
-      return ResponseEntity.badRequest().build();
-    }
+    Genre genre = genreMapper.toEntity(genreCreateDTO);
+    Optional<Genre> updatedGenre = genreService.update(id, genre);
+    return updatedGenre.map(genreMapper::toDTO)
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
   }
 
   // DELETE /genres/{id} - Deletar gênero
