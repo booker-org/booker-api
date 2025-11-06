@@ -8,6 +8,6 @@ public class BookerApplication {
   public static void main(String[] args) {
     SpringApplication.run(BookerApplication.class, args);
 
-    System.out.println("Aplicação rodando em: http://localhost:8080");
+    System.out.println("Application running at: http://localhost:8080");
   }
 }
