@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:17
+    container_name: booker-db
+    
+    environment:
+      POSTGRES_USER: ${SPRING_DATASOURCE_USERNAME}
+      POSTGRES_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      POSTGRES_DB: ${SPRING_DATASOURCE_NAME}
+
+    # Porta removida (somente conexão interna) - descomentar se necessário para debug
+    # ports:
+    #   - '5432:5432'
+
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: booker-api
+
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${SPRING_DATASOURCE_NAME}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+
+      STORAGE_BUCKET: ${STORAGE_BUCKET}
+      SUPABASE_PROJECT_ID: ${SUPABASE_PROJECT_ID}
+      SUPABASE_API_KEY: ${SUPABASE_API_KEY}
+
+    ports:
+      - '8080:8080'
+
+    depends_on:
+      - db
+
+volumes:
+  db_data:
