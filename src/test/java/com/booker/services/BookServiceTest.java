@@ -1,11 +1,10 @@
 package com.booker.services;
 
-import com.booker.entities.Author;
-import com.booker.entities.Book;
-import com.booker.entities.Genre;
-import com.booker.repositories.AuthorRepository;
-import com.booker.repositories.BookRepository;
-import com.booker.repositories.GenreRepository;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
 import jakarta.persistence.EntityNotFoundException;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -19,19 +18,20 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+import com.booker.models.Author;
+import com.booker.models.Book;
+import com.booker.models.Genre;
+import com.booker.repositories.AuthorRepository;
+import com.booker.repositories.BookRepository;
+import com.booker.repositories.GenreRepository;
+
 @ExtendWith(MockitoExtension.class)
 class BookServiceTest {
-
   @Mock
   private BookRepository bookRepository;
 
@@ -60,24 +60,26 @@ class BookServiceTest {
 
   private Author createBaseAuthor() {
     Author author = new Author();
+
     author.setId(1L);
     author.setName("Machado de Assis");
     author.setBiography("Considerado um dos maiores escritores brasileiros...");
+
     return author;
   }
 
-  private Book createBaseBook() {
-    return createBaseBook("Dom Casmurro");
-  }
+  private Book createBaseBook() { return createBaseBook("Dom Casmurro"); }
 
   private Book createBaseBook(String title) {
     Book book = new Book();
+
     book.setTitle(title);
     book.setSynopsis("A obra narra a vida de Bento Santiago...");
     book.setPageCount(256);
     book.setAuthor(createBaseAuthor());
     book.setGenres(Set.of(genre1, genre2));
     book.setCoverUrl("https://example.com/dom-casmurro.jpg");
+
     return book;
   }
 
@@ -561,5 +563,4 @@ class BookServiceTest {
     assertEquals(1, result.getContent().size());
     verify(bookRepository).findByTitleOrSynopsisContaining(query, pageable);
   }
-
 }

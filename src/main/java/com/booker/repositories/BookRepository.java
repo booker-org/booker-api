@@ -7,11 +7,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.booker.entities.Book;
+import com.booker.models.Book;
 
 @Repository
 public interface BookRepository extends JpaRepository<Book, Long> {
-
   Page<Book> findByTitleContainingIgnoreCase(String title, Pageable pageable);
 
   Page<Book> findByAuthorId(Long authorId, Pageable pageable);

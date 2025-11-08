@@ -1,19 +1,19 @@
 package com.booker.mappers;
 
-import com.booker.dtos.BookCreateDTO;
-import com.booker.dtos.BookDTO;
-import com.booker.dtos.BookDetailDTO;
-import com.booker.dtos.BookPageResponse;
-import com.booker.entities.Book;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import com.booker.DTO.Author.BookCreateDTO;
+import com.booker.DTO.Book.BookDTO;
+import com.booker.DTO.Book.BookDetailDTO;
+import com.booker.DTO.Book.BookPageResponse;
+import com.booker.models.Book;
 
 @Component
 public class BookMapper {
-
   @Autowired
   private AuthorMapper authorMapper;
 
@@ -21,66 +21,70 @@ public class BookMapper {
   private GenreMapper genreMapper;
 
   public Book toEntity(BookCreateDTO dto) {
-    if (dto == null)
-      return null;
+    if (dto == null) return null;
 
     Book book = new Book();
+
     book.setTitle(dto.title());
     book.setSynopsis(dto.synopsis());
     book.setPageCount(dto.pageCount());
+
     return book;
   }
 
   public BookDTO toDTO(Book book) {
-    if (book == null)
-      return null;
+    if (book == null) return null;
 
     return new BookDTO(
-        book.getId(),
-        book.getTitle(),
-        book.getSynopsis(),
-        book.getPageCount(),
-        book.getAuthor() != null ? book.getAuthor().getName() : null,
-        book.getGenres().stream().map(g -> g.getName()).toList(),
-        book.getCoverUrl(),
-        book.getCreatedAt(),
-        book.getUpdatedAt());
+      book.getId(),
+      book.getTitle(),
+      book.getSynopsis(),
+      book.getPageCount(),
+      book.getAuthor() != null ? book.getAuthor().getName() : null,
+      book.getGenres().stream().map(g -> g.getName()).toList(),
+      book.getCoverUrl(),
+      book.getCreatedAt(),
+      book.getUpdatedAt()
+    );
   }
 
   public BookDetailDTO toDetailDTO(Book book) {
-    if (book == null)
-      return null;
+    if (book == null) return null;
 
     return new BookDetailDTO(
-        book.getId(),
-        book.getTitle(),
-        book.getSynopsis(),
-        book.getPageCount(),
-        authorMapper.toDTO(book.getAuthor()),
-        genreMapper.toDTOList(book.getGenres().stream().toList()),
-        book.getCoverUrl(),
-        book.getCreatedAt(),
-        book.getUpdatedAt());
+      book.getId(),
+      book.getTitle(),
+      book.getSynopsis(),
+      book.getPageCount(),
+      authorMapper.toDTO(book.getAuthor()),
+      genreMapper.toDTOList(book.getGenres().stream().toList()),
+      book.getCoverUrl(),
+      book.getCreatedAt(),
+      book.getUpdatedAt()
+    );
   }
 
   public List<BookDTO> toDTOList(List<Book> books) {
     return books.stream()
-        .map(this::toDTO)
-        .toList();
+      .map(this::toDTO)
+      .toList()
+    ;
   }
 
   public List<BookDetailDTO> toDetailDTOList(List<Book> books) {
     return books.stream()
-        .map(this::toDetailDTO)
-        .toList();
+      .map(this::toDetailDTO)
+      .toList()
+    ;
   }
 
   public BookPageResponse toPageResponse(Page<Book> page) {
     return new BookPageResponse(
-        toDTOList(page.getContent()),
-        page.getNumber(),
-        page.getSize(),
-        page.getTotalElements(),
-        page.getTotalPages());
+      toDTOList(page.getContent()),
+      page.getNumber(),
+      page.getSize(),
+      page.getTotalElements(),
+      page.getTotalPages()
+    );
   }
 }
