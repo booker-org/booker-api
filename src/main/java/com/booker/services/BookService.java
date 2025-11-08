@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.booker.exceptions.CoverException;
@@ -37,10 +38,28 @@ public class BookService {
   @Autowired
   private SupabaseStorageService storageService;
 
+  @Transactional(readOnly = true)
   public Page<Book> findAll(Pageable pageable) { return bookRepository.findAll(pageable); }
 
+  @Transactional(readOnly = true)
   public Optional<Book> findById(Long id) { return bookRepository.findById(id); }
 
+  @Transactional(readOnly = true)
+  public Page<Book> findByTitle(String title, Pageable pageable) {
+    return bookRepository.findByTitleContainingIgnoreCase(title, pageable);
+  }
+
+  @Transactional(readOnly = true)
+  public Page<Book> findByAuthor(Long authorId, Pageable pageable) {
+    return bookRepository.findByAuthorId(authorId, pageable);
+  }
+
+  @Transactional(readOnly = true)
+  public Page<Book> searchBooks(String query, Pageable pageable) {
+    return bookRepository.findByTitleOrSynopsisContaining(query, pageable);
+  }
+
+  @Transactional
   public Book save(Book book, Long authorId, List<Long> genreIds) {
     validateBook(book);
 
@@ -69,6 +88,7 @@ public class BookService {
     return bookRepository.save(book);
   }
 
+  @Transactional
   public Optional<Book> update(Long id, Book bookData, Long authorId, List<Long> genreIds) {
     return bookRepository.findById(id)
       .map(existingBook -> {
@@ -105,6 +125,7 @@ public class BookService {
     ;
   }
 
+  @Transactional
   public Optional<Book> partialUpdate(Long id, Book bookData, Long authorId, List<Long> genreIds) {
     return bookRepository.findById(id)
       .map(existingBook -> {
@@ -158,6 +179,7 @@ public class BookService {
     ;
   }
 
+  @Transactional
   public Optional<Book> updateCover(Long id, MultipartFile coverFile) {
     if (coverFile == null || coverFile.isEmpty()) {
       throw new IllegalArgumentException("Arquivo de capa é obrigatório");
@@ -176,6 +198,7 @@ public class BookService {
     ;
   }
 
+  @Transactional
   public Optional<Book> removeCover(Long id) {
     return bookRepository.findById(id)
       .map(existingBook -> {
@@ -194,6 +217,7 @@ public class BookService {
     ;
   }
 
+  @Transactional
   public boolean deleteById(Long id) {
     return bookRepository.findById(id)
       .map(book -> {
@@ -215,18 +239,6 @@ public class BookService {
       })
       .orElse(false)
     ;
-  }
-
-  public Page<Book> findByTitle(String title, Pageable pageable) {
-    return bookRepository.findByTitleContainingIgnoreCase(title, pageable);
-  }
-
-  public Page<Book> findByAuthor(Long authorId, Pageable pageable) {
-    return bookRepository.findByAuthorId(authorId, pageable);
-  }
-
-  public Page<Book> searchBooks(String query, Pageable pageable) {
-    return bookRepository.findByTitleOrSynopsisContaining(query, pageable);
   }
 
   private void validateBook(Book book) {
