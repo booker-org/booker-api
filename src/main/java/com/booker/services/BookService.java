@@ -20,9 +20,7 @@ import com.booker.exceptions.ResourceNotFoundException;
 import com.booker.models.Author;
 import com.booker.models.Book;
 import com.booker.models.Genre;
-import com.booker.repositories.AuthorRepository;
 import com.booker.repositories.BookRepository;
-import com.booker.repositories.GenreRepository;
 
 @Service
 public class BookService {
@@ -30,10 +28,10 @@ public class BookService {
   private BookRepository bookRepository;
 
   @Autowired
-  private AuthorRepository authorRepository;
+  private AuthorService authorService;
 
   @Autowired
-  private GenreRepository genreRepository;
+  private GenreService genreService;
 
   @Autowired
   private SupabaseStorageService storageService;
@@ -63,7 +61,7 @@ public class BookService {
   public Book save(Book book, Long authorId, List<Long> genreIds) {
     validateBook(book);
 
-    Author author = authorRepository
+    Author author = authorService
       .findById(authorId)
       .orElseThrow(() -> new IllegalArgumentException("ID do autor inválido"))
     ;
@@ -74,7 +72,7 @@ public class BookService {
       Set<Genre> genres = new HashSet<>();
 
       for (Long genreId : genreIds) {
-        Genre genre = genreRepository
+        Genre genre = genreService
           .findById(genreId)
           .orElseThrow(() -> new EntityNotFoundException("Gênero não encontrado: " + genreId))
         ;
@@ -94,7 +92,7 @@ public class BookService {
       .map(existingBook -> {
         validateBook(bookData);
 
-        Author author = authorRepository
+        Author author = authorService
           .findById(authorId)
           .orElseThrow(() -> new IllegalArgumentException("ID do autor inválido"))
         ;
@@ -105,7 +103,7 @@ public class BookService {
           Set<Genre> genres = new HashSet<>();
 
           for (Long genreId : genreIds) {
-            Genre genre = genreRepository
+            Genre genre = genreService
               .findById(genreId)
               .orElseThrow(() -> new EntityNotFoundException("Gênero não encontrado: " + genreId))
             ;
@@ -151,7 +149,7 @@ public class BookService {
         if (bookData.getAuthor() != null) existingBook.setAuthor(bookData.getAuthor());
 
         if (authorId != null) {
-          Author author = authorRepository
+          Author author = authorService
             .findById(authorId)
             .orElseThrow(() -> new IllegalArgumentException("ID do autor inválido"))
           ;
@@ -163,7 +161,7 @@ public class BookService {
           Set<Genre> genres = new HashSet<>();
 
           for (Long genreId : genreIds) {
-            Genre genre = genreRepository
+            Genre genre = genreService
               .findById(genreId)
               .orElseThrow(() -> new ResourceNotFoundException("Gênero não encontrado: " + genreId))
             ;

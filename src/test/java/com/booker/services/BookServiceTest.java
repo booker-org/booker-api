@@ -26,9 +26,7 @@ import static org.mockito.Mockito.*;
 import com.booker.models.Author;
 import com.booker.models.Book;
 import com.booker.models.Genre;
-import com.booker.repositories.AuthorRepository;
 import com.booker.repositories.BookRepository;
-import com.booker.repositories.GenreRepository;
 
 @ExtendWith(MockitoExtension.class)
 class BookServiceTest {
@@ -36,10 +34,10 @@ class BookServiceTest {
   private BookRepository bookRepository;
 
   @Mock
-  private AuthorRepository authorRepository;
+  private AuthorService authorService;
 
   @Mock
-  private GenreRepository genreRepository;
+  private GenreService genreService;
 
   @Mock
   private SupabaseStorageService storageService;
@@ -182,13 +180,13 @@ class BookServiceTest {
     savedBook.setId(1L);
 
     Author mockAuthor = createBaseAuthor();
-    when(authorRepository.findById(1L)).thenReturn(Optional.of(mockAuthor));
+    when(authorService.findById(1L)).thenReturn(Optional.of(mockAuthor));
 
     Genre mockGenre1 = new Genre();
     mockGenre1.setId(1L);
     mockGenre1.setName("Ficção");
 
-    when(genreRepository.findById(1L)).thenReturn(Optional.of(mockGenre1));
+    when(genreService.findById(1L)).thenReturn(Optional.of(mockGenre1));
     when(bookRepository.save(any(Book.class))).thenReturn(savedBook);
 
     // When
@@ -198,8 +196,8 @@ class BookServiceTest {
     assertNotNull(result.getId());
     assertEquals(newBook.getTitle(), result.getTitle());
     assertEquals(newBook.getSynopsis(), result.getSynopsis());
-    verify(authorRepository).findById(1L);
-    verify(genreRepository).findById(1L);
+    verify(authorService).findById(1L);
+    verify(genreService).findById(1L);
     verify(bookRepository).save(any(Book.class));
   }
 
@@ -279,7 +277,7 @@ class BookServiceTest {
   void save_ShouldThrowException_WhenAuthorNotFound() {
     // Given - Author not found
     Book validBook = createBaseBook();
-    when(authorRepository.findById(999L)).thenReturn(Optional.empty());
+    when(authorService.findById(999L)).thenReturn(Optional.empty());
 
     // When & Then
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -287,7 +285,7 @@ class BookServiceTest {
     });
 
     assertTrue(exception.getMessage().contains("ID do autor"));
-    verify(authorRepository).findById(999L);
+    verify(authorService).findById(999L);
     verify(bookRepository, never()).save(any());
   }
 
@@ -297,8 +295,8 @@ class BookServiceTest {
     Book validBook = createBaseBook();
 
     Author mockAuthor = createBaseAuthor();
-    when(authorRepository.findById(1L)).thenReturn(Optional.of(mockAuthor));
-    when(genreRepository.findById(999L)).thenReturn(Optional.empty());
+    when(authorService.findById(1L)).thenReturn(Optional.of(mockAuthor));
+    when(genreService.findById(999L)).thenReturn(Optional.empty());
 
     // When & Then
     EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
@@ -306,7 +304,7 @@ class BookServiceTest {
     });
 
     assertTrue(exception.getMessage().contains("Gênero não encontrado"));
-    verify(genreRepository).findById(999L);
+    verify(genreService).findById(999L);
     verify(bookRepository, never()).save(any());
   }
 
@@ -329,13 +327,13 @@ class BookServiceTest {
     updatedBook.setPageCount(300);
 
     Author mockAuthor = createBaseAuthor();
-    when(authorRepository.findById(1L)).thenReturn(Optional.of(mockAuthor));
+    when(authorService.findById(1L)).thenReturn(Optional.of(mockAuthor));
 
     Genre mockGenre1 = new Genre();
     mockGenre1.setId(1L);
     mockGenre1.setName("Ficção");
 
-    when(genreRepository.findById(1L)).thenReturn(Optional.of(mockGenre1));
+    when(genreService.findById(1L)).thenReturn(Optional.of(mockGenre1));
 
     when(bookRepository.findById(bookId)).thenReturn(Optional.of(existingBook));
     when(bookRepository.save(any(Book.class))).thenReturn(updatedBook);
@@ -347,8 +345,8 @@ class BookServiceTest {
     assertTrue(result.isPresent());
     assertEquals("Título Atualizado", result.get().getTitle());
     assertEquals(300, result.get().getPageCount());
-    verify(authorRepository).findById(1L);
-    verify(genreRepository).findById(1L);
+    verify(authorService).findById(1L);
+    verify(genreService).findById(1L);
     verify(bookRepository).findById(bookId);
     verify(bookRepository).save(any(Book.class));
   }
@@ -465,8 +463,8 @@ class BookServiceTest {
     newGenre.setName("Novo Gênero");
 
     when(bookRepository.findById(bookId)).thenReturn(Optional.of(existingBook));
-    when(authorRepository.findById(2L)).thenReturn(Optional.of(newAuthor));
-    when(genreRepository.findById(3L)).thenReturn(Optional.of(newGenre));
+    when(authorService.findById(2L)).thenReturn(Optional.of(newAuthor));
+    when(genreService.findById(3L)).thenReturn(Optional.of(newGenre));
     when(bookRepository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
     // When
@@ -481,8 +479,8 @@ class BookServiceTest {
     assertEquals(1, updatedBook.getGenres().size());
     assertTrue(updatedBook.getGenres().stream().anyMatch(g -> "Novo Gênero".equals(g.getName())));
 
-    verify(authorRepository).findById(2L);
-    verify(genreRepository).findById(3L);
+    verify(authorService).findById(2L);
+    verify(genreService).findById(3L);
     verify(bookRepository).save(any(Book.class));
   }
 
