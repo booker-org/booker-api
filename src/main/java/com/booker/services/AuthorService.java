@@ -2,6 +2,7 @@ package com.booker.services;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -24,7 +25,7 @@ public class AuthorService {
   public Page<Author> findAll(Pageable pageable) { return repository.findAll(pageable); }
 
   @Transactional(readOnly = true)
-  public Optional<Author> findById(Long id) { return repository.findById(id); }
+  public Optional<Author> findById(UUID id) { return repository.findById(id); }
 
   @Transactional(readOnly = true)
   public Optional<Author> findByName(String name) { return repository.findByName(name); }
@@ -37,7 +38,7 @@ public class AuthorService {
   }
 
   @Transactional
-  public Optional<Author> update(Long id, Author author) {
+  public Optional<Author> update(UUID id, Author author) {
     Optional<Author> existingAuthor = repository.findById(id);
 
     if (existingAuthor.isPresent()) {
@@ -53,7 +54,7 @@ public class AuthorService {
   }
 
   @Transactional
-  public Optional<Author> partialUpdate(Long id, Author author) {
+  public Optional<Author> partialUpdate(UUID id, Author author) {
     Optional<Author> existingAuthor = repository.findById(id);
 
     if (existingAuthor.isPresent()) {
@@ -74,7 +75,7 @@ public class AuthorService {
   }
 
   @Transactional
-  public boolean deleteById(Long id) {
+  public boolean deleteById(UUID id) {
     if (repository.existsById(id)) {
       repository.deleteById(id);
 

@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -40,7 +41,7 @@ public class BookService {
   public Page<Book> findAll(Pageable pageable) { return bookRepository.findAll(pageable); }
 
   @Transactional(readOnly = true)
-  public Optional<Book> findById(Long id) { return bookRepository.findById(id); }
+  public Optional<Book> findById(UUID id) { return bookRepository.findById(id); }
 
   @Transactional(readOnly = true)
   public Page<Book> findByTitle(String title, Pageable pageable) {
@@ -48,7 +49,7 @@ public class BookService {
   }
 
   @Transactional(readOnly = true)
-  public Page<Book> findByAuthor(Long authorId, Pageable pageable) {
+  public Page<Book> findByAuthor(UUID authorId, Pageable pageable) {
     return bookRepository.findByAuthorId(authorId, pageable);
   }
 
@@ -58,7 +59,7 @@ public class BookService {
   }
 
   @Transactional
-  public Book save(Book book, Long authorId, List<Long> genreIds) {
+  public Book save(Book book, UUID authorId, List<UUID> genreIds) {
     validateBook(book);
 
     Author author = authorService
@@ -71,7 +72,7 @@ public class BookService {
     if (genreIds != null && !genreIds.isEmpty()) {
       Set<Genre> genres = new HashSet<>();
 
-      for (Long genreId : genreIds) {
+      for (UUID genreId : genreIds) {
         Genre genre = genreService
           .findById(genreId)
           .orElseThrow(() -> new EntityNotFoundException("Gênero não encontrado: " + genreId))
@@ -87,7 +88,7 @@ public class BookService {
   }
 
   @Transactional
-  public Optional<Book> update(Long id, Book bookData, Long authorId, List<Long> genreIds) {
+  public Optional<Book> update(UUID id, Book bookData, UUID authorId, List<UUID> genreIds) {
     return bookRepository.findById(id)
       .map(existingBook -> {
         validateBook(bookData);
@@ -102,7 +103,7 @@ public class BookService {
         if (genreIds != null) {
           Set<Genre> genres = new HashSet<>();
 
-          for (Long genreId : genreIds) {
+          for (UUID genreId : genreIds) {
             Genre genre = genreService
               .findById(genreId)
               .orElseThrow(() -> new EntityNotFoundException("Gênero não encontrado: " + genreId))
@@ -124,7 +125,7 @@ public class BookService {
   }
 
   @Transactional
-  public Optional<Book> partialUpdate(Long id, Book bookData, Long authorId, List<Long> genreIds) {
+  public Optional<Book> partialUpdate(UUID id, Book bookData, UUID authorId, List<UUID> genreIds) {
     return bookRepository.findById(id)
       .map(existingBook -> {
         // Validar apenas se novos dados são fornecidos
@@ -160,7 +161,7 @@ public class BookService {
         if (genreIds != null) {
           Set<Genre> genres = new HashSet<>();
 
-          for (Long genreId : genreIds) {
+          for (UUID genreId : genreIds) {
             Genre genre = genreService
               .findById(genreId)
               .orElseThrow(() -> new ResourceNotFoundException("Gênero não encontrado: " + genreId))
@@ -178,7 +179,7 @@ public class BookService {
   }
 
   @Transactional
-  public Optional<Book> updateCover(Long id, MultipartFile coverFile) {
+  public Optional<Book> updateCover(UUID id, MultipartFile coverFile) {
     if (coverFile == null || coverFile.isEmpty()) {
       throw new IllegalArgumentException("Arquivo de capa é obrigatório");
     }
@@ -197,7 +198,7 @@ public class BookService {
   }
 
   @Transactional
-  public Optional<Book> removeCover(Long id) {
+  public Optional<Book> removeCover(UUID id) {
     return bookRepository.findById(id)
       .map(existingBook -> {
         if (existingBook.getCoverUrl() != null && !existingBook.getCoverUrl().isEmpty()) {
@@ -216,7 +217,7 @@ public class BookService {
   }
 
   @Transactional
-  public boolean deleteById(Long id) {
+  public boolean deleteById(UUID id) {
     return bookRepository.findById(id)
       .map(book -> {
         // Deleta a capa do Supabase se existir

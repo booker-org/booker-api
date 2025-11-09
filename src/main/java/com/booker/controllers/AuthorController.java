@@ -2,6 +2,7 @@ package com.booker.controllers;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -59,7 +60,7 @@ public class AuthorController {
     @ApiResponse(responseCode = "200", description = "Author found"),
     @ApiResponse(responseCode = "404", description = "Author not found")
   })
-  public ResponseEntity<AuthorDTO> getAuthorById(@Parameter(description = "Author ID") @PathVariable Long id) {
+  public ResponseEntity<AuthorDTO> getAuthorById(@Parameter(description = "Author ID") @PathVariable UUID id) {
     Optional<Author> author = authorService.findById(id);
 
     return author.map(authorMapper::toDTO)
@@ -89,7 +90,7 @@ public class AuthorController {
     @ApiResponse(responseCode = "400", description = "Invalid author data", content = @Content)
   })
   public ResponseEntity<AuthorDTO> updateAuthor(
-    @Parameter(description = "Author ID") @PathVariable Long id,
+    @Parameter(description = "Author ID") @PathVariable UUID id,
     @RequestBody AuthorCreateDTO authorCreateDTO
   ) {
     Author author = authorMapper.toEntity(authorCreateDTO);
@@ -109,7 +110,7 @@ public class AuthorController {
     @ApiResponse(responseCode = "400", description = "Invalid author data", content = @Content)
   })
   public ResponseEntity<AuthorDTO> patchAuthor(
-    @Parameter(description = "Author ID") @PathVariable Long id,
+    @Parameter(description = "Author ID") @PathVariable UUID id,
     @RequestBody AuthorCreateDTO authorCreateDTO
   ) {
     Author author = authorMapper.toEntity(authorCreateDTO);
@@ -127,7 +128,7 @@ public class AuthorController {
     @ApiResponse(responseCode = "204", description = "Author deleted successfully"),
     @ApiResponse(responseCode = "404", description = "Author not found")
   })
-  public ResponseEntity<Void> deleteAuthor(@Parameter(description = "Author ID") @PathVariable Long id) {
+  public ResponseEntity<Void> deleteAuthor(@Parameter(description = "Author ID") @PathVariable UUID id) {
     boolean deleted = authorService.deleteById(id);
 
     return deleted

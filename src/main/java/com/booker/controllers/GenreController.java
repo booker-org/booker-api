@@ -2,6 +2,7 @@ package com.booker.controllers;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -59,7 +60,7 @@ public class GenreController {
     @ApiResponse(responseCode = "200", description = "Genre found"),
     @ApiResponse(responseCode = "404", description = "Genre not found")
   })
-  public ResponseEntity<GenreDTO> getGenreById(@Parameter(description = "Genre ID") @PathVariable Long id) {
+  public ResponseEntity<GenreDTO> getGenreById(@Parameter(description = "Genre ID") @PathVariable UUID id) {
     Optional<Genre> genre = genreService.findById(id);
 
     return genre.map(genreMapper::toDTO)
@@ -89,7 +90,7 @@ public class GenreController {
     @ApiResponse(responseCode = "400", description = "Invalid genre data", content = @Content)
   })
   public ResponseEntity<GenreDTO> updateGenre(
-    @Parameter(description = "Genre ID") @PathVariable Long id,
+    @Parameter(description = "Genre ID") @PathVariable UUID id,
     @RequestBody GenreCreateDTO genreCreateDTO
   ) {
     Genre genre = genreMapper.toEntity(genreCreateDTO);
@@ -107,7 +108,7 @@ public class GenreController {
     @ApiResponse(responseCode = "204", description = "Genre deleted successfully"),
     @ApiResponse(responseCode = "404", description = "Genre not found")
   })
-  public ResponseEntity<Void> deleteGenre(@Parameter(description = "Genre ID") @PathVariable Long id) {
+  public ResponseEntity<Void> deleteGenre(@Parameter(description = "Genre ID") @PathVariable UUID id) {
     boolean deleted = genreService.deleteById(id);
 
     return deleted

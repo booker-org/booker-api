@@ -1,6 +1,8 @@
 package com.booker.DTO.Genre;
 
+import java.util.UUID;
+
 public record GenreDTO(
-  Long id,
+  UUID id,
   String name
 ) {}

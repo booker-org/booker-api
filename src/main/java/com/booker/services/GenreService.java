@@ -2,6 +2,7 @@ package com.booker.services;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -24,7 +25,7 @@ public class GenreService {
   public Page<Genre> findAll(Pageable pageable) { return repository.findAll(pageable); }
 
   @Transactional(readOnly = true)
-  public Optional<Genre> findById(Long id) { return repository.findById(id); }
+  public Optional<Genre> findById(UUID id) { return repository.findById(id); }
 
   @Transactional(readOnly = true)
   public Optional<Genre> findByName(String name) { return repository.findByName(name); }
@@ -37,7 +38,7 @@ public class GenreService {
   }
 
   @Transactional
-  public Optional<Genre> update(Long id, Genre genre) {
+  public Optional<Genre> update(UUID id, Genre genre) {
     Optional<Genre> existingGenre = repository.findById(id);
 
     if (existingGenre.isPresent()) {
@@ -52,7 +53,7 @@ public class GenreService {
   }
 
   @Transactional
-  public boolean deleteById(Long id) {
+  public boolean deleteById(UUID id) {
     if (repository.existsById(id)) {
       repository.deleteById(id);
 

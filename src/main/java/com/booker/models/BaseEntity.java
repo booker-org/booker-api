@@ -1,6 +1,7 @@
 package com.booker.models;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -20,8 +21,8 @@ import lombok.Setter;
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
-  @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  @Id @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
   @CreatedDate @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;

@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -50,16 +51,19 @@ class BookServiceTest {
   private final Genre genre1 = new Genre("Ficção", null);
   private final Genre genre2 = new Genre("Clássico", null);
 
+  private final UUID TEST_BOOK_ID = UUID.randomUUID();
+  private final UUID TEST_AUTHOR_ID = UUID.randomUUID();
+
   @BeforeEach
   void setUp() {
     testBook = createBaseBook();
-    testBook.setId(1L);
+    testBook.setId(TEST_BOOK_ID);
   }
 
   private Author createBaseAuthor() {
     Author author = new Author();
 
-    author.setId(1L);
+    author.setId(TEST_AUTHOR_ID);
     author.setName("Machado de Assis");
     author.setBiography("Considerado um dos maiores escritores brasileiros...");
 
@@ -86,38 +90,41 @@ class BookServiceTest {
   @Test
   void findById_ShouldReturnBook_WhenBookExists() {
     // Given - Existing ID
-    when(bookRepository.findById(1L)).thenReturn(Optional.of(testBook));
+    when(bookRepository.findById(TEST_BOOK_ID)).thenReturn(Optional.of(testBook));
 
     // When
-    Optional<Book> result = bookService.findById(1L);
+    Optional<Book> result = bookService.findById(TEST_BOOK_ID);
 
     // Then
     assertTrue(result.isPresent());
     assertEquals(testBook.getId(), result.get().getId());
     assertEquals(testBook.getTitle(), result.get().getTitle());
-    verify(bookRepository).findById(1L);
+    verify(bookRepository).findById(TEST_BOOK_ID);
   }
 
   @Test
   void findById_ShouldReturnEmpty_WhenBookNotExists() {
+    final UUID randomID = UUID.randomUUID();
+
     // Given - Non-existent ID
-    when(bookRepository.findById(999L)).thenReturn(Optional.empty());
+    when(bookRepository.findById(randomID)).thenReturn(Optional.empty());
 
     // When
-    Optional<Book> result = bookService.findById(999L);
+    Optional<Book> result = bookService.findById(randomID);
 
     // Then
     assertFalse(result.isPresent());
-    verify(bookRepository).findById(999L);
+    verify(bookRepository).findById(randomID);
   }
 
   @Test
   void findByTitle_ShouldReturnBooksMatchingTitle() {
     // Given
     Book book1 = createBaseBook("Dom Casmurro");
-    book1.setId(1L);
+    book1.setId(UUID.randomUUID());
+
     Book book2 = createBaseBook("Dom Pedro");
-    book2.setId(2L);
+    book2.setId(UUID.randomUUID());
 
     List<Book> books = Arrays.asList(book1, book2);
     Page<Book> bookPage = new PageImpl<>(books);
@@ -136,8 +143,9 @@ class BookServiceTest {
 
   @Test
   void findByAuthor_ShouldReturnBooksByAuthor() {
+    final UUID authorId = UUID.randomUUID();
+
     // Given
-    Long authorId = 1L;
     List<Book> books = Arrays.asList(testBook, createBaseBook("O Cortiço"));
     Page<Book> bookPage = new PageImpl<>(books);
     Pageable pageable = PageRequest.of(0, 10);
@@ -174,40 +182,51 @@ class BookServiceTest {
 
   @Test
   void save_ShouldReturnSavedBook_WhenValidBook() {
-    // Given - Valid book
+    // Given - IDs para autor e gênero
+    final UUID authorId = UUID.randomUUID();
+    final UUID genreId = UUID.randomUUID();
+
+    // Livro novo (sem ID ainda) e livro salvo (com ID gerado)
     Book newBook = createBaseBook();
+
     Book savedBook = createBaseBook();
-    savedBook.setId(1L);
+    savedBook.setId(UUID.randomUUID());
 
+    // Mock do autor
     Author mockAuthor = createBaseAuthor();
-    when(authorService.findById(1L)).thenReturn(Optional.of(mockAuthor));
+    mockAuthor.setId(authorId);
+    when(authorService.findById(authorId)).thenReturn(Optional.of(mockAuthor));
 
+    // Mock do gênero
     Genre mockGenre1 = new Genre();
-    mockGenre1.setId(1L);
+    mockGenre1.setId(genreId);
     mockGenre1.setName("Ficção");
+    when(genreService.findById(genreId)).thenReturn(Optional.of(mockGenre1));
 
-    when(genreService.findById(1L)).thenReturn(Optional.of(mockGenre1));
+    // Mock do save
     when(bookRepository.save(any(Book.class))).thenReturn(savedBook);
 
     // When
-    Book result = bookService.save(newBook, 1L, List.of(1L));
+    Book result = bookService.save(newBook, authorId, List.of(genreId));
 
     // Then
     assertNotNull(result.getId());
     assertEquals(newBook.getTitle(), result.getTitle());
     assertEquals(newBook.getSynopsis(), result.getSynopsis());
-    verify(authorService).findById(1L);
-    verify(genreService).findById(1L);
+    verify(authorService).findById(authorId);
+    verify(genreService).findById(genreId);
     verify(bookRepository).save(any(Book.class));
   }
 
   @Test
   void save_ShouldThrowException_WhenBookIsNull() {
-    // Given - Null book
+    // Given - IDs válidos mas livro nulo
+    final UUID authorId = UUID.randomUUID();
+    final UUID genreId = UUID.randomUUID();
 
     // When & Then
     assertThrows(IllegalArgumentException.class, () -> {
-      bookService.save(null, 1L, List.of(1L, 2L));
+      bookService.save(null, authorId, List.of(genreId));
     });
 
     verify(bookRepository, never()).save(any());
@@ -216,12 +235,15 @@ class BookServiceTest {
   @Test
   void save_ShouldThrowException_WhenTitleIsNull() {
     // Given
+    final UUID authorId = UUID.randomUUID();
+    final UUID genreId = UUID.randomUUID();
+    
     Book invalidBook = createBaseBook();
     invalidBook.setTitle(null);
 
     // When & Then
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-      bookService.save(invalidBook, 1L, List.of(1L));
+      bookService.save(invalidBook, authorId, List.of(genreId));
     });
 
     assertEquals("Título é obrigatório", exception.getMessage());
@@ -231,12 +253,15 @@ class BookServiceTest {
   @Test
   void save_ShouldThrowException_WhenTitleIsTooShort() {
     // Given - Title too short
+    final UUID authorId = UUID.randomUUID();
+    final UUID genreId = UUID.randomUUID();
+    
     Book invalidBook = createBaseBook();
     invalidBook.setTitle("A");
 
     // When & Then
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-      bookService.save(invalidBook, 1L, List.of(1L));
+      bookService.save(invalidBook, authorId, List.of(genreId));
     });
 
     assertEquals("Título deve ter entre 2 e 200 caracteres", exception.getMessage());
@@ -246,12 +271,15 @@ class BookServiceTest {
   @Test
   void save_ShouldThrowException_WhenTitleIsTooLong() {
     // Given - Title exceeding max length
+    final UUID authorId = UUID.randomUUID();
+    final UUID genreId = UUID.randomUUID();
+    
     Book invalidBook = createBaseBook();
     invalidBook.setTitle("A".repeat(201));
 
     // When & Then
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-      bookService.save(invalidBook, 1L, List.of(1L));
+      bookService.save(invalidBook, authorId, List.of(genreId));
     });
 
     assertEquals("Título deve ter entre 2 e 200 caracteres", exception.getMessage());
@@ -261,12 +289,15 @@ class BookServiceTest {
   @Test
   void save_ShouldThrowException_WhenPageCountIsNegative() {
     // Given - Negative page count
+    final UUID authorId = UUID.randomUUID();
+    final UUID genreId = UUID.randomUUID();
+    
     Book invalidBook = createBaseBook();
     invalidBook.setPageCount(-10);
 
     // When & Then
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-      bookService.save(invalidBook, 1L, List.of(1L));
+      bookService.save(invalidBook, authorId, List.of(genreId));
     });
 
     assertEquals("Número de páginas deve ser maior que zero", exception.getMessage());
@@ -276,35 +307,42 @@ class BookServiceTest {
   @Test
   void save_ShouldThrowException_WhenAuthorNotFound() {
     // Given - Author not found
+    final UUID nonExistentAuthorId = UUID.randomUUID();
+    final UUID genreId = UUID.randomUUID();
+    
     Book validBook = createBaseBook();
-    when(authorService.findById(999L)).thenReturn(Optional.empty());
+    when(authorService.findById(nonExistentAuthorId)).thenReturn(Optional.empty());
 
     // When & Then
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-      bookService.save(validBook, 999L, List.of(1L));
+      bookService.save(validBook, nonExistentAuthorId, List.of(genreId));
     });
 
     assertTrue(exception.getMessage().contains("ID do autor"));
-    verify(authorService).findById(999L);
+    verify(authorService).findById(nonExistentAuthorId);
     verify(bookRepository, never()).save(any());
   }
 
   @Test
   void save_ShouldThrowException_WhenGenreNotFound() {
     // Given - Genre not found
+    final UUID authorId = UUID.randomUUID();
+    final UUID nonExistentGenreId = UUID.randomUUID();
+    
     Book validBook = createBaseBook();
 
     Author mockAuthor = createBaseAuthor();
-    when(authorService.findById(1L)).thenReturn(Optional.of(mockAuthor));
-    when(genreService.findById(999L)).thenReturn(Optional.empty());
+    mockAuthor.setId(authorId);
+    when(authorService.findById(authorId)).thenReturn(Optional.of(mockAuthor));
+    when(genreService.findById(nonExistentGenreId)).thenReturn(Optional.empty());
 
     // When & Then
     EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
-      bookService.save(validBook, 1L, List.of(999L));
+      bookService.save(validBook, authorId, List.of(nonExistentGenreId));
     });
 
     assertTrue(exception.getMessage().contains("Gênero não encontrado"));
-    verify(genreService).findById(999L);
+    verify(genreService).findById(nonExistentGenreId);
     verify(bookRepository, never()).save(any());
   }
 
@@ -312,8 +350,11 @@ class BookServiceTest {
 
   @Test
   void update_ShouldReturnUpdatedBook_WhenBookExists() {
-    // Given - Existing ID
-    Long bookId = 1L;
+    // Given - IDs válidos
+    UUID bookId = UUID.randomUUID();
+    UUID authorId = UUID.randomUUID();
+    UUID genreId = UUID.randomUUID();
+    
     Book updateRequest = createBaseBook();
     updateRequest.setTitle("Título Atualizado");
     updateRequest.setPageCount(300);
@@ -327,40 +368,43 @@ class BookServiceTest {
     updatedBook.setPageCount(300);
 
     Author mockAuthor = createBaseAuthor();
-    when(authorService.findById(1L)).thenReturn(Optional.of(mockAuthor));
+    mockAuthor.setId(authorId);
+    when(authorService.findById(authorId)).thenReturn(Optional.of(mockAuthor));
 
     Genre mockGenre1 = new Genre();
-    mockGenre1.setId(1L);
+    mockGenre1.setId(genreId);
     mockGenre1.setName("Ficção");
-
-    when(genreService.findById(1L)).thenReturn(Optional.of(mockGenre1));
+    when(genreService.findById(genreId)).thenReturn(Optional.of(mockGenre1));
 
     when(bookRepository.findById(bookId)).thenReturn(Optional.of(existingBook));
     when(bookRepository.save(any(Book.class))).thenReturn(updatedBook);
 
     // When
-    Optional<Book> result = bookService.update(bookId, updateRequest, 1L, List.of(1L));
+    Optional<Book> result = bookService.update(bookId, updateRequest, authorId, List.of(genreId));
 
     // Then
     assertTrue(result.isPresent());
     assertEquals("Título Atualizado", result.get().getTitle());
     assertEquals(300, result.get().getPageCount());
-    verify(authorService).findById(1L);
-    verify(genreService).findById(1L);
+    verify(authorService).findById(authorId);
+    verify(genreService).findById(genreId);
     verify(bookRepository).findById(bookId);
     verify(bookRepository).save(any(Book.class));
   }
 
   @Test
   void update_ShouldReturnEmpty_WhenBookNotExists() {
-    // Given - Non-existent ID
-    Long nonExistentId = 999L;
+    // Given - ID não existente
+    UUID nonExistentId = UUID.randomUUID();
+    UUID authorId = UUID.randomUUID();
+    UUID genreId = UUID.randomUUID();
+    
     Book updateRequest = createBaseBook();
 
     when(bookRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
     // When
-    Optional<Book> result = bookService.update(nonExistentId, updateRequest, 1L, List.of(1L, 2L));
+    Optional<Book> result = bookService.update(nonExistentId, updateRequest, authorId, List.of(genreId));
 
     // Then
     assertFalse(result.isPresent());
@@ -373,7 +417,7 @@ class BookServiceTest {
   @Test
   void partialUpdate_ShouldUpdateOnlyProvidedFields() {
     // Given - Partial update
-    Long bookId = 1L;
+    UUID bookId = UUID.randomUUID();
     Book partialUpdate = new Book();
     partialUpdate.setTitle("Título Parcialmente Atualizado");
     partialUpdate.setPageCount(400);
@@ -408,7 +452,7 @@ class BookServiceTest {
   @Test
   void partialUpdate_ShouldReturnEmpty_WhenBookNotExists() {
     // Given - Non-existent Book
-    Long nonExistentId = 999L;
+    UUID nonExistentId = UUID.randomUUID();
     Book partialUpdate = new Book();
     partialUpdate.setTitle("Título Qualquer");
 
@@ -426,7 +470,7 @@ class BookServiceTest {
   @Test
   void partialUpdate_ShouldValidateNonNullFields() {
     // Given - Partial update with invalid pageCount
-    Long bookId = 1L;
+    UUID bookId = UUID.randomUUID();
     Book partialUpdate = new Book();
     partialUpdate.setPageCount(-10);
 
@@ -447,7 +491,10 @@ class BookServiceTest {
   @Test
   void partialUpdate_ShouldUpdateAuthorAndGenres_WhenProvided() {
     // Given - Update with new author and genres
-    Long bookId = 1L;
+    UUID bookId = UUID.randomUUID();
+    UUID newAuthorId = UUID.randomUUID();
+    UUID newGenreId = UUID.randomUUID();
+    
     Book partialUpdate = new Book();
     partialUpdate.setTitle("Novo Título");
 
@@ -455,20 +502,20 @@ class BookServiceTest {
     existingBook.setId(bookId);
 
     Author newAuthor = new Author();
-    newAuthor.setId(2L);
+    newAuthor.setId(newAuthorId);
     newAuthor.setName("Novo Autor");
 
     Genre newGenre = new Genre();
-    newGenre.setId(3L);
+    newGenre.setId(newGenreId);
     newGenre.setName("Novo Gênero");
 
     when(bookRepository.findById(bookId)).thenReturn(Optional.of(existingBook));
-    when(authorService.findById(2L)).thenReturn(Optional.of(newAuthor));
-    when(genreService.findById(3L)).thenReturn(Optional.of(newGenre));
+    when(authorService.findById(newAuthorId)).thenReturn(Optional.of(newAuthor));
+    when(genreService.findById(newGenreId)).thenReturn(Optional.of(newGenre));
     when(bookRepository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
     // When
-    Optional<Book> result = bookService.partialUpdate(bookId, partialUpdate, 2L, List.of(3L));
+    Optional<Book> result = bookService.partialUpdate(bookId, partialUpdate, newAuthorId, List.of(newGenreId));
 
     // Then
     assertTrue(result.isPresent());
@@ -479,8 +526,8 @@ class BookServiceTest {
     assertEquals(1, updatedBook.getGenres().size());
     assertTrue(updatedBook.getGenres().stream().anyMatch(g -> "Novo Gênero".equals(g.getName())));
 
-    verify(authorService).findById(2L);
-    verify(genreService).findById(3L);
+    verify(authorService).findById(newAuthorId);
+    verify(genreService).findById(newGenreId);
     verify(bookRepository).save(any(Book.class));
   }
 
@@ -489,55 +536,58 @@ class BookServiceTest {
   @Test
   void deleteById_ShouldReturnTrue_WhenBookExists() throws Exception {
     // Given - Existing book with cover
+    UUID bookId = UUID.randomUUID();
     Book bookWithCover = createBaseBook();
-    bookWithCover.setId(1L);
+    bookWithCover.setId(bookId);
     bookWithCover.setCoverUrl("https://supabase.co/storage/v1/object/public/bucket/covers/test.jpg");
 
-    when(bookRepository.findById(1L)).thenReturn(Optional.of(bookWithCover));
+    when(bookRepository.findById(bookId)).thenReturn(Optional.of(bookWithCover));
     when(storageService.extractFileNameFromUrl(anyString())).thenReturn("covers/test.jpg");
 
     // When
-    boolean result = bookService.deleteById(1L);
+    boolean result = bookService.deleteById(bookId);
 
     // Then
     assertTrue(result);
-    verify(bookRepository).findById(1L);
+    verify(bookRepository).findById(bookId);
     verify(storageService).extractFileNameFromUrl(bookWithCover.getCoverUrl());
     verify(storageService).deleteCover("covers/test.jpg");
-    verify(bookRepository).deleteById(1L);
+    verify(bookRepository).deleteById(bookId);
   }
 
   @Test
   void deleteById_ShouldReturnTrue_WhenBookExistsWithoutCover() throws Exception {
     // Given - Existing book without cover
+    UUID bookId = UUID.randomUUID();
     Book bookWithoutCover = createBaseBook();
-    bookWithoutCover.setId(1L);
+    bookWithoutCover.setId(bookId);
     bookWithoutCover.setCoverUrl(null);
 
-    when(bookRepository.findById(1L)).thenReturn(Optional.of(bookWithoutCover));
+    when(bookRepository.findById(bookId)).thenReturn(Optional.of(bookWithoutCover));
 
     // When
-    boolean result = bookService.deleteById(1L);
+    boolean result = bookService.deleteById(bookId);
 
     // Then
     assertTrue(result);
-    verify(bookRepository).findById(1L);
+    verify(bookRepository).findById(bookId);
     verify(storageService, never()).extractFileNameFromUrl(any());
     verify(storageService, never()).deleteCover(any());
-    verify(bookRepository).deleteById(1L);
+    verify(bookRepository).deleteById(bookId);
   }
 
   @Test
   void deleteById_ShouldReturnFalse_WhenBookNotExists() {
     // Given - Non-existent ID
-    when(bookRepository.findById(999L)).thenReturn(Optional.empty());
+    UUID nonExistentId = UUID.randomUUID();
+    when(bookRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
     // When
-    boolean result = bookService.deleteById(999L);
+    boolean result = bookService.deleteById(nonExistentId);
 
     // Then
     assertFalse(result);
-    verify(bookRepository).findById(999L);
+    verify(bookRepository).findById(nonExistentId);
     verify(bookRepository, never()).deleteById(any());
     verify(storageService, never()).deleteCover(any());
   }

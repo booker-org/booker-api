@@ -1,6 +1,7 @@
 package com.booker.controllers;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -42,7 +43,7 @@ public class BookController {
   public ResponseEntity<BookPageResponse> getAllBooks(
     @ParameterObject @PageableDefault(size = 10, sort = "title") Pageable pageable,
     @Parameter(description = "Filter by title") @RequestParam(required = false) String title,
-    @Parameter(description = "Filter by author ID") @RequestParam(required = false) Long authorId,
+    @Parameter(description = "Filter by author ID") @RequestParam(required = false) UUID authorId,
     @Parameter(description = "Search in title and synopsis") @RequestParam(required = false) String search
   ) {
     Page<Book> books;
@@ -62,7 +63,7 @@ public class BookController {
     @ApiResponse(responseCode = "200", description = "Book found"),
     @ApiResponse(responseCode = "404", description = "Book not found")
   })
-  public ResponseEntity<BookDetailDTO> getBookById(@Parameter(description = "Book ID") @PathVariable Long id) {
+  public ResponseEntity<BookDetailDTO> getBookById(@Parameter(description = "Book ID") @PathVariable UUID id) {
     Optional<Book> book = bookService.findById(id);
 
     return book.map(bookMapper::toDetailDTO)
@@ -91,7 +92,7 @@ public class BookController {
     @ApiResponse(responseCode = "400", description = "Invalid book data", content = @Content)
   })
   public ResponseEntity<BookDTO> updateBook(
-    @Parameter(description = "Book ID") @PathVariable Long id,
+    @Parameter(description = "Book ID") @PathVariable UUID id,
     @RequestBody BookCreateDTO bookDTO
   ) {
     Optional<Book> updatedBook = bookService.update(
@@ -112,7 +113,7 @@ public class BookController {
     @ApiResponse(responseCode = "400", description = "Invalid book data", content = @Content)
   })
   public ResponseEntity<BookDTO> patchBook(
-    @Parameter(description = "Book ID") @PathVariable Long id,
+    @Parameter(description = "Book ID") @PathVariable UUID id,
     @RequestBody(required = false) BookCreateDTO book
   ) {
     BookCreateDTO bookData = book != null ? book : new BookCreateDTO(
@@ -142,7 +143,7 @@ public class BookController {
     @ApiResponse(responseCode = "400", description = "Invalid file", content = @Content)
   })
   public ResponseEntity<BookDTO> uploadCover(
-    @Parameter(description = "Book ID") @PathVariable Long id,
+    @Parameter(description = "Book ID") @PathVariable UUID id,
     @Parameter(description = "Cover image file", required = true) @RequestPart("cover") MultipartFile coverFile
   ) {
     Optional<Book> updatedBook = bookService.updateCover(id, coverFile);
@@ -159,7 +160,7 @@ public class BookController {
     @ApiResponse(responseCode = "204", description = "Cover removed successfully"),
     @ApiResponse(responseCode = "404", description = "Book not found", content = @Content)
   })
-  public ResponseEntity<Void> deleteCover(@Parameter(description = "Book ID") @PathVariable Long id) {
+  public ResponseEntity<Void> deleteCover(@Parameter(description = "Book ID") @PathVariable UUID id) {
     Optional<Book> book = bookService.removeCover(id);
 
     if (book.isEmpty()) return ResponseEntity.notFound().build();
@@ -173,7 +174,7 @@ public class BookController {
     @ApiResponse(responseCode = "204", description = "Book deleted successfully"),
     @ApiResponse(responseCode = "404", description = "Book not found")
   })
-  public ResponseEntity<Void> deleteBook(@Parameter(description = "Book ID") @PathVariable Long id) {
+  public ResponseEntity<Void> deleteBook(@Parameter(description = "Book ID") @PathVariable UUID id) {
     boolean deleted = bookService.deleteById(id);
 
     return deleted
