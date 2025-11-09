@@ -13,6 +13,8 @@
  docker compose up 
 ```
 
+Em seguida, rode a aplicação pela sua IDE na classe `BookerApplication.java` ou rode o comando `mvn spring-boot:run` no terminal.
+
 ##### O projeto estará disponível em http://localhost:8080
 
 ## Documentação da API
@@ -21,7 +23,7 @@
 
 ## Contribuição
 
-> A formatação do código segue o padrão configurado em ```.editorconfig```, para utilizá-lo, instale a extensão **EditorConfig** no seu editor de código.
+> A formatação do código segue o padrão configurado em `.editorconfig`, para utilizá-lo, instale a extensão **EditorConfig** no seu editor de código.
 
 > Os commits devem seguir o padrão do Conventional Commits, para facilitar a visualização e o versionamento semântico.
 
