@@ -1,11 +1,10 @@
 package com.booker.services;
 
-import com.booker.entities.Author;
-import com.booker.entities.Book;
-import com.booker.entities.Genre;
-import com.booker.repositories.AuthorRepository;
-import com.booker.repositories.BookRepository;
-import com.booker.repositories.GenreRepository;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
 import jakarta.persistence.EntityNotFoundException;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -19,27 +18,26 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+import com.booker.models.Author;
+import com.booker.models.Book;
+import com.booker.models.Genre;
+import com.booker.repositories.BookRepository;
+
 @ExtendWith(MockitoExtension.class)
 class BookServiceTest {
-
   @Mock
   private BookRepository bookRepository;
 
   @Mock
-  private AuthorRepository authorRepository;
+  private AuthorService authorService;
 
   @Mock
-  private GenreRepository genreRepository;
+  private GenreService genreService;
 
   @Mock
   private SupabaseStorageService storageService;
@@ -60,24 +58,26 @@ class BookServiceTest {
 
   private Author createBaseAuthor() {
     Author author = new Author();
+
     author.setId(1L);
     author.setName("Machado de Assis");
     author.setBiography("Considerado um dos maiores escritores brasileiros...");
+
     return author;
   }
 
-  private Book createBaseBook() {
-    return createBaseBook("Dom Casmurro");
-  }
+  private Book createBaseBook() { return createBaseBook("Dom Casmurro"); }
 
   private Book createBaseBook(String title) {
     Book book = new Book();
+
     book.setTitle(title);
     book.setSynopsis("A obra narra a vida de Bento Santiago...");
     book.setPageCount(256);
     book.setAuthor(createBaseAuthor());
     book.setGenres(Set.of(genre1, genre2));
     book.setCoverUrl("https://example.com/dom-casmurro.jpg");
+
     return book;
   }
 
@@ -180,13 +180,13 @@ class BookServiceTest {
     savedBook.setId(1L);
 
     Author mockAuthor = createBaseAuthor();
-    when(authorRepository.findById(1L)).thenReturn(Optional.of(mockAuthor));
+    when(authorService.findById(1L)).thenReturn(Optional.of(mockAuthor));
 
     Genre mockGenre1 = new Genre();
     mockGenre1.setId(1L);
     mockGenre1.setName("Ficção");
 
-    when(genreRepository.findById(1L)).thenReturn(Optional.of(mockGenre1));
+    when(genreService.findById(1L)).thenReturn(Optional.of(mockGenre1));
     when(bookRepository.save(any(Book.class))).thenReturn(savedBook);
 
     // When
@@ -196,8 +196,8 @@ class BookServiceTest {
     assertNotNull(result.getId());
     assertEquals(newBook.getTitle(), result.getTitle());
     assertEquals(newBook.getSynopsis(), result.getSynopsis());
-    verify(authorRepository).findById(1L);
-    verify(genreRepository).findById(1L);
+    verify(authorService).findById(1L);
+    verify(genreService).findById(1L);
     verify(bookRepository).save(any(Book.class));
   }
 
@@ -277,7 +277,7 @@ class BookServiceTest {
   void save_ShouldThrowException_WhenAuthorNotFound() {
     // Given - Author not found
     Book validBook = createBaseBook();
-    when(authorRepository.findById(999L)).thenReturn(Optional.empty());
+    when(authorService.findById(999L)).thenReturn(Optional.empty());
 
     // When & Then
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
@@ -285,7 +285,7 @@ class BookServiceTest {
     });
 
     assertTrue(exception.getMessage().contains("ID do autor"));
-    verify(authorRepository).findById(999L);
+    verify(authorService).findById(999L);
     verify(bookRepository, never()).save(any());
   }
 
@@ -295,8 +295,8 @@ class BookServiceTest {
     Book validBook = createBaseBook();
 
     Author mockAuthor = createBaseAuthor();
-    when(authorRepository.findById(1L)).thenReturn(Optional.of(mockAuthor));
-    when(genreRepository.findById(999L)).thenReturn(Optional.empty());
+    when(authorService.findById(1L)).thenReturn(Optional.of(mockAuthor));
+    when(genreService.findById(999L)).thenReturn(Optional.empty());
 
     // When & Then
     EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
@@ -304,7 +304,7 @@ class BookServiceTest {
     });
 
     assertTrue(exception.getMessage().contains("Gênero não encontrado"));
-    verify(genreRepository).findById(999L);
+    verify(genreService).findById(999L);
     verify(bookRepository, never()).save(any());
   }
 
@@ -327,13 +327,13 @@ class BookServiceTest {
     updatedBook.setPageCount(300);
 
     Author mockAuthor = createBaseAuthor();
-    when(authorRepository.findById(1L)).thenReturn(Optional.of(mockAuthor));
+    when(authorService.findById(1L)).thenReturn(Optional.of(mockAuthor));
 
     Genre mockGenre1 = new Genre();
     mockGenre1.setId(1L);
     mockGenre1.setName("Ficção");
 
-    when(genreRepository.findById(1L)).thenReturn(Optional.of(mockGenre1));
+    when(genreService.findById(1L)).thenReturn(Optional.of(mockGenre1));
 
     when(bookRepository.findById(bookId)).thenReturn(Optional.of(existingBook));
     when(bookRepository.save(any(Book.class))).thenReturn(updatedBook);
@@ -345,8 +345,8 @@ class BookServiceTest {
     assertTrue(result.isPresent());
     assertEquals("Título Atualizado", result.get().getTitle());
     assertEquals(300, result.get().getPageCount());
-    verify(authorRepository).findById(1L);
-    verify(genreRepository).findById(1L);
+    verify(authorService).findById(1L);
+    verify(genreService).findById(1L);
     verify(bookRepository).findById(bookId);
     verify(bookRepository).save(any(Book.class));
   }
@@ -463,8 +463,8 @@ class BookServiceTest {
     newGenre.setName("Novo Gênero");
 
     when(bookRepository.findById(bookId)).thenReturn(Optional.of(existingBook));
-    when(authorRepository.findById(2L)).thenReturn(Optional.of(newAuthor));
-    when(genreRepository.findById(3L)).thenReturn(Optional.of(newGenre));
+    when(authorService.findById(2L)).thenReturn(Optional.of(newAuthor));
+    when(genreService.findById(3L)).thenReturn(Optional.of(newGenre));
     when(bookRepository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
     // When
@@ -479,8 +479,8 @@ class BookServiceTest {
     assertEquals(1, updatedBook.getGenres().size());
     assertTrue(updatedBook.getGenres().stream().anyMatch(g -> "Novo Gênero".equals(g.getName())));
 
-    verify(authorRepository).findById(2L);
-    verify(genreRepository).findById(3L);
+    verify(authorService).findById(2L);
+    verify(genreService).findById(3L);
     verify(bookRepository).save(any(Book.class));
   }
 
@@ -561,5 +561,4 @@ class BookServiceTest {
     assertEquals(1, result.getContent().size());
     verify(bookRepository).findByTitleOrSynopsisContaining(query, pageable);
   }
-
 }

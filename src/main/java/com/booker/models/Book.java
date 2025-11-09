@@ -1,4 +1,4 @@
-package com.booker.entities;
+package com.booker.models;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -6,20 +6,16 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import jakarta.persistence.*;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.AllArgsConstructor;
 
-@Entity
-@Table(name = "books")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Entity @Table(name = "books")
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
 @JsonPropertyOrder({ "id", "title", "synopsis", "pageCount", "author", "genres", "coverUrl", "createdAt", "updatedAt" })
 public class Book extends BaseEntity {
-
   @Column(nullable = false)
   private String title;
 
@@ -39,5 +35,4 @@ public class Book extends BaseEntity {
   @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
   @JoinTable(name = "book_genres", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "genre_id"))
   private Set<Genre> genres = new HashSet<>();
-
 }

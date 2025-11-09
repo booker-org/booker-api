@@ -11,18 +11,17 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
-import com.booker.config.JpaConfig;
-import com.booker.entities.Author;
-import com.booker.entities.Book;
+import com.booker.config.JPAConfig;
+import com.booker.models.Author;
+import com.booker.models.Book;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import(JpaConfig.class)
+@Import(JPAConfig.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
 class BookRepositoryTest {
-
   @Autowired
   private BookRepository bookRepository;
 
@@ -31,23 +30,28 @@ class BookRepositoryTest {
 
   private Author createBaseAuthor() {
     Author author = new Author();
+
     author.setName("Machado de Assis");
     author.setBiography("Considerado um dos maiores escritores brasileiros...");
+
     return author;
   }
 
   private Author createAndSaveAuthor() {
     Author author = createBaseAuthor();
+
     return entityManager.persistAndFlush(author);
   }
 
   private Book createAndSaveBookWithAuthor(String title, String synopsis, Author author) {
     Book book = new Book();
+
     book.setTitle(title);
     book.setSynopsis(synopsis);
     book.setPageCount(200);
     book.setAuthor(author);
     book.setCoverUrl("https://example.com/" + title.toLowerCase().replace(" ", "-") + ".jpg");
+
     return entityManager.persistAndFlush(book);
   }
 
@@ -60,6 +64,7 @@ class BookRepositoryTest {
     book.setPageCount(200);
     book.setAuthor(author);
     book.setCoverUrl("https://example.com/" + title.toLowerCase().replace(" ", "-") + ".jpg");
+
     return entityManager.persistAndFlush(book);
   }
 
@@ -115,8 +120,9 @@ class BookRepositoryTest {
     // Then
     assertThat(result.getContent()).hasSize(2);
     assertThat(result.getContent())
-        .extracting(book -> book.getAuthor().getId())
-        .containsOnly(author1.getId());
+      .extracting(book -> book.getAuthor().getId())
+      .containsOnly(author1.getId())
+    ;
   }
 
   @Test
