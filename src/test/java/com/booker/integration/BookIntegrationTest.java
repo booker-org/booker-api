@@ -1,6 +1,7 @@
 package com.booker.integration;
 
 import java.util.List;
+import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -135,7 +136,7 @@ class BookIntegrationTest {
       "Título Válido",
       "Sinopse qualquer",
       256,
-      999L,
+      UUID.randomUUID(),
       List.of(savedGenre1.getId())
     );
 
@@ -170,13 +171,13 @@ class BookIntegrationTest {
       .getContentAsString()
     ;
 
-    Long bookId = objectMapper.readTree(createResponse).path("id").asLong();
+    UUID bookId = UUID.fromString(objectMapper.readTree(createResponse).path("id").asText());
 
     // When & Then
     mockMvc.perform(get("/books/{id}", bookId))
       .andExpect(status().isOk())
       .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-      .andExpect(jsonPath("$.id").value(bookId))
+      .andExpect(jsonPath("$.id").value(bookId.toString()))
       .andExpect(jsonPath("$.title").value("Dom Casmurro"))
       .andExpect(jsonPath("$.author.name").value("Machado de Assis"))
       .andExpect(jsonPath("$.genres", hasSize(2))
@@ -186,7 +187,7 @@ class BookIntegrationTest {
   @Test
   void getBookById_ShouldReturn404_WhenBookNotExists() throws Exception {
     // When & Then
-    mockMvc.perform(get("/books/{id}", 999L))
+    mockMvc.perform(get("/books/{id}", UUID.randomUUID()))
       .andExpect(status().isNotFound())
     ;
   }
@@ -259,7 +260,7 @@ class BookIntegrationTest {
       .getContentAsString()
     ;
 
-    Long bookId = objectMapper.readTree(createResponse).path("id").asLong();
+    UUID bookId = UUID.fromString(objectMapper.readTree(createResponse).path("id").asText());
 
     BookCreateDTO updateRequest = new BookCreateDTO(
       "Dom Casmurro - Edição Revisada",
@@ -274,7 +275,7 @@ class BookIntegrationTest {
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(updateRequest)))
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$.id").value(bookId))
+      .andExpect(jsonPath("$.id").value(bookId.toString()))
       .andExpect(jsonPath("$.title").value("Dom Casmurro - Edição Revisada"))
       .andExpect(jsonPath("$.synopsis").value("Nova sinopse atualizada"))
       .andExpect(jsonPath("$.pageCount").value(300))
@@ -294,7 +295,7 @@ class BookIntegrationTest {
     );
 
     // When & Then
-    mockMvc.perform(put("/books/{id}", 999L)
+    mockMvc.perform(put("/books/{id}", UUID.randomUUID())
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(updateRequest)))
       .andExpect(status().isNotFound()
@@ -324,7 +325,7 @@ class BookIntegrationTest {
       .getContentAsString()
     ;
 
-    Long bookId = objectMapper.readTree(createResponse).path("id").asLong();
+    UUID bookId = UUID.fromString(objectMapper.readTree(createResponse).path("id").asText());
 
     // When & Then
     mockMvc.perform(delete("/books/{id}", bookId))
@@ -338,7 +339,7 @@ class BookIntegrationTest {
   @Test
   void deleteBook_ShouldReturn404_WhenBookNotExists() throws Exception {
     // When & Then
-    mockMvc.perform(delete("/books/{id}", 999L))
+    mockMvc.perform(delete("/books/{id}", UUID.randomUUID()))
       .andExpect(status().isNotFound())
     ;
   }

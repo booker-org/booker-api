@@ -1,7 +1,9 @@
 package com.booker.DTO.Author;
 
+import java.util.UUID;
+
 public record AuthorDTO(
-  Long id,
+  UUID id,
   String name,
   String biography
 ) {}

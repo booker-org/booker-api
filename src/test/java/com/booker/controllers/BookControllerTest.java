@@ -3,6 +3,7 @@ package com.booker.controllers;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -80,7 +81,7 @@ class BookControllerTest {
 
   @Test
   void getBookById_ShouldReturnBook_WhenBookExists() throws Exception {
-    Long bookId = 1L;
+    final UUID bookId = UUID.randomUUID();
     Book bookMock = createBaseBook();
 
     bookMock.setId(bookId);
@@ -90,7 +91,7 @@ class BookControllerTest {
     mockMvc.perform(get("/books/{id}", bookId))
       .andExpect(status().isOk())
       .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-      .andExpect(jsonPath("$.id").value(bookId))
+      .andExpect(jsonPath("$.id").value(bookId.toString()))
       .andExpect(jsonPath("$.title").value("Dom Casmurro"))
       .andExpect(jsonPath("$.coverUrl").value("https://example.com/dom-casmurro.jpg"))
     ;
@@ -98,39 +99,47 @@ class BookControllerTest {
 
   @Test
   void createBook_ShouldReturnCreatedBook_WhenValidRequest() throws Exception {
+    UUID authorId = UUID.randomUUID();
+    UUID genre1Id = UUID.randomUUID();
+    UUID genre2Id = UUID.randomUUID();
+    
     BookCreateDTO request = new BookCreateDTO(
       "Dom Casmurro",
       "A obra narra a vida de Bento Santiago...",
       256,
-      1L,
-      List.of(1L, 2L)
+      authorId,
+      List.of(genre1Id, genre2Id)
     );
 
     Book savedBook = createBaseBook();
-    savedBook.setId(1L);
+    savedBook.setId(UUID.randomUUID());
 
-    when(bookService.save(any(Book.class), eq(1L), eq(List.of(1L, 2L)))).thenReturn(savedBook);
+    when(bookService.save(any(Book.class), eq(authorId), eq(List.of(genre1Id, genre2Id))))
+      .thenReturn(savedBook);
 
     mockMvc.perform(post("/books")
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(request)))
       .andExpect(status().isCreated())
-      .andExpect(jsonPath("$.id").value(1))
+      .andExpect(jsonPath("$.id").value(savedBook.getId().toString()))
       .andExpect(jsonPath("$.title").value("Dom Casmurro"))
     ;
   }
 
   @Test
   void createBook_ShouldReturn400_WhenServiceThrows() throws Exception {
+    UUID authorId = UUID.randomUUID();
+    UUID genreId = UUID.randomUUID();
+    
     BookCreateDTO request = new BookCreateDTO(
       null,
       "Sinopse",
       256,
-      1L,
-      List.of(1L, 2L)
+      authorId,
+      List.of(genreId)
     );
 
-    when(bookService.save(any(Book.class), eq(1L), eq(List.of(1L, 2L))))
+    when(bookService.save(any(Book.class), eq(authorId), eq(List.of(genreId))))
       .thenThrow(new IllegalArgumentException("Dados inválidos"))
     ;
 
@@ -143,14 +152,17 @@ class BookControllerTest {
 
   @Test
   void updateBook_ShouldReturnUpdatedBook_WhenValidRequest() throws Exception {
-    Long bookId = 1L;
+    UUID bookId = UUID.randomUUID();
+    UUID authorId = UUID.randomUUID();
+    UUID genre1Id = UUID.randomUUID();
+    UUID genre2Id = UUID.randomUUID();
 
     BookCreateDTO request = new BookCreateDTO(
       "Dom Casmurro - Updated",
       "Updated synopsis...",
       300,
-      1L,
-      List.of(1L, 2L)
+      authorId,
+      List.of(genre1Id, genre2Id)
     );
 
     Book updated = createBaseBook();
@@ -159,7 +171,7 @@ class BookControllerTest {
     updated.setSynopsis("Updated synopsis...");
     updated.setPageCount(300);
 
-    when(bookService.update(eq(bookId), any(Book.class), eq(1L), eq(List.of(1L, 2L))))
+    when(bookService.update(eq(bookId), any(Book.class), eq(authorId), eq(List.of(genre1Id, genre2Id))))
       .thenReturn(Optional.of(updated))
     ;
 
@@ -174,17 +186,19 @@ class BookControllerTest {
 
   @Test
   void updateBook_ShouldReturn404_WhenNotFound() throws Exception {
-    Long bookId = 99L;
+    UUID bookId = UUID.randomUUID();
+    UUID authorId = UUID.randomUUID();
+    UUID genreId = UUID.randomUUID();
 
     BookCreateDTO request = new BookCreateDTO(
       "Title",
       "Sinopse",
       200,
-      1L,
-      List.of(1L)
+      authorId,
+      List.of(genreId)
     );
 
-    when(bookService.update(eq(bookId), any(Book.class), eq(1L), eq(List.of(1L))))
+    when(bookService.update(eq(bookId), any(Book.class), eq(authorId), eq(List.of(genreId))))
       .thenReturn(Optional.empty())
     ;
 
@@ -197,7 +211,7 @@ class BookControllerTest {
 
   @Test
   void patchBook_ShouldReturnUpdatedBook_WhenValidRequest() throws Exception {
-    Long bookId = 1L;
+    UUID bookId = UUID.randomUUID();
 
     BookCreateDTO request = new BookCreateDTO(
       "Novo Título",
@@ -225,7 +239,7 @@ class BookControllerTest {
 
   @Test
   void patchBook_ShouldReturn404_WhenNotFound() throws Exception {
-    Long bookId = 99L;
+    UUID bookId = UUID.randomUUID();
 
     BookCreateDTO request = new BookCreateDTO(
       "Novo",
@@ -248,7 +262,7 @@ class BookControllerTest {
 
   @Test
   void uploadCover_ShouldReturnUpdatedBook() throws Exception {
-    Long bookId = 1L;
+    UUID bookId = UUID.randomUUID();
     Book updated = createBaseBook();
 
     updated.setId(bookId);
@@ -276,7 +290,7 @@ class BookControllerTest {
 
   @Test
   void uploadCover_ShouldReturn404_WhenBookNotFound() throws Exception {
-    Long bookId = 99L;
+    UUID bookId = UUID.randomUUID();
 
     MockMultipartFile cover = new MockMultipartFile(
       "cover",
@@ -299,7 +313,7 @@ class BookControllerTest {
 
   @Test
   void deleteCover_ShouldReturnNoContent() throws Exception {
-    Long bookId = 1L;
+    UUID bookId = UUID.randomUUID();
     when(bookService.removeCover(bookId)).thenReturn(Optional.of(createBaseBook()));
 
     mockMvc.perform(delete("/books/{id}/cover", bookId))
@@ -309,7 +323,7 @@ class BookControllerTest {
 
   @Test
   void deleteCover_ShouldReturn404_WhenBookNotFound() throws Exception {
-    Long bookId = 99L;
+    UUID bookId = UUID.randomUUID();
     when(bookService.removeCover(bookId)).thenReturn(Optional.empty());
 
     mockMvc.perform(delete("/books/{id}/cover", bookId))
@@ -319,7 +333,7 @@ class BookControllerTest {
 
   @Test
   void deleteBook_ShouldReturnNoContent_WhenDeleted() throws Exception {
-    Long bookId = 1L;
+    UUID bookId = UUID.randomUUID();
     when(bookService.deleteById(bookId)).thenReturn(true);
 
     mockMvc.perform(delete("/books/{id}", bookId))
@@ -329,7 +343,7 @@ class BookControllerTest {
 
   @Test
   void deleteBook_ShouldReturn404_WhenNotFound() throws Exception {
-    Long bookId = 99L;
+    UUID bookId = UUID.randomUUID();
     when(bookService.deleteById(bookId)).thenReturn(false);
 
     mockMvc.perform(delete("/books/{id}", bookId))

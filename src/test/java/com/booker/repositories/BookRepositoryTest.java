@@ -1,5 +1,7 @@
 package com.booker.repositories;
 
+import java.util.UUID;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -11,11 +13,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.booker.config.JPAConfig;
 import com.booker.models.Author;
 import com.booker.models.Book;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @Import(JPAConfig.class)
@@ -208,7 +210,7 @@ class BookRepositoryTest {
   void deleteById_ShouldRemoveBook_WhenBookExists() {
     // Given
     Book savedBook = createAndSaveBook("Dom Casmurro", "Romance", 1L);
-    Long bookId = savedBook.getId();
+    UUID bookId = savedBook.getId();
 
     // When
     bookRepository.deleteById(bookId);
@@ -227,7 +229,7 @@ class BookRepositoryTest {
     Pageable pageable = PageRequest.of(0, 10);
 
     // When - Searching for books by non-existent author
-    Page<Book> result = bookRepository.findByAuthorId(999L, pageable);
+    Page<Book> result = bookRepository.findByAuthorId(UUID.randomUUID(), pageable);
 
     // Then
     assertThat(result.getContent()).isEmpty();
