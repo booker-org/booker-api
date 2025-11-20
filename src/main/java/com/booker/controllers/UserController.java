@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.booker.DTO.User.CreateUserDTO;
@@ -26,13 +27,13 @@ import com.booker.DTO.User.UserDTO;
 import com.booker.models.User;
 import com.booker.services.UserService;
 
-@RestController
+@RestController @RequestMapping("/users")
 public class UserController {
   @Autowired
   private UserService service;
 
   @GetMapping
-  public ResponseEntity<List<UserDTO>> getAll(@ParameterObject @PageableDefault(size = 10, sort = "created_at") Pageable pageable) {
+  public ResponseEntity<List<UserDTO>> getAll(@ParameterObject @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
     Page<User> users = service.findAll(pageable);
 
     List<UserDTO> usersDTO = users.stream().map(UserDTO::new).toList();
