@@ -2,9 +2,6 @@ spring:
   config:
     import: optional:file:.env[.properties]
 
-  profiles:
-    active: ${SPRING_PROFILES_ACTIVE:default}
-
   application:
     name: booker
 
@@ -19,6 +16,20 @@ spring:
 
     hibernate:
       ddl-auto: validate
+
+    defer-datasource-initialization: true
+
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:db/data.sql
+
+  flyway:
+    enabled: false
+
+logging:
+  level:
+    root: ERROR
 
 # Configurações do Supabase Storage
 supabase:
