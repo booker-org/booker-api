@@ -1,7 +1,6 @@
 package com.booker.controllers;
 
 import java.net.URI;
-import java.util.List;
 import java.util.UUID;
 
 import jakarta.validation.Valid;
@@ -44,10 +43,10 @@ public class UserController {
   @ApiResponses(value = {
     @ApiResponse(responseCode = "200", description = "List of users retrieved successfully")
   })
-  public ResponseEntity<List<UserDTO>> getAll(@ParameterObject @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
+  public ResponseEntity<Page<UserDTO>> getAll(@ParameterObject @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
     Page<User> users = service.findAll(pageable);
 
-    List<UserDTO> usersDTO = users.stream().map(UserDTO::new).toList();
+    Page<UserDTO> usersDTO = users.map(UserDTO::new);
 
     return ResponseEntity.ok(usersDTO);
   }
