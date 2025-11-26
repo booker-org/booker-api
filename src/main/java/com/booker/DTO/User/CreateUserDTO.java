@@ -14,7 +14,7 @@ public record CreateUserDTO(
   @Email @Size(max = 254) @NotBlank
   String email,
 
-  @Size(max = 255) @NotBlank
+  @Size(min = 8, max = 64) @NotBlank
   String password,
 
   @Size(max = 300)
