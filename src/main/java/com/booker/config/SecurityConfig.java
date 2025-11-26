@@ -15,7 +15,7 @@ public class SecurityConfig {
   @Bean
   public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
 
-  @Bean @Profile("dev")
+  @Bean @Profile({  "dev", "test" })
   public SecurityFilterChain devSecurityFilterChain(HttpSecurity http) throws Exception {
     http
       .csrf(csrf -> csrf.disable())
