@@ -125,19 +125,19 @@ ON CONFLICT (book_id, genre_id) DO NOTHING;
 -- Nota: Senhas são bcrypt hash de "password123" para desenvolvimento)
 INSERT INTO users (id, name, username, email, password, bio)
 VALUES
-  ('10000001-0000-0000-0000-000000000001', 'Ana Silva', 'ana.silva', 'ana.silva@email.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Apaixonada por literatura clássica e moderna.'),
-  ('20000002-0000-0000-0000-000000000002', 'Bruno Costa', 'bruno.costa', 'bruno.costa@email.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Leitor voraz de ficção científica.'),
-  ('30000003-0000-0000-0000-000000000003', 'Carla Santos', 'carla.santos', 'carla.santos@email.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Amante de romances e histórias de amor.'),
-  ('40000004-0000-0000-0000-000000000004', 'Daniel Oliveira', 'daniel.oliveira', 'daniel.oliveira@email.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Fã de mistério e suspense.'),
-  ('50000005-0000-0000-0000-000000000005', 'Eduardo Lima', 'eduardo.lima', 'eduardo.lima@email.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Entusiasta de terror e horror.'),
-  ('60000006-0000-0000-0000-000000000006', 'Fernanda Alves', 'fernanda.alves', 'fernanda.alves@email.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Leitora de fantasia e aventura.'),
-  ('70000007-0000-0000-0000-000000000007', 'Gabriel Pereira', 'gabriel.pereira', 'gabriel.pereira@email.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Apreciador de dramas intensos.'),
-  ('80000008-0000-0000-0000-000000000008', 'Helena Rodrigues', 'helena.rodrigues', 'helena.rodrigues@email.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Interessada em literatura filosófica.'),
-  ('90000009-0000-0000-0000-000000000009', 'Igor Fernandes', 'igor.fernandes', 'igor.fernandes@email.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Leitor de histórias de aventura.'),
-  ('a0000010-0000-0000-0000-000000000010', 'Julia Martins', 'julia.martins', 'julia.martins@email.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Fã de realismo mágico.'),
-  ('b0000011-0000-0000-0000-000000000011', 'Lucas Ribeiro', 'lucas.ribeiro', 'lucas.ribeiro@email.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Admirador de clássicos da literatura.'),
-  ('c0000012-0000-0000-0000-000000000012', 'Mariana Souza', 'mariana.souza', 'mariana.souza@email.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Leitora de ficção contemporânea.'),
-  ('d0000013-0000-0000-0000-000000000013', 'Nicolas Araujo', 'nicolas.araujo', 'nicolas.araujo@email.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Interessado em psicologia e mente humana.'),
-  ('e0000014-0000-0000-0000-000000000014', 'Olivia Carvalho', 'olivia.carvalho', 'olivia.carvalho@email.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Apaixonada por romances históricos.'),
-  ('f0000015-0000-0000-0000-000000000015', 'Pedro Gomes', 'pedro.gomes', 'pedro.gomes@email.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Leitor de distopias e futuros alternativos.')
+  ('10000001-0000-0000-0000-000000000001', 'Ana Silva', 'ana.silva', 'ana.silva@email.com', '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta', 'Apaixonada por literatura clássica e moderna.'),
+  ('20000002-0000-0000-0000-000000000002', 'Bruno Costa', 'bruno.costa', 'bruno.costa@email.com', '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta', 'Leitor voraz de ficção científica.'),
+  ('30000003-0000-0000-0000-000000000003', 'Carla Santos', 'carla.santos', 'carla.santos@email.com', '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta', 'Amante de romances e histórias de amor.'),
+  ('40000004-0000-0000-0000-000000000004', 'Daniel Oliveira', 'daniel.oliveira', 'daniel.oliveira@email.com', '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta', 'Fã de mistério e suspense.'),
+  ('50000005-0000-0000-0000-000000000005', 'Eduardo Lima', 'eduardo.lima', 'eduardo.lima@email.com', '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta', 'Entusiasta de terror e horror.'),
+  ('60000006-0000-0000-0000-000000000006', 'Fernanda Alves', 'fernanda.alves', 'fernanda.alves@email.com', '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta', 'Leitora de fantasia e aventura.'),
+  ('70000007-0000-0000-0000-000000000007', 'Gabriel Pereira', 'gabriel.pereira', 'gabriel.pereira@email.com', '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta', 'Apreciador de dramas intensos.'),
+  ('80000008-0000-0000-0000-000000000008', 'Helena Rodrigues', 'helena.rodrigues', 'helena.rodrigues@email.com', '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta', 'Interessada em literatura filosófica.'),
+  ('90000009-0000-0000-0000-000000000009', 'Igor Fernandes', 'igor.fernandes', 'igor.fernandes@email.com', '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta', 'Leitor de histórias de aventura.'),
+  ('a0000010-0000-0000-0000-000000000010', 'Julia Martins', 'julia.martins', 'julia.martins@email.com', '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta', 'Fã de realismo mágico.'),
+  ('b0000011-0000-0000-0000-000000000011', 'Lucas Ribeiro', 'lucas.ribeiro', 'lucas.ribeiro@email.com', '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta', 'Admirador de clássicos da literatura.'),
+  ('c0000012-0000-0000-0000-000000000012', 'Mariana Souza', 'mariana.souza', 'mariana.souza@email.com', '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta', 'Leitora de ficção contemporânea.'),
+  ('d0000013-0000-0000-0000-000000000013', 'Nicolas Araujo', 'nicolas.araujo', 'nicolas.araujo@email.com', '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta', 'Interessado em psicologia e mente humana.'),
+  ('e0000014-0000-0000-0000-000000000014', 'Olivia Carvalho', 'olivia.carvalho', 'olivia.carvalho@email.com', '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta', 'Apaixonada por romances históricos.'),
+  ('f0000015-0000-0000-0000-000000000015', 'Pedro Gomes', 'pedro.gomes', 'pedro.gomes@email.com', '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta', 'Leitor de distopias e futuros alternativos.')
 ON CONFLICT (id) DO NOTHING;
