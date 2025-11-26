@@ -36,6 +36,10 @@ public class UserService {
 
   @Transactional
   public User save(CreateUserDTO data) {
+    if (repository.existsByUsername(data.username())) throw new IllegalArgumentException("Esse nome de usuário já está em uso");
+    
+    if (repository.existsByEmail(data.email())) throw new IllegalArgumentException("Esse email já está em uso");
+
     User user = new User(
       data.name(),
       data.username(),
@@ -50,6 +54,10 @@ public class UserService {
   @Transactional
   public void update(UUID id, UpdateUserDTO data) {
     User user = findById(id);
+
+    if (repository.existsByUsername(data.username())) throw new IllegalArgumentException("Esse nome de usuário já está em uso");
+    
+    if (repository.existsByEmail(data.email())) throw new IllegalArgumentException("Esse email já está em uso");
 
     user.setName(data.name());
     user.setUsername(data.username());

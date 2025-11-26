@@ -7,4 +7,8 @@ import org.springframework.stereotype.Repository;
 import com.booker.models.User;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, UUID> {}
+public interface UserRepository extends JpaRepository<User, UUID> {
+  boolean existsByUsername(String username);
+
+  boolean existsByEmail(String email);
+}
