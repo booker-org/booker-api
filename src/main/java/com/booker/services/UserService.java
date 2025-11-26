@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.booker.DTO.User.CreateUserDTO;
+import com.booker.DTO.User.UpdatePasswordDTO;
 import com.booker.DTO.User.UpdateUserDTO;
 import com.booker.exceptions.ResourceNotFoundException;
 import com.booker.models.User;
@@ -68,14 +69,14 @@ public class UserService {
   }
 
   @Transactional
-  public void updatePassword(UUID id, String currentPassword, String newPassword) {
+  public void updatePassword(UUID id, UpdatePasswordDTO data) {
     User user = findById(id);
 
-    if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+    if (!passwordEncoder.matches(data.currentPassword(), user.getPassword())) {
       throw new IllegalArgumentException("Senha incorreta");
     }
 
-    user.setPassword(passwordEncoder.encode(newPassword));
+    user.setPassword(passwordEncoder.encode(data.newPassword()));
 
     repository.save(user);
   }

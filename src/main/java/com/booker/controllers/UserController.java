@@ -105,7 +105,7 @@ public class UserController {
     @PathVariable UUID id,
     @RequestBody @Valid UpdatePasswordDTO data
   ) {
-    service.updatePassword(id, data.currentPassword(), data.newPassword());
+    service.updatePassword(id, data);
 
     return ResponseEntity.noContent().build();
   }
