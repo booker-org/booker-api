@@ -21,9 +21,6 @@ public record UserDTO(
   @Email @Size(max = 254) @NotBlank
   String email,
 
-  @Size(max = 255) @NotBlank
-  String password,
-
   @Size(max = 300)
   String bio,
 
@@ -36,7 +33,6 @@ public record UserDTO(
       user.getName(),
       user.getUsername(),
       user.getEmail(),
-      user.getPassword(),
       user.getBio(),
       user.getCreatedAt(),
       user.getCreatedAt()

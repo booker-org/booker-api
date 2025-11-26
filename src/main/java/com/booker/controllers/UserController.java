@@ -14,14 +14,15 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.booker.DTO.User.CreateUserDTO;
+import com.booker.DTO.User.UpdatePasswordDTO;
 import com.booker.DTO.User.UpdateUserDTO;
 import com.booker.DTO.User.UserDTO;
 import com.booker.models.User;
@@ -57,12 +58,22 @@ public class UserController {
     return ResponseEntity.created(uri).body(new UserDTO(savedUser));
   }
 
-  @PutMapping("/{id}")
+  @PatchMapping("/{id}")
   public ResponseEntity<Void> put(
     @PathVariable UUID id,
     @RequestBody @Valid UpdateUserDTO data
   ) {
     service.update(id, data);
+
+    return ResponseEntity.noContent().build();
+  }
+
+  @PatchMapping("/{id}/password")
+  public ResponseEntity<Void> updatePassword(
+    @PathVariable UUID id,
+    @RequestBody @Valid UpdatePasswordDTO data
+  ) {
+    service.updatePassword(id, data.currentPassword(), data.newPassword());
 
     return ResponseEntity.noContent().build();
   }

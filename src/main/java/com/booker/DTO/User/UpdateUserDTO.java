@@ -14,9 +14,6 @@ public record UpdateUserDTO(
   @Email @Size(max = 254) @NotBlank
   String email,
 
-  @Size(max = 255) @NotBlank
-  String password,
-
   @Size(max = 300)
   String bio
 ) {}

@@ -1,7 +1,5 @@
 package com.booker.models;
 
-import com.booker.DTO.User.CreateUserDTO;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -28,12 +26,4 @@ public class User extends BaseEntity {
   
   @Column(length = 300)
   private String bio;
-
-  public User(CreateUserDTO data) {
-    setName(data.name());
-    setUsername(data.username());
-    setEmail(data.email());
-    setPassword(data.password());
-    setBio(data.bio());
-  }
 }
