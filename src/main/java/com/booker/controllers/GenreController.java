@@ -37,21 +37,13 @@ public class GenreController {
 
   @GetMapping
   @Operation(summary = "Get all genres", description = "Get paginated list of all genres")
-  public ResponseEntity<List<GenreDTO>> getAllGenres(
-    @ParameterObject @PageableDefault(size = 10, sort = "name") Pageable pageable,
-    @Parameter(description = "Get paginated results") @RequestParam(required = false, defaultValue = "false") boolean paginated
+  public ResponseEntity<Page<GenreDTO>> getAllGenres(
+    @ParameterObject @PageableDefault(size = 10, sort = "name") Pageable pageable
   ) {
-    if (paginated) {
       Page<Genre> genres = genreService.findAll(pageable);
-      List<GenreDTO> genreDTOs = genreMapper.toDTOList(genres.getContent());
+      Page<GenreDTO> genreDTOs = genreMapper.toDTOPage(genres);
 
       return ResponseEntity.ok(genreDTOs);
-    } else {
-      List<Genre> genres = genreService.findAll();
-      List<GenreDTO> genreDTOs = genreMapper.toDTOList(genres);
-
-      return ResponseEntity.ok(genreDTOs);
-    }
   }
 
   @GetMapping("/{id}")

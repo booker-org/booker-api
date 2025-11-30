@@ -2,6 +2,7 @@ package com.booker.mappers;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import com.booker.DTO.Genre.GenreCreateDTO;
@@ -34,5 +35,9 @@ public class GenreMapper {
       .map(this::toDTO)
       .toList()
     ;
+  }
+
+  public Page<GenreDTO> toDTOPage(Page<Genre> genres) {
+    return genres.map(this::toDTO);
   }
 }
