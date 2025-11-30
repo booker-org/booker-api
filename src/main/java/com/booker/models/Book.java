@@ -16,7 +16,7 @@ import lombok.AllArgsConstructor;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 @JsonPropertyOrder({ "id", "title", "synopsis", "pageCount", "author", "genres", "coverUrl", "createdAt", "updatedAt" })
 public class Book extends BaseEntity {
-  @Column(nullable = false)
+  @Column(length = 200, nullable = false)
   private String title;
 
   @Column(columnDefinition = "TEXT")
@@ -29,7 +29,7 @@ public class Book extends BaseEntity {
   @JoinColumn(name = "author_id", nullable = false)
   private Author author;
 
-  @Column(name = "cover_url")
+  @Column(length = 2048, name = "cover_url")
   private String coverUrl;
 
   @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
