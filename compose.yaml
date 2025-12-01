@@ -20,9 +20,9 @@ services:
       timeout: 1s
       retries: 5
 
-  flyway:
-    image: flyway/flyway:11.16
-    container_name: flyway
+  migrations:
+    image: flyway/flyway:11.17.2
+    container_name: booker-migrations
 
     command: -url=jdbc:postgresql://db:5432/${SPRING_DATASOURCE_NAME} -user=${SPRING_DATASOURCE_USERNAME} -password=${SPRING_DATASOURCE_PASSWORD} -locations=filesystem:/flyway/migrations migrate
 

@@ -1,0 +1,15 @@
+spring:
+  jpa:
+    defer-datasource-initialization: true
+
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:db/data.sql
+
+  flyway:
+    enabled: false
+
+logging:
+  level:
+    root: ERROR

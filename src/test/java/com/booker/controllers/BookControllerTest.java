@@ -11,11 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -28,6 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.booker.DTO.Author.BookCreateDTO;
+import com.booker.config.SecurityConfig;
 import com.booker.mappers.AuthorMapper;
 import com.booker.mappers.BookMapper;
 import com.booker.mappers.GenreMapper;
@@ -44,6 +47,8 @@ import com.booker.services.BookService;
     GenreMapper.class
   })
 )
+@Import(SecurityConfig.class)
+@ActiveProfiles("test")
 class BookControllerTest {
   @Autowired
   private MockMvc mockMvc;
