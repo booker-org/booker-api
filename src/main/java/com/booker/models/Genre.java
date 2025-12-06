@@ -19,7 +19,7 @@ import lombok.Setter;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 @JsonPropertyOrder({ "id", "name", "books", "createdAt", "updatedAt" })
 public class Genre extends BaseEntity {
-  @Column(nullable = false, unique = true)
+  @Column(length = 100, nullable = false, unique = true)
   private String name;
 
   @ManyToMany(mappedBy = "genres", fetch = FetchType.LAZY)

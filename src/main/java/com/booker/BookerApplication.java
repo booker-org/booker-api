@@ -9,5 +9,6 @@ public class BookerApplication {
     SpringApplication.run(BookerApplication.class, args);
 
     System.out.println("Application running at: http://localhost:8080");
+    System.out.println("Swagger UI: http://localhost:8080/swagger-ui.html");
   }
 }

@@ -15,7 +15,7 @@ import lombok.Setter;
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 @JsonPropertyOrder({ "id", "name", "biography", "createdAt", "updatedAt" })
 public class Author extends BaseEntity {
-  @Column(nullable = false)
+  @Column(length = 255, nullable = false)
   private String name;
 
   @Column(columnDefinition = "TEXT")
