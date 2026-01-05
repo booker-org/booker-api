@@ -8,7 +8,7 @@ import java.util.UUID;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
@@ -26,7 +26,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.booker.DTO.Author.BookCreateDTO;
@@ -41,11 +40,14 @@ import com.booker.services.BookService;
 
 @WebMvcTest(
   controllers = BookController.class,
-  includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {
-    BookMapper.class,
-    AuthorMapper.class,
-    GenreMapper.class
-  })
+  includeFilters = @ComponentScan.Filter(
+    type = FilterType.ASSIGNABLE_TYPE,
+    classes = {
+      BookMapper.class,
+      AuthorMapper.class,
+      GenreMapper.class
+    }
+  )
 )
 @Import(SecurityConfig.class)
 @ActiveProfiles("test")
@@ -53,8 +55,10 @@ class BookControllerTest {
   @Autowired
   private MockMvc mockMvc;
 
-  @Autowired
-  private ObjectMapper objectMapper;
+  private static final ObjectMapper objectMapper = com.fasterxml.jackson.databind.json.JsonMapper.builder()
+    .findAndAddModules()
+    .build()
+  ;
 
   @MockitoBean
   private BookService bookService;
