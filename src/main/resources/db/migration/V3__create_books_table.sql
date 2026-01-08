@@ -1,5 +1,5 @@
 CREATE TABLE books (
-  id         UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  id         UUID         PRIMARY KEY DEFAULT uuidv7(),
   title      VARCHAR(200) NOT NULL,
   synopsis   TEXT,
   page_count INT          NOT NULL,
@@ -7,9 +7,9 @@ CREATE TABLE books (
   cover_url  VARCHAR(2048),
   created_at TIMESTAMP    NOT NULL    DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP    NOT NULL    DEFAULT CURRENT_TIMESTAMP,
-  
-  CONSTRAINT fk_books_author FOREIGN KEY (author_id) 
-    REFERENCES authors(id) 
+
+  CONSTRAINT fk_books_author FOREIGN KEY (author_id)
+    REFERENCES authors(id)
     ON DELETE CASCADE
 );
 

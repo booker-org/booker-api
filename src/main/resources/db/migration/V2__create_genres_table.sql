@@ -1,5 +1,5 @@
 CREATE TABLE genres (
-  id          UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  id          UUID         PRIMARY KEY DEFAULT uuidv7(),
   name        VARCHAR(100) NOT NULL UNIQUE,
   created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
