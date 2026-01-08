@@ -2,7 +2,11 @@ package com.booker.repositories;
 
 import java.util.UUID;
 
+import org.flywaydb.core.Flyway;
+
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -12,6 +16,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.postgresql.PostgreSQLContainer;
+import org.testcontainers.utility.DockerImageName;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,7 +34,32 @@ import com.booker.models.Book;
 @Import(JPAConfig.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
+@Testcontainers
 class BookRepositoryTest {
+  @Container
+  static PostgreSQLContainer postgres = new PostgreSQLContainer(DockerImageName.parse("postgres:18.1"));
+
+  @DynamicPropertySource
+  static void configureProperties(DynamicPropertyRegistry registry) {
+    registry.add("spring.datasource.url", postgres::getJdbcUrl);
+    registry.add("spring.datasource.username", postgres::getUsername);
+    registry.add("spring.datasource.password", postgres::getPassword);
+    registry.add("spring.flyway.url", postgres::getJdbcUrl);
+    registry.add("spring.flyway.user", postgres::getUsername);
+    registry.add("spring.flyway.password", postgres::getPassword);
+  }
+
+  @BeforeAll
+  static void setupDatabase() {
+    Flyway flyway = Flyway.configure()
+      .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
+      .locations("classpath:db/migration")
+      .load()
+    ;
+
+    flyway.migrate();
+  }
+
   @Autowired
   private BookRepository bookRepository;
 
