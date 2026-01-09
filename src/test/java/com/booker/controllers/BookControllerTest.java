@@ -6,7 +6,10 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
@@ -55,7 +58,7 @@ class BookControllerTest {
   @Autowired
   private MockMvc mockMvc;
 
-  private static final ObjectMapper objectMapper = com.fasterxml.jackson.databind.json.JsonMapper.builder()
+  private static final ObjectMapper objectMapper = JsonMapper.builder()
     .findAndAddModules()
     .build()
   ;
@@ -111,7 +114,7 @@ class BookControllerTest {
     UUID authorId = UUID.randomUUID();
     UUID genre1Id = UUID.randomUUID();
     UUID genre2Id = UUID.randomUUID();
-    
+
     BookCreateDTO request = new BookCreateDTO(
       "Dom Casmurro",
       "A obra narra a vida de Bento Santiago...",
@@ -139,7 +142,7 @@ class BookControllerTest {
   void createBook_ShouldReturn400_WhenServiceThrows() throws Exception {
     UUID authorId = UUID.randomUUID();
     UUID genreId = UUID.randomUUID();
-    
+
     BookCreateDTO request = new BookCreateDTO(
       null,
       "Sinopse",
