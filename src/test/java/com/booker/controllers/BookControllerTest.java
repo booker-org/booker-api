@@ -6,9 +6,12 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
@@ -26,7 +29,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.booker.DTO.Author.BookCreateDTO;
@@ -41,11 +43,14 @@ import com.booker.services.BookService;
 
 @WebMvcTest(
   controllers = BookController.class,
-  includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {
-    BookMapper.class,
-    AuthorMapper.class,
-    GenreMapper.class
-  })
+  includeFilters = @ComponentScan.Filter(
+    type = FilterType.ASSIGNABLE_TYPE,
+    classes = {
+      BookMapper.class,
+      AuthorMapper.class,
+      GenreMapper.class
+    }
+  )
 )
 @Import(SecurityConfig.class)
 @ActiveProfiles("test")
@@ -53,8 +58,10 @@ class BookControllerTest {
   @Autowired
   private MockMvc mockMvc;
 
-  @Autowired
-  private ObjectMapper objectMapper;
+  private static final ObjectMapper objectMapper = JsonMapper.builder()
+    .findAndAddModules()
+    .build()
+  ;
 
   @MockitoBean
   private BookService bookService;
@@ -107,7 +114,7 @@ class BookControllerTest {
     UUID authorId = UUID.randomUUID();
     UUID genre1Id = UUID.randomUUID();
     UUID genre2Id = UUID.randomUUID();
-    
+
     BookCreateDTO request = new BookCreateDTO(
       "Dom Casmurro",
       "A obra narra a vida de Bento Santiago...",
@@ -135,7 +142,7 @@ class BookControllerTest {
   void createBook_ShouldReturn400_WhenServiceThrows() throws Exception {
     UUID authorId = UUID.randomUUID();
     UUID genreId = UUID.randomUUID();
-    
+
     BookCreateDTO request = new BookCreateDTO(
       null,
       "Sinopse",
