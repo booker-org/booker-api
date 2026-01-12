@@ -30,8 +30,9 @@ import org.testcontainers.utility.DockerImageName;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
-import com.booker.DTO.Author.BookCreateDTO;
+import com.booker.DTO.Book.BookCreateDTO;
 import com.booker.models.Author;
 import com.booker.models.Book;
 import com.booker.models.Genre;
@@ -53,8 +54,7 @@ class BookIntegrationTest {
 
   private static final ObjectMapper objectMapper = JsonMapper.builder()
     .findAndAddModules()
-    .build()
-  ;
+    .build();
 
   @Autowired
   private BookRepository bookRepository;
@@ -84,8 +84,7 @@ class BookIntegrationTest {
     Flyway flyway = Flyway.configure()
       .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
       .locations("classpath:db/migration")
-      .load()
-    ;
+      .load();
 
     flyway.migrate();
   }
@@ -121,10 +120,9 @@ class BookIntegrationTest {
       "A obra narra a vida de Bento Santiago...",
       256,
       savedAuthor.getId(),
-      List.of(savedGenre1.getId(), savedGenre2.getId())
-    );
+      List.of(savedGenre1.getId(), savedGenre2.getId()));
 
-    mockMvc.perform(post("/books")
+    mockMvc.perform(post("/books").with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(createRequest)))
       .andExpect(status().isCreated())
@@ -138,8 +136,7 @@ class BookIntegrationTest {
       .andExpect(jsonPath("$.genres", hasSize(2)))
       .andExpect(jsonPath("$.genres", containsInAnyOrder("Ficção", "Clássico")))
       .andExpect(jsonPath("$.createdAt").isNotEmpty())
-      .andExpect(jsonPath("$.updatedAt").isNotEmpty()
-    );
+      .andExpect(jsonPath("$.updatedAt").isNotEmpty());
 
     List<Book> books = bookRepository.findAll();
 
@@ -154,14 +151,12 @@ class BookIntegrationTest {
       "Sinopse qualquer",
       256,
       savedAuthor.getId(),
-      List.of(savedGenre1.getId())
-    );
+      List.of(savedGenre1.getId()));
 
-    mockMvc.perform(post("/books")
+    mockMvc.perform(post("/books").with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(invalidRequest)))
-      .andExpect(status().isBadRequest()
-    );
+      .andExpect(status().isBadRequest());
 
     List<Book> books = bookRepository.findAll();
 
@@ -175,14 +170,12 @@ class BookIntegrationTest {
       "Sinopse qualquer",
       256,
       UUID.randomUUID(),
-      List.of(savedGenre1.getId())
-    );
+      List.of(savedGenre1.getId()));
 
-    mockMvc.perform(post("/books")
+    mockMvc.perform(post("/books").with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(invalidRequest)))
-      .andExpect(status().isBadRequest()
-    );
+      .andExpect(status().isBadRequest());
   }
 
   // ========== READ TESTS ==========
@@ -195,39 +188,34 @@ class BookIntegrationTest {
       "A obra narra a vida de Bento Santiago...",
       256,
       savedAuthor.getId(),
-      List.of(savedGenre1.getId(), savedGenre2.getId())
-    );
+      List.of(savedGenre1.getId(), savedGenre2.getId()));
 
     // Create the book via API first
-    String createResponse = mockMvc.perform(post("/books")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(createRequest))
-      )
+    String createResponse = mockMvc.perform(post("/books").with(user("testuser"))
+      .contentType(MediaType.APPLICATION_JSON)
+      .content(objectMapper.writeValueAsString(createRequest)))
       .andExpect(status().isCreated())
       .andReturn()
       .getResponse()
-      .getContentAsString()
-    ;
+      .getContentAsString();
 
     UUID bookId = UUID.fromString(objectMapper.readTree(createResponse).path("id").asText());
 
     // When & Then
-    mockMvc.perform(get("/books/{id}", bookId))
+    mockMvc.perform(get("/books/{id}", bookId).with(user("testuser")))
       .andExpect(status().isOk())
       .andExpect(content().contentType(MediaType.APPLICATION_JSON))
       .andExpect(jsonPath("$.id").value(bookId.toString()))
       .andExpect(jsonPath("$.title").value("Dom Casmurro"))
       .andExpect(jsonPath("$.author.name").value("Machado de Assis"))
-      .andExpect(jsonPath("$.genres", hasSize(2))
-    );
+      .andExpect(jsonPath("$.genres", hasSize(2)));
   }
 
   @Test
   void getBookById_ShouldReturn404_WhenBookNotExists() throws Exception {
     // When & Then
-    mockMvc.perform(get("/books/{id}", UUID.randomUUID()))
-      .andExpect(status().isNotFound())
-    ;
+    mockMvc.perform(get("/books/{id}", UUID.randomUUID()).with(user("testuser")))
+      .andExpect(status().isNotFound());
   }
 
   @Test
@@ -238,32 +226,28 @@ class BookIntegrationTest {
       "Uma história de amor",
       256,
       savedAuthor.getId(),
-      List.of(savedGenre1.getId())
-    );
+      List.of(savedGenre1.getId()));
 
     BookCreateDTO book2Request = new BookCreateDTO(
       "O Cortiço",
       "Aventuras no espaço",
       300,
       savedAuthor.getId(),
-      List.of(savedGenre2.getId())
-    );
+      List.of(savedGenre2.getId()));
 
     // Create books via API
-    mockMvc.perform(post("/books")
+    mockMvc.perform(post("/books").with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(book1Request)))
-      .andExpect(status().isCreated()
-    );
+      .andExpect(status().isCreated());
 
-    mockMvc.perform(post("/books")
+    mockMvc.perform(post("/books").with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(book2Request)))
-      .andExpect(status().isCreated()
-    );
+      .andExpect(status().isCreated());
 
     // When & Then
-    mockMvc.perform(get("/books")
+    mockMvc.perform(get("/books").with(user("testuser"))
       .param("size", "10")
       .param("page", "0"))
       .andExpect(status().isOk())
@@ -271,8 +255,7 @@ class BookIntegrationTest {
       .andExpect(jsonPath("$.content").isArray())
       .andExpect(jsonPath("$.content", hasSize(2)))
       .andExpect(jsonPath("$.totalElements").value(2))
-      .andExpect(jsonPath("$.totalPages").value(1)
-    );
+      .andExpect(jsonPath("$.totalPages").value(1));
   }
 
   // ========== UPDATE TESTS ==========
@@ -285,18 +268,15 @@ class BookIntegrationTest {
       "Sinopse original",
       256,
       savedAuthor.getId(),
-      List.of(savedGenre1.getId())
-    );
+      List.of(savedGenre1.getId()));
 
-    String createResponse = mockMvc.perform(post("/books")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(createRequest))
-      )
+    String createResponse = mockMvc.perform(post("/books").with(user("testuser"))
+      .contentType(MediaType.APPLICATION_JSON)
+      .content(objectMapper.writeValueAsString(createRequest)))
       .andExpect(status().isCreated())
       .andReturn()
       .getResponse()
-      .getContentAsString()
-    ;
+      .getContentAsString();
 
     UUID bookId = UUID.fromString(objectMapper.readTree(createResponse).path("id").asText());
 
@@ -305,11 +285,10 @@ class BookIntegrationTest {
       "Nova sinopse atualizada",
       300,
       savedAuthor.getId(),
-      List.of(savedGenre1.getId())
-    );
+      List.of(savedGenre1.getId()));
 
     // When & Then
-    mockMvc.perform(put("/books/{id}", bookId)
+    mockMvc.perform(put("/books/{id}", bookId).with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(updateRequest)))
       .andExpect(status().isOk())
@@ -317,8 +296,7 @@ class BookIntegrationTest {
       .andExpect(jsonPath("$.title").value("Dom Casmurro - Edição Revisada"))
       .andExpect(jsonPath("$.synopsis").value("Nova sinopse atualizada"))
       .andExpect(jsonPath("$.pageCount").value(300))
-      .andExpect(jsonPath("$.genres", hasSize(1))
-    );
+      .andExpect(jsonPath("$.genres", hasSize(1)));
   }
 
   @Test
@@ -329,15 +307,13 @@ class BookIntegrationTest {
       "Sinopse qualquer",
       256,
       savedAuthor.getId(),
-      List.of(savedGenre1.getId())
-    );
+      List.of(savedGenre1.getId()));
 
     // When & Then
-    mockMvc.perform(put("/books/{id}", UUID.randomUUID())
+    mockMvc.perform(put("/books/{id}", UUID.randomUUID()).with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(updateRequest)))
-      .andExpect(status().isNotFound()
-    );
+      .andExpect(status().isNotFound());
   }
 
   // ========== DELETE TESTS ==========
@@ -350,25 +326,21 @@ class BookIntegrationTest {
       "A obra narra a vida de Bento Santiago...",
       256,
       savedAuthor.getId(),
-      List.of(savedGenre1.getId())
-    );
+      List.of(savedGenre1.getId()));
 
-    String createResponse = mockMvc.perform(post("/books")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(createRequest))
-      )
+    String createResponse = mockMvc.perform(post("/books").with(user("testuser"))
+      .contentType(MediaType.APPLICATION_JSON)
+      .content(objectMapper.writeValueAsString(createRequest)))
       .andExpect(status().isCreated())
       .andReturn()
       .getResponse()
-      .getContentAsString()
-    ;
+      .getContentAsString();
 
     UUID bookId = UUID.fromString(objectMapper.readTree(createResponse).path("id").asText());
 
     // When & Then
-    mockMvc.perform(delete("/books/{id}", bookId))
-      .andExpect(status().isNoContent())
-    ;
+    mockMvc.perform(delete("/books/{id}", bookId).with(user("testuser")))
+      .andExpect(status().isNoContent());
 
     // Verify it was deleted from the database
     assert bookRepository.findById(bookId).isEmpty();
@@ -377,8 +349,7 @@ class BookIntegrationTest {
   @Test
   void deleteBook_ShouldReturn404_WhenBookNotExists() throws Exception {
     // When & Then
-    mockMvc.perform(delete("/books/{id}", UUID.randomUUID()))
-      .andExpect(status().isNotFound())
-    ;
+    mockMvc.perform(delete("/books/{id}", UUID.randomUUID()).with(user("testuser")))
+      .andExpect(status().isNotFound());
   }
 }

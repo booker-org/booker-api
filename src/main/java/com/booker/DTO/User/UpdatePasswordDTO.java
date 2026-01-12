@@ -1,12 +1,14 @@
 package com.booker.DTO.User;
 
+import com.booker.validators.StrongPassword;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record UpdatePasswordDTO(
-  @Size(min = 8, max = 64) @NotBlank
-  String currentPassword,
+  @NotBlank(message = "Current password is required") @Size(min = 8, max = 100,
+    message = "Current password must be between 8 and 100 characters") String currentPassword,
 
-  @Size(min = 8, max = 64) @NotBlank
-  String newPassword
-) {}
+  @NotBlank(message = "New password is required") @Size(min = 8, max = 100,
+    message = "New password must be between 8 and 100 characters") @StrongPassword(
+      message = "New password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character") String newPassword) {
+}

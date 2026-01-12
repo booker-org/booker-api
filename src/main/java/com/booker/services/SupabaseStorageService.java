@@ -7,9 +7,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class SupabaseStorageService {
   @Value("${supabase.project-id}")
   private String SUPABASE_PROJECT_ID;
@@ -20,66 +22,69 @@ public class SupabaseStorageService {
   @Value("${storage.bucket}")
   private String STORAGE_BUCKET;
 
-  private final RestTemplate restTemplate = new RestTemplate();
+  private final WebClient.Builder webClientBuilder;
 
   public String uploadCover(MultipartFile file) throws IOException {
     String fileName = generateFileName(file.getOriginalFilename());
-    String uploadUrl = "https://" + SUPABASE_PROJECT_ID + ".supabase.co/storage/v1/object/" + STORAGE_BUCKET + "/" + fileName;
-    HttpHeaders headers = new HttpHeaders();
-
-    headers.setBearerAuth(SUPABASE_API_KEY);
-    headers.set("apikey", SUPABASE_API_KEY);
-
     String contentType = file.getContentType();
-    headers.setContentType(MediaType.parseMediaType(contentType != null ? contentType : "application/octet-stream"));
 
-    HttpEntity<byte[]> entity = new HttpEntity<>(file.getBytes(), headers);
+    WebClient webClient = webClientBuilder.baseUrl("https://" + SUPABASE_PROJECT_ID + ".supabase.co").build();
 
-    ResponseEntity<String> response = restTemplate.postForEntity(uploadUrl, entity, String.class);
+    webClient.post()
+      .uri("/storage/v1/object/" + STORAGE_BUCKET + "/" + fileName)
+      .header("Authorization", "Bearer " + SUPABASE_API_KEY)
+      .header("apikey", SUPABASE_API_KEY)
+      .contentType(MediaType.parseMediaType(contentType != null ? contentType : "application/octet-stream"))
+      .bodyValue(file.getBytes())
+      .retrieve()
+      .bodyToMono(String.class)
+      .block();
 
-    if (response.getStatusCode().is2xxSuccessful()) return getPublicUrl(fileName);
-    else throw new RuntimeException("Erro no upload: " + response.getBody());
+    return getPublicUrl(fileName);
   }
 
   public void deleteCover(String fileName) {
-    String deleteUrl = "https://" + SUPABASE_PROJECT_ID + ".supabase.co/storage/v1/object/" + STORAGE_BUCKET + "/" + fileName;
-    HttpHeaders headers = new HttpHeaders();
+    WebClient webClient = webClientBuilder.baseUrl("https://" + SUPABASE_PROJECT_ID + ".supabase.co").build();
 
-    headers.setBearerAuth(SUPABASE_API_KEY);
-    headers.set("apikey", SUPABASE_API_KEY);
-
-    HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-    restTemplate.exchange(deleteUrl, HttpMethod.DELETE, entity, String.class);
+    webClient.delete()
+      .uri("/storage/v1/object/" + STORAGE_BUCKET + "/" + fileName)
+      .header("Authorization", "Bearer " + SUPABASE_API_KEY)
+      .header("apikey", SUPABASE_API_KEY)
+      .retrieve()
+      .bodyToMono(String.class)
+      .block();
   }
 
   public String replaceCover(String oldCoverUrl, MultipartFile newFile) throws IOException {
-    if (oldCoverUrl == null || oldCoverUrl.isEmpty()) return uploadCover(newFile);
+    if (oldCoverUrl == null || oldCoverUrl.isEmpty())
+      return uploadCover(newFile);
 
     String fileName = extractFileNameFromUrl(oldCoverUrl);
 
-    if (fileName == null) return uploadCover(newFile);
-
-    String updateUrl = "https://" + SUPABASE_PROJECT_ID + ".supabase.co/storage/v1/object/" + STORAGE_BUCKET + "/" + fileName;
-    HttpHeaders headers = new HttpHeaders();
-
-    headers.setBearerAuth(SUPABASE_API_KEY);
-    headers.set("apikey", SUPABASE_API_KEY);
+    if (fileName == null)
+      return uploadCover(newFile);
 
     String contentType = newFile.getContentType();
-    headers.setContentType(MediaType.parseMediaType(contentType != null ? contentType : "application/octet-stream"));
 
-    HttpEntity<byte[]> entity = new HttpEntity<>(newFile.getBytes(), headers);
+    WebClient webClient = webClientBuilder.baseUrl("https://" + SUPABASE_PROJECT_ID + ".supabase.co").build();
 
-    ResponseEntity<String> response = restTemplate.exchange(updateUrl, HttpMethod.PUT, entity, String.class);
+    webClient.put()
+      .uri("/storage/v1/object/" + STORAGE_BUCKET + "/" + fileName)
+      .header("Authorization", "Bearer " + SUPABASE_API_KEY)
+      .header("apikey", SUPABASE_API_KEY)
+      .contentType(MediaType.parseMediaType(contentType != null ? contentType : "application/octet-stream"))
+      .bodyValue(newFile.getBytes())
+      .retrieve()
+      .bodyToMono(String.class)
+      .block();
 
-    if (response.getStatusCode().is2xxSuccessful()) return oldCoverUrl;
-    else throw new RuntimeException("Erro ao atualizar capa: " + response.getBody());
+    return oldCoverUrl;
   }
 
   public String uploadOrReplaceCover(String existingCoverUrl, MultipartFile newFile) throws IOException {
-    if (existingCoverUrl == null || existingCoverUrl.isEmpty()) return uploadCover(newFile);
-    else return replaceCover(existingCoverUrl, newFile);
+    if (existingCoverUrl == null || existingCoverUrl.isEmpty())
+      return uploadCover(newFile);
+    return replaceCover(existingCoverUrl, newFile);
   }
 
   private String generateFileName(String originalFileName) {
@@ -89,18 +94,21 @@ public class SupabaseStorageService {
   }
 
   private String getPublicUrl(String fileName) {
-    return "https://" + SUPABASE_PROJECT_ID + ".supabase.co/storage/v1/object/public/" + STORAGE_BUCKET + "/" + fileName;
+    return "https://" + SUPABASE_PROJECT_ID + ".supabase.co/storage/v1/object/public/" + STORAGE_BUCKET + "/"
+      + fileName;
   }
 
   public String extractFileNameFromUrl(String url) {
-    if (url == null || url.isEmpty()) return null;
+    if (url == null || url.isEmpty())
+      return null;
 
     // Extrai o nome do arquivo da URL pública do Supabase
     // Exemplo: https://project.supabase.co/storage/v1/object/public/bucket/covers/file.jpg
     String publicPath = "/storage/v1/object/public/" + STORAGE_BUCKET + "/";
     int index = url.indexOf(publicPath);
 
-    if (index != -1) return url.substring(index + publicPath.length());
+    if (index != -1)
+      return url.substring(index + publicPath.length());
 
     return null;
   }

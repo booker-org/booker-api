@@ -30,9 +30,11 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
-import com.booker.DTO.Author.BookCreateDTO;
-import com.booker.config.SecurityConfig;
+import com.booker.DTO.Book.BookCreateDTO;
+import com.booker.config.security.JwtAuthenticationFilter;
+import com.booker.config.security.SecurityConfig;
 import com.booker.mappers.AuthorMapper;
 import com.booker.mappers.BookMapper;
 import com.booker.mappers.GenreMapper;
@@ -40,6 +42,9 @@ import com.booker.models.Author;
 import com.booker.models.Book;
 import com.booker.models.Genre;
 import com.booker.services.BookService;
+import com.booker.services.JwtService;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @WebMvcTest(
   controllers = BookController.class,
@@ -49,19 +54,27 @@ import com.booker.services.BookService;
       BookMapper.class,
       AuthorMapper.class,
       GenreMapper.class
-    }
-  )
-)
-@Import(SecurityConfig.class)
+    }))
+@Import({
+  SecurityConfig.class, JwtAuthenticationFilter.class
+})
 @ActiveProfiles("test")
 class BookControllerTest {
   @Autowired
   private MockMvc mockMvc;
 
+  @MockitoBean
+  private JwtService jwtService;
+
+  @MockitoBean
+  private UserDetailsService userDetailsService;
+
+  @MockitoBean
+  private PasswordEncoder passwordEncoder;
+
   private static final ObjectMapper objectMapper = JsonMapper.builder()
     .findAndAddModules()
-    .build()
-  ;
+    .build();
 
   @MockitoBean
   private BookService bookService;
@@ -100,13 +113,12 @@ class BookControllerTest {
 
     when(bookService.findById(bookId)).thenReturn(Optional.of(bookMock));
 
-    mockMvc.perform(get("/books/{id}", bookId))
+    mockMvc.perform(get("/books/{id}", bookId).with(user("testuser")))
       .andExpect(status().isOk())
       .andExpect(content().contentType(MediaType.APPLICATION_JSON))
       .andExpect(jsonPath("$.id").value(bookId.toString()))
       .andExpect(jsonPath("$.title").value("Dom Casmurro"))
-      .andExpect(jsonPath("$.coverUrl").value("https://example.com/dom-casmurro.jpg"))
-    ;
+      .andExpect(jsonPath("$.coverUrl").value("https://example.com/dom-casmurro.jpg"));
   }
 
   @Test
@@ -120,8 +132,7 @@ class BookControllerTest {
       "A obra narra a vida de Bento Santiago...",
       256,
       authorId,
-      List.of(genre1Id, genre2Id)
-    );
+      List.of(genre1Id, genre2Id));
 
     Book savedBook = createBaseBook();
     savedBook.setId(UUID.randomUUID());
@@ -129,13 +140,12 @@ class BookControllerTest {
     when(bookService.save(any(Book.class), eq(authorId), eq(List.of(genre1Id, genre2Id))))
       .thenReturn(savedBook);
 
-    mockMvc.perform(post("/books")
+    mockMvc.perform(post("/books").with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(request)))
       .andExpect(status().isCreated())
       .andExpect(jsonPath("$.id").value(savedBook.getId().toString()))
-      .andExpect(jsonPath("$.title").value("Dom Casmurro"))
-    ;
+      .andExpect(jsonPath("$.title").value("Dom Casmurro"));
   }
 
   @Test
@@ -148,18 +158,15 @@ class BookControllerTest {
       "Sinopse",
       256,
       authorId,
-      List.of(genreId)
-    );
+      List.of(genreId));
 
     when(bookService.save(any(Book.class), eq(authorId), eq(List.of(genreId))))
-      .thenThrow(new IllegalArgumentException("Dados inválidos"))
-    ;
+      .thenThrow(new IllegalArgumentException("Dados inválidos"));
 
-    mockMvc.perform(post("/books")
+    mockMvc.perform(post("/books").with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(request)))
-      .andExpect(status().isBadRequest())
-    ;
+      .andExpect(status().isBadRequest());
   }
 
   @Test
@@ -174,8 +181,7 @@ class BookControllerTest {
       "Updated synopsis...",
       300,
       authorId,
-      List.of(genre1Id, genre2Id)
-    );
+      List.of(genre1Id, genre2Id));
 
     Book updated = createBaseBook();
     updated.setId(bookId);
@@ -184,16 +190,14 @@ class BookControllerTest {
     updated.setPageCount(300);
 
     when(bookService.update(eq(bookId), any(Book.class), eq(authorId), eq(List.of(genre1Id, genre2Id))))
-      .thenReturn(Optional.of(updated))
-    ;
+      .thenReturn(Optional.of(updated));
 
-    mockMvc.perform(put("/books/{id}", bookId)
+    mockMvc.perform(put("/books/{id}", bookId).with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(request)))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.title").value("Dom Casmurro - Updated"))
-      .andExpect(jsonPath("$.pageCount").value(300))
-    ;
+      .andExpect(jsonPath("$.pageCount").value(300));
   }
 
   @Test
@@ -207,18 +211,15 @@ class BookControllerTest {
       "Sinopse",
       200,
       authorId,
-      List.of(genreId)
-    );
+      List.of(genreId));
 
     when(bookService.update(eq(bookId), any(Book.class), eq(authorId), eq(List.of(genreId))))
-      .thenReturn(Optional.empty())
-    ;
+      .thenReturn(Optional.empty());
 
-    mockMvc.perform(put("/books/{id}", bookId)
+    mockMvc.perform(put("/books/{id}", bookId).with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(request)))
-      .andExpect(status().isNotFound())
-    ;
+      .andExpect(status().isNotFound());
   }
 
   @Test
@@ -230,23 +231,20 @@ class BookControllerTest {
       null,
       null,
       null,
-      null
-    );
+      null);
 
     Book patched = createBaseBook();
     patched.setId(bookId);
     patched.setTitle("Novo Título");
 
     when(bookService.partialUpdate(eq(bookId), any(Book.class), isNull(), isNull()))
-      .thenReturn(Optional.of(patched))
-    ;
+      .thenReturn(Optional.of(patched));
 
-    mockMvc.perform(patch("/books/{id}", bookId)
+    mockMvc.perform(patch("/books/{id}", bookId).with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(request)))
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$.title").value("Novo Título"))
-    ;
+      .andExpect(jsonPath("$.title").value("Novo Título"));
   }
 
   @Test
@@ -258,18 +256,15 @@ class BookControllerTest {
       null,
       null,
       null,
-      null
-    );
+      null);
 
     when(bookService.partialUpdate(eq(bookId), any(Book.class), isNull(), isNull()))
-      .thenReturn(Optional.empty())
-    ;
+      .thenReturn(Optional.empty());
 
-    mockMvc.perform(patch("/books/{id}", bookId)
+    mockMvc.perform(patch("/books/{id}", bookId).with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(request)))
-      .andExpect(status().isNotFound())
-    ;
+      .andExpect(status().isNotFound());
   }
 
   @Test
@@ -284,8 +279,7 @@ class BookControllerTest {
       "cover",
       "cover.jpg",
       "image/jpeg",
-      "fake".getBytes()
-    );
+      "fake".getBytes());
 
     when(bookService.updateCover(eq(bookId), any())).thenReturn(Optional.of(updated));
 
@@ -294,10 +288,9 @@ class BookControllerTest {
       .with(request -> {
         request.setMethod("PUT");
         return request;
-      }))
+      }).with(user("testuser")))
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$.coverUrl").value("https://example.com/new-cover.jpg")
-    );
+      .andExpect(jsonPath("$.coverUrl").value("https://example.com/new-cover.jpg"));
   }
 
   @Test
@@ -308,8 +301,7 @@ class BookControllerTest {
       "cover",
       "cover.jpg",
       "image/jpeg",
-      "fake".getBytes()
-    );
+      "fake".getBytes());
 
     when(bookService.updateCover(eq(bookId), any())).thenReturn(Optional.empty());
 
@@ -318,9 +310,8 @@ class BookControllerTest {
       .with(request -> {
         request.setMethod("PUT");
         return request;
-      }))
-      .andExpect(status().isNotFound()
-    );
+      }).with(user("testuser")))
+      .andExpect(status().isNotFound());
   }
 
   @Test
@@ -328,9 +319,8 @@ class BookControllerTest {
     UUID bookId = UUID.randomUUID();
     when(bookService.removeCover(bookId)).thenReturn(Optional.of(createBaseBook()));
 
-    mockMvc.perform(delete("/books/{id}/cover", bookId))
-      .andExpect(status().isNoContent())
-    ;
+    mockMvc.perform(delete("/books/{id}/cover", bookId).with(user("testuser")))
+      .andExpect(status().isNoContent());
   }
 
   @Test
@@ -338,9 +328,8 @@ class BookControllerTest {
     UUID bookId = UUID.randomUUID();
     when(bookService.removeCover(bookId)).thenReturn(Optional.empty());
 
-    mockMvc.perform(delete("/books/{id}/cover", bookId))
-      .andExpect(status().isNotFound())
-    ;
+    mockMvc.perform(delete("/books/{id}/cover", bookId).with(user("testuser")))
+      .andExpect(status().isNotFound());
   }
 
   @Test
@@ -348,9 +337,8 @@ class BookControllerTest {
     UUID bookId = UUID.randomUUID();
     when(bookService.deleteById(bookId)).thenReturn(true);
 
-    mockMvc.perform(delete("/books/{id}", bookId))
-      .andExpect(status().isNoContent())
-    ;
+    mockMvc.perform(delete("/books/{id}", bookId).with(user("testuser")))
+      .andExpect(status().isNoContent());
   }
 
   @Test
@@ -358,9 +346,8 @@ class BookControllerTest {
     UUID bookId = UUID.randomUUID();
     when(bookService.deleteById(bookId)).thenReturn(false);
 
-    mockMvc.perform(delete("/books/{id}", bookId))
-      .andExpect(status().isNotFound())
-    ;
+    mockMvc.perform(delete("/books/{id}", bookId).with(user("testuser")))
+      .andExpect(status().isNotFound());
   }
 
   @Test
@@ -369,10 +356,9 @@ class BookControllerTest {
 
     when(bookService.findByTitle(eq("Dom"), any(Pageable.class))).thenReturn(page);
 
-    mockMvc.perform(get("/books").param("title", "Dom"))
+    mockMvc.perform(get("/books").param("title", "Dom").with(user("testuser")))
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$.content[0].title").value("Dom Casmurro"))
-    ;
+      .andExpect(jsonPath("$.content[0].title").value("Dom Casmurro"));
   }
 
   @Test
@@ -381,9 +367,8 @@ class BookControllerTest {
 
     when(bookService.findAll(any(Pageable.class))).thenReturn(page);
 
-    mockMvc.perform(get("/books"))
+    mockMvc.perform(get("/books").with(user("testuser")))
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$.content").isArray())
-    ;
+      .andExpect(jsonPath("$.content").isArray());
   }
 }
