@@ -8,8 +8,8 @@ spring:
       data-locations: classpath:db/data.sql
 
   flyway:
-    enabled: false
+    enabled: true
 
 logging:
   level:
-    root: ERROR
+    root: WARN
