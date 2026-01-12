@@ -29,9 +29,9 @@ spring:
 jwt:
   secret: ${JWT_SECRET}
   access-token:
-    expiration: 3600000  # 1 hour in milliseconds
+    expiration: 3600000  # 1 hora em milisegundos
   refresh-token:
-    expiration: 604800000  # 7 days in milliseconds
+    expiration: 604800000  # 7 dias em milisegundos
 
 # Configurações do Supabase Storage
 supabase:
