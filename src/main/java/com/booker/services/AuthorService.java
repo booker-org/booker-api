@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -12,23 +11,32 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.booker.models.Author;
 import com.booker.repositories.AuthorRepository;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class AuthorService {
-  @Autowired
-  private AuthorRepository repository;
+  private final AuthorRepository repository;
 
   @Transactional(readOnly = true)
-  public List<Author> findAll() { return repository.findAll(); }
+  public List<Author> findAll() {
+    return repository.findAll();
+  }
 
   @Transactional(readOnly = true)
-  public Page<Author> findAll(Pageable pageable) { return repository.findAll(pageable); }
+  public Page<Author> findAll(Pageable pageable) {
+    return repository.findAll(pageable);
+  }
 
   @Transactional(readOnly = true)
-  public Optional<Author> findById(UUID id) { return repository.findById(id); }
+  public Optional<Author> findById(UUID id) {
+    return repository.findById(id);
+  }
 
   @Transactional(readOnly = true)
-  public Optional<Author> findByName(String name) { return repository.findByName(name); }
+  public Optional<Author> findByName(String name) {
+    return repository.findByName(name);
+  }
 
   @Transactional
   public Author save(Author author) {

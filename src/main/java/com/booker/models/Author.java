@@ -11,9 +11,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity @Table(name = "authors")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
-@JsonPropertyOrder({ "id", "name", "biography", "createdAt", "updatedAt" })
+@Entity
+@Table(name = "authors")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonPropertyOrder({
+  "id", "name", "biography", "createdAt", "updatedAt"
+})
 public class Author extends BaseEntity {
   @Column(length = 255, nullable = false)
   private String name;

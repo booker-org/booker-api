@@ -15,13 +15,19 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity @Table(name = "genres")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
-@JsonPropertyOrder({ "id", "name", "books", "createdAt", "updatedAt" })
+@Entity
+@Table(name = "genres")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonPropertyOrder({
+  "id", "name", "books", "createdAt", "updatedAt"
+})
 public class Genre extends BaseEntity {
   @Column(length = 100, nullable = false, unique = true)
   private String name;
-
+  
   @ManyToMany(mappedBy = "genres", fetch = FetchType.LAZY)
   private Set<Book> books;
 }

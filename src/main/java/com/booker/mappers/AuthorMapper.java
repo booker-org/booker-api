@@ -16,9 +16,9 @@ public class AuthorMapper {
       return null;
 
     return new AuthorDTO(
-        author.getId(),
-        author.getName(),
-        author.getBiography());
+      author.getId(),
+      author.getName(),
+      author.getBiography());
   }
 
   public Author toEntity(AuthorCreateDTO authorCreateDTO) {
@@ -35,8 +35,8 @@ public class AuthorMapper {
 
   public List<AuthorDTO> toDTOList(List<Author> authors) {
     return authors.stream()
-        .map(this::toDTO)
-        .toList();
+      .map(this::toDTO)
+      .toList();
   }
 
   public Page<AuthorDTO> toDTOPage(Page<Author> authors) {

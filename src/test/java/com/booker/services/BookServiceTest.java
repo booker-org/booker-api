@@ -70,7 +70,9 @@ class BookServiceTest {
     return author;
   }
 
-  private Book createBaseBook() { return createBaseBook("Dom Casmurro"); }
+  private Book createBaseBook() {
+    return createBaseBook("Dom Casmurro");
+  }
 
   private Book createBaseBook(String title) {
     Book book = new Book();
@@ -237,7 +239,7 @@ class BookServiceTest {
     // Given
     final UUID authorId = UUID.randomUUID();
     final UUID genreId = UUID.randomUUID();
-    
+
     Book invalidBook = createBaseBook();
     invalidBook.setTitle(null);
 
@@ -255,7 +257,7 @@ class BookServiceTest {
     // Given - Title too short
     final UUID authorId = UUID.randomUUID();
     final UUID genreId = UUID.randomUUID();
-    
+
     Book invalidBook = createBaseBook();
     invalidBook.setTitle("A");
 
@@ -273,7 +275,7 @@ class BookServiceTest {
     // Given - Title exceeding max length
     final UUID authorId = UUID.randomUUID();
     final UUID genreId = UUID.randomUUID();
-    
+
     Book invalidBook = createBaseBook();
     invalidBook.setTitle("A".repeat(201));
 
@@ -291,7 +293,7 @@ class BookServiceTest {
     // Given - Negative page count
     final UUID authorId = UUID.randomUUID();
     final UUID genreId = UUID.randomUUID();
-    
+
     Book invalidBook = createBaseBook();
     invalidBook.setPageCount(-10);
 
@@ -309,7 +311,7 @@ class BookServiceTest {
     // Given - Author not found
     final UUID nonExistentAuthorId = UUID.randomUUID();
     final UUID genreId = UUID.randomUUID();
-    
+
     Book validBook = createBaseBook();
     when(authorService.findById(nonExistentAuthorId)).thenReturn(Optional.empty());
 
@@ -328,7 +330,7 @@ class BookServiceTest {
     // Given - Genre not found
     final UUID authorId = UUID.randomUUID();
     final UUID nonExistentGenreId = UUID.randomUUID();
-    
+
     Book validBook = createBaseBook();
 
     Author mockAuthor = createBaseAuthor();
@@ -354,7 +356,7 @@ class BookServiceTest {
     UUID bookId = UUID.randomUUID();
     UUID authorId = UUID.randomUUID();
     UUID genreId = UUID.randomUUID();
-    
+
     Book updateRequest = createBaseBook();
     updateRequest.setTitle("Título Atualizado");
     updateRequest.setPageCount(300);
@@ -398,7 +400,7 @@ class BookServiceTest {
     UUID nonExistentId = UUID.randomUUID();
     UUID authorId = UUID.randomUUID();
     UUID genreId = UUID.randomUUID();
-    
+
     Book updateRequest = createBaseBook();
 
     when(bookRepository.findById(nonExistentId)).thenReturn(Optional.empty());
@@ -494,7 +496,7 @@ class BookServiceTest {
     UUID bookId = UUID.randomUUID();
     UUID newAuthorId = UUID.randomUUID();
     UUID newGenreId = UUID.randomUUID();
-    
+
     Book partialUpdate = new Book();
     partialUpdate.setTitle("Novo Título");
 

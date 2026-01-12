@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -24,25 +23,25 @@ import com.booker.DTO.Genre.GenreDTO;
 import com.booker.mappers.GenreMapper;
 import com.booker.models.Genre;
 import com.booker.services.GenreService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
-@RestController @RequestMapping("/genres")
+@RestController
+@RequestMapping("/genres")
+@RequiredArgsConstructor
 @Tag(name = "Genres", description = "Genre management endpoints")
 public class GenreController {
-  @Autowired
-  private GenreService genreService;
-
-  @Autowired
-  private GenreMapper genreMapper;
+  private final GenreService genreService;
+  private final GenreMapper genreMapper;
 
   @GetMapping
-  @Operation(summary = "Get all genres", description = "Get paginated list of all genres")
+  @Operation(summary = "Get all genres", description = "Get paginated list of all genres (max 100 per page)")
   public ResponseEntity<Page<GenreDTO>> getAllGenres(
-    @ParameterObject @PageableDefault(size = 10, sort = "name") Pageable pageable
-  ) {
-      Page<Genre> genres = genreService.findAll(pageable);
-      Page<GenreDTO> genreDTOs = genreMapper.toDTOPage(genres);
+    @ParameterObject @PageableDefault(size = 10, sort = "name") Pageable pageable) {
+    Page<Genre> genres = genreService.findAll(pageable);
+    Page<GenreDTO> genreDTOs = genreMapper.toDTOPage(genres);
 
-      return ResponseEntity.ok(genreDTOs);
+    return ResponseEntity.ok(genreDTOs);
   }
 
   @GetMapping("/{id}")
@@ -56,17 +55,16 @@ public class GenreController {
 
     return genre.map(genreMapper::toDTO)
       .map(ResponseEntity::ok)
-      .orElse(ResponseEntity.notFound().build())
-    ;
+      .orElse(ResponseEntity.notFound().build());
   }
 
   @PostMapping
   @Operation(summary = "Create new genre", description = "Create a new genre")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "201", description = "Genre created successfully"),
-    @ApiResponse(responseCode = "400", description = "Invalid genre data")
+    @ApiResponse(responseCode = "201", description = "Gênero criado com sucesso"),
+    @ApiResponse(responseCode = "400", description = "Dados de gênero inválidos")
   })
-  public ResponseEntity<GenreDTO> createGenre(@RequestBody GenreCreateDTO genreCreateDTO) {
+  public ResponseEntity<GenreDTO> createGenre(@Valid @RequestBody GenreCreateDTO genreCreateDTO) {
     Genre genre = genreMapper.toEntity(genreCreateDTO);
     Genre savedGenre = genreService.save(genre);
 
@@ -76,35 +74,32 @@ public class GenreController {
   @PutMapping("/{id}")
   @Operation(summary = "Update genre", description = "Update an existing genre")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Genre updated successfully"),
-    @ApiResponse(responseCode = "404", description = "Genre not found", content = @Content),
-    @ApiResponse(responseCode = "400", description = "Invalid genre data", content = @Content)
+    @ApiResponse(responseCode = "200", description = "Gênero atualizado com sucesso"),
+    @ApiResponse(responseCode = "404", description = "Gênero não encontrado", content = @Content),
+    @ApiResponse(responseCode = "400", description = "Dados de gênero inválidos", content = @Content)
   })
   public ResponseEntity<GenreDTO> updateGenre(
     @Parameter(description = "Genre ID") @PathVariable UUID id,
-    @RequestBody GenreCreateDTO genreCreateDTO
-  ) {
+    @Valid @RequestBody GenreCreateDTO genreCreateDTO) {
     Genre genre = genreMapper.toEntity(genreCreateDTO);
     Optional<Genre> updatedGenre = genreService.update(id, genre);
 
     return updatedGenre.map(genreMapper::toDTO)
       .map(ResponseEntity::ok)
-      .orElse(ResponseEntity.notFound().build())
-    ;
+      .orElse(ResponseEntity.notFound().build());
   }
 
   @DeleteMapping("/{id}")
   @Operation(summary = "Delete genre", description = "Delete a genre by ID")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "204", description = "Genre deleted successfully"),
-    @ApiResponse(responseCode = "404", description = "Genre not found")
+    @ApiResponse(responseCode = "204", description = "Gênero excluído com sucesso"),
+    @ApiResponse(responseCode = "404", description = "Gênero não encontrado")
   })
   public ResponseEntity<Void> deleteGenre(@Parameter(description = "Genre ID") @PathVariable UUID id) {
     boolean deleted = genreService.deleteById(id);
 
     return deleted
       ? ResponseEntity.noContent().build()
-      : ResponseEntity.notFound().build()
-    ;
+      : ResponseEntity.notFound().build();
   }
 }

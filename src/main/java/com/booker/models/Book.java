@@ -12,9 +12,15 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.AllArgsConstructor;
 
-@Entity @Table(name = "books")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor
-@JsonPropertyOrder({ "id", "title", "synopsis", "pageCount", "author", "genres", "coverUrl", "createdAt", "updatedAt" })
+@Entity
+@Table(name = "books")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonPropertyOrder({
+  "id", "title", "synopsis", "pageCount", "author", "genres", "coverUrl", "createdAt", "updatedAt"
+})
 public class Book extends BaseEntity {
   @Column(length = 200, nullable = false)
   private String title;
@@ -32,7 +38,10 @@ public class Book extends BaseEntity {
   @Column(length = 2048, name = "cover_url")
   private String coverUrl;
 
-  @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
-  @JoinTable(name = "book_genres", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "genre_id"))
+  @ManyToMany(fetch = FetchType.LAZY, cascade = {
+    CascadeType.PERSIST, CascadeType.MERGE
+  })
+  @JoinTable(name = "book_genres", joinColumns = @JoinColumn(name = "book_id"),
+    inverseJoinColumns = @JoinColumn(name = "genre_id"))
   private Set<Genre> genres = new HashSet<>();
 }

@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -21,38 +20,40 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.booker.DTO.Author.BookCreateDTO;
+import com.booker.DTO.Book.BookCreateDTO;
+import jakarta.validation.Valid;
 import com.booker.DTO.Book.BookDTO;
 import com.booker.DTO.Book.BookDetailDTO;
-import com.booker.DTO.Book.BookPageResponse;
 import com.booker.mappers.BookMapper;
 import com.booker.models.Book;
 import com.booker.services.BookService;
+import lombok.RequiredArgsConstructor;
 
-@RestController @RequestMapping("/books")
+@RestController
+@RequestMapping("/books")
+@RequiredArgsConstructor
 @Tag(name = "Books", description = "Book management endpoints")
 public class BookController {
-  @Autowired
-  private BookService bookService;
-
-  @Autowired
-  private BookMapper bookMapper;
+  private final BookService bookService;
+  private final BookMapper bookMapper;
 
   @GetMapping
-  @Operation(summary = "Get all books", description = "Get paginated list of all books")
-  public ResponseEntity<BookPageResponse> getAllBooks(
+  @Operation(summary = "Get all books", description = "Get paginated list of all books (max 100 per page)")
+  public ResponseEntity<Page<BookDTO>> getAllBooks(
     @ParameterObject @PageableDefault(size = 10, sort = "title") Pageable pageable,
     @Parameter(description = "Filter by title") @RequestParam(required = false) String title,
     @Parameter(description = "Filter by author ID") @RequestParam(required = false) UUID authorId,
-    @Parameter(description = "Search in title and synopsis") @RequestParam(required = false) String search
-  ) {
+    @Parameter(description = "Search in title and synopsis") @RequestParam(required = false) String search) {
     Page<Book> books;
 
-    if (title != null && !title.trim().isEmpty()) books = bookService.findByTitle(title, pageable);
-    else if (authorId != null) books = bookService.findByAuthor(authorId, pageable);
-    else books = bookService.findAll(pageable);
+    if (title != null && !title.trim().isEmpty())
+      books = bookService.findByTitle(title, pageable);
+    else if (authorId != null)
+      books = bookService.findByAuthor(authorId, pageable);
+    else
+      books = bookService.findAll(pageable);
 
-    BookPageResponse response = bookMapper.toPageResponse(books);
+    Page<BookDTO> response = books.map(bookMapper::toDTO);
 
     return ResponseEntity.ok(response);
   }
@@ -60,25 +61,24 @@ public class BookController {
   @GetMapping("/{id}")
   @Operation(summary = "Get book by ID", description = "Get a specific book by its ID")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Book found"),
-    @ApiResponse(responseCode = "404", description = "Book not found")
+    @ApiResponse(responseCode = "200", description = "Livro encontrado"),
+    @ApiResponse(responseCode = "404", description = "Livro não encontrado")
   })
   public ResponseEntity<BookDetailDTO> getBookById(@Parameter(description = "Book ID") @PathVariable UUID id) {
     Optional<Book> book = bookService.findById(id);
 
     return book.map(bookMapper::toDetailDTO)
       .map(ResponseEntity::ok)
-      .orElse(ResponseEntity.notFound().build())
-    ;
+      .orElse(ResponseEntity.notFound().build());
   }
 
   @PostMapping
   @Operation(summary = "Create new book", description = "Create a new book")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "201", description = "Book created successfully"),
-    @ApiResponse(responseCode = "400", description = "Invalid book data")
+    @ApiResponse(responseCode = "201", description = "Livro criado com sucesso"),
+    @ApiResponse(responseCode = "400", description = "Dados de livro inválidos")
   })
-  public ResponseEntity<BookDTO> createBook(@RequestBody BookCreateDTO book) {
+  public ResponseEntity<BookDTO> createBook(@Valid @RequestBody BookCreateDTO book) {
     Book savedBook = bookService.save(bookMapper.toEntity(book), book.authorId(), book.genreIds());
 
     return ResponseEntity.status(HttpStatus.CREATED).body(bookMapper.toDTO(savedBook));
@@ -87,20 +87,18 @@ public class BookController {
   @PutMapping(value = "/{id}")
   @Operation(summary = "Update book", description = "Update an existing book")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Book updated successfully"),
-    @ApiResponse(responseCode = "404", description = "Book not found", content = @Content),
-    @ApiResponse(responseCode = "400", description = "Invalid book data", content = @Content)
+    @ApiResponse(responseCode = "200", description = "Livro atualizado com sucesso"),
+    @ApiResponse(responseCode = "404", description = "Livro não encontrado", content = @Content),
+    @ApiResponse(responseCode = "400", description = "Dados de livro inválidos", content = @Content)
   })
   public ResponseEntity<BookDTO> updateBook(
     @Parameter(description = "Book ID") @PathVariable UUID id,
-    @RequestBody BookCreateDTO bookDTO
-  ) {
+    @Valid @RequestBody BookCreateDTO bookDTO) {
     Optional<Book> updatedBook = bookService.update(
       id,
       bookMapper.toEntity(bookDTO),
       bookDTO.authorId(),
-      bookDTO.genreIds()
-    );
+      bookDTO.genreIds());
 
     return updatedBook.map(bookMapper::toDTO).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
   }
@@ -114,25 +112,22 @@ public class BookController {
   })
   public ResponseEntity<BookDTO> patchBook(
     @Parameter(description = "Book ID") @PathVariable UUID id,
-    @RequestBody(required = false) BookCreateDTO book
-  ) {
-    BookCreateDTO bookData = book != null ? book : new BookCreateDTO(
-      null,
-      null,
-      null,
-      null,
-      null
-    );
+    @RequestBody(required = false) BookCreateDTO book) {
+    BookCreateDTO bookData = book != null ? book
+      : new BookCreateDTO(
+        null,
+        null,
+        null,
+        null,
+        null);
 
     Optional<Book> updatedBook = bookService.partialUpdate(
       id, bookMapper.toEntity(bookData),
-      book != null ? book.authorId() : null, book != null ? book.genreIds() : null
-    );
+      book != null ? book.authorId() : null, book != null ? book.genreIds() : null);
 
     return updatedBook.map(bookMapper::toDTO)
       .map(ResponseEntity::ok)
-      .orElse(ResponseEntity.notFound().build())
-    ;
+      .orElse(ResponseEntity.notFound().build());
   }
 
   @PutMapping(value = "/{id}/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -144,26 +139,25 @@ public class BookController {
   })
   public ResponseEntity<BookDTO> uploadCover(
     @Parameter(description = "Book ID") @PathVariable UUID id,
-    @Parameter(description = "Cover image file", required = true) @RequestPart("cover") MultipartFile coverFile
-  ) {
+    @Parameter(description = "Cover image file", required = true) @RequestPart("cover") MultipartFile coverFile) {
     Optional<Book> updatedBook = bookService.updateCover(id, coverFile);
 
     return updatedBook.map(bookMapper::toDTO)
       .map(ResponseEntity::ok)
-      .orElse(ResponseEntity.notFound().build())
-    ;
+      .orElse(ResponseEntity.notFound().build());
   }
 
   @DeleteMapping("/{id}/cover")
   @Operation(summary = "Remove book cover", description = "Delete the existing cover image for the book")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "204", description = "Cover removed successfully"),
-    @ApiResponse(responseCode = "404", description = "Book not found", content = @Content)
+    @ApiResponse(responseCode = "204", description = "Capa removida com sucesso"),
+    @ApiResponse(responseCode = "404", description = "Livro não encontrado", content = @Content)
   })
   public ResponseEntity<Void> deleteCover(@Parameter(description = "Book ID") @PathVariable UUID id) {
     Optional<Book> book = bookService.removeCover(id);
 
-    if (book.isEmpty()) return ResponseEntity.notFound().build();
+    if (book.isEmpty())
+      return ResponseEntity.notFound().build();
 
     return ResponseEntity.noContent().build();
   }
@@ -171,15 +165,14 @@ public class BookController {
   @DeleteMapping("/{id}")
   @Operation(summary = "Delete book", description = "Delete a book by ID")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "204", description = "Book deleted successfully"),
-    @ApiResponse(responseCode = "404", description = "Book not found")
+    @ApiResponse(responseCode = "204", description = "Livro excluído com sucesso"),
+    @ApiResponse(responseCode = "404", description = "Livro não encontrado")
   })
   public ResponseEntity<Void> deleteBook(@Parameter(description = "Book ID") @PathVariable UUID id) {
     boolean deleted = bookService.deleteById(id);
 
     return deleted
       ? ResponseEntity.noContent().build()
-      : ResponseEntity.notFound().build()
-    ;
+      : ResponseEntity.notFound().build();
   }
 }
