@@ -35,6 +35,7 @@ jobs:
   test:
     name: Build and Create Reports
     runs-on: ubuntu-latest
+    environment: tests
 
     steps:
     - name: Checkout code
