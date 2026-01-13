@@ -1,5 +1,6 @@
 package com.booker.models;
 
+import java.util.Collections;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -30,4 +31,12 @@ public class Genre extends BaseEntity {
   
   @ManyToMany(mappedBy = "genres", fetch = FetchType.LAZY)
   private Set<Book> books;
+
+  public Set<Book> getBooks() {
+    return books != null ? Collections.unmodifiableSet(books) : Collections.emptySet();
+  }
+
+  public void setBooks(Set<Book> books) {
+    this.books = books;
+  }
 }

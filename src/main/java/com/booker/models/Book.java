@@ -1,5 +1,6 @@
 package com.booker.models;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -44,4 +45,12 @@ public class Book extends BaseEntity {
   @JoinTable(name = "book_genres", joinColumns = @JoinColumn(name = "book_id"),
     inverseJoinColumns = @JoinColumn(name = "genre_id"))
   private Set<Genre> genres = new HashSet<>();
+
+  public Set<Genre> getGenres() {
+    return genres != null ? Collections.unmodifiableSet(genres) : Collections.emptySet();
+  }
+
+  public void setGenres(Set<Genre> genres) {
+    this.genres = genres;
+  }
 }

@@ -5,6 +5,7 @@ import com.booker.models.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,20 @@ public class JwtService {
   
   @Value("${jwt.refresh-token.expiration}")
   private long refreshTokenExpiration; // em milisegundos
+  
+  @PostConstruct
+  public void validateSecretKey() {
+    if (secretKey == null || secretKey.isBlank()) {
+      throw new IllegalStateException("A chave secreta JWT não pode ser nula ou vazia");
+    }
+    
+    byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
+    if (keyBytes.length < 32) {
+      throw new IllegalStateException(
+        String.format("A chave secreta JWT deve ter no mínimo 256 bits (32 bytes) para o algoritmo HS256. A chave atual tem apenas %d bytes.", keyBytes.length)
+      );
+    }
+  }
   
   public String generateAccessToken(User user) {
     Map<String, Object> claims = new HashMap<>();
