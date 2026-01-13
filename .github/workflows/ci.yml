@@ -57,7 +57,7 @@ jobs:
       run: mvn clean test
       env:
         SPRING_PROFILES_ACTIVE: test
-        JWT_SECRET: testSecretKeyForCIPipelineOnlyDoNotUseInProductionThisIsJustForTestingPurposesAndShouldBeAtLeast256Bits
+        JWT_SECRET: ${{ secrets.JWT_SECRET_TEST }}
         SUPABASE_PROJECT_ID: test-project-ci
         SUPABASE_API_KEY: test-api-key-ci
         STORAGE_BUCKET: test-bucket-ci
