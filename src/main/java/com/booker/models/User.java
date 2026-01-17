@@ -1,6 +1,7 @@
 package com.booker.models;
 
 import com.booker.config.security.SecurityConstants;
+import com.booker.models.enums.Role;
 import jakarta.persistence.*;
 
 import lombok.AllArgsConstructor;
@@ -35,7 +36,7 @@ public class User extends BaseEntity implements UserDetails {
 
   @Column(length = 300)
   private String bio;
-  
+
   @Enumerated(EnumType.STRING)
   @Column(length = 20, nullable = false)
   private Role role = Role.USER;

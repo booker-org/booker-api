@@ -10,6 +10,7 @@ import com.booker.exceptions.ResourceNotFoundException;
 import com.booker.models.RefreshToken;
 import com.booker.models.Role;
 import com.booker.models.User;
+import com.booker.models.enums.Role;
 import com.booker.repositories.RefreshTokenRepository;
 import com.booker.repositories.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;

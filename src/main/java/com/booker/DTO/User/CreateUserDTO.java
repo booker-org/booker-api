@@ -1,6 +1,6 @@
 package com.booker.DTO.User;
 
-import com.booker.models.Role;
+import com.booker.models.enums.Role;
 import com.booker.validators.StrongPassword;
 
 import jakarta.validation.constraints.Email;

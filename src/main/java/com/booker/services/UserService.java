@@ -16,8 +16,8 @@ import com.booker.DTO.User.CreateUserDTO;
 import com.booker.DTO.User.UpdatePasswordDTO;
 import com.booker.DTO.User.UpdateUserDTO;
 import com.booker.exceptions.ResourceNotFoundException;
-import com.booker.models.Role;
 import com.booker.models.User;
+import com.booker.models.enums.Role;
 import com.booker.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 
