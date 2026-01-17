@@ -58,6 +58,8 @@ jobs:
       run: mvn clean test
       env:
         SPRING_PROFILES_ACTIVE: test
+        DOCKER_HOST: unix:///var/run/docker.sock
+        TESTCONTAINERS_HOST_OVERRIDE: localhost
         JWT_SECRET: ${{ secrets.JWT_SECRET_TEST }}
         SUPABASE_PROJECT_ID: test-project-ci
         SUPABASE_API_KEY: test-api-key-ci
