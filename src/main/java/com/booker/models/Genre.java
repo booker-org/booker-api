@@ -7,7 +7,6 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 
@@ -28,8 +27,8 @@ import lombok.Setter;
 public class Genre extends BaseEntity {
   @Column(length = 100, nullable = false, unique = true)
   private String name;
-  
-  @ManyToMany(mappedBy = "genres", fetch = FetchType.LAZY)
+
+  @ManyToMany(mappedBy = "genres")
   private Set<Book> books;
 
   public Set<Book> getBooks() {

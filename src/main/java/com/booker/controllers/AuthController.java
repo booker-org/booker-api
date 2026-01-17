@@ -1,4 +1,3 @@
-
 package com.booker.controllers;
 
 import com.booker.DTO.Auth.AuthenticationResponseDTO;
@@ -12,9 +11,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
 
 @RestController
 @RequestMapping("/auth")
@@ -32,7 +32,8 @@ public class AuthController {
     @Valid @RequestBody RegisterRequestDTO request,
     HttpServletRequest httpRequest) {
     AuthenticationResponseDTO response = authenticationService.register(request, httpRequest);
-    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    URI location = URI.create("/users/" + response.user().id());
+    return ResponseEntity.created(location).body(response);
   }
 
   @PostMapping("/login")

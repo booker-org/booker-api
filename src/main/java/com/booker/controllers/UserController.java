@@ -29,6 +29,7 @@ import com.booker.DTO.User.CreateUserDTO;
 import com.booker.DTO.User.UpdatePasswordDTO;
 import com.booker.DTO.User.UpdateUserDTO;
 import com.booker.DTO.User.UserDTO;
+import com.booker.mappers.UserMapper;
 import com.booker.models.User;
 import com.booker.services.UserService;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,7 @@ import lombok.RequiredArgsConstructor;
 @Tag(name = "Users", description = "User management endpoints")
 public class UserController {
   private final UserService service;
+  private final UserMapper userMapper;
 
   @GetMapping
   @Operation(summary = "Get all users", description = "Get paginated list of all users (max 100 per page)")
@@ -46,12 +48,10 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "Lista de usuários recuperada com sucesso")
   })
   public ResponseEntity<Page<UserDTO>> getAll(
-    @ParameterObject @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
+      @ParameterObject @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
     Page<User> users = service.findAll(pageable);
 
-    Page<UserDTO> usersDTO = users.map(UserDTO::new);
-
-    return ResponseEntity.ok(usersDTO);
+    return ResponseEntity.ok(users.map(userMapper::toDTO));
   }
 
   @GetMapping("/{id}")
@@ -63,7 +63,7 @@ public class UserController {
   public ResponseEntity<UserDTO> getById(@PathVariable UUID id) {
     User user = service.findById(id);
 
-    return ResponseEntity.ok(new UserDTO(user));
+    return ResponseEntity.ok(userMapper.toDTO(user));
   }
 
   @PostMapping
@@ -80,7 +80,7 @@ public class UserController {
 
     URI uri = URI.create("/users/" + savedUser.getId());
 
-    return ResponseEntity.created(uri).body(new UserDTO(savedUser));
+    return ResponseEntity.created(uri).body(userMapper.toDTO(savedUser));
   }
 
   @PatchMapping("/{id}")

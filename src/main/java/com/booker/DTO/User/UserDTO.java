@@ -3,8 +3,6 @@ package com.booker.DTO.User;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.booker.models.User;
-
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -22,14 +20,4 @@ public record UserDTO(
 
   LocalDateTime createdAt,
   LocalDateTime updatedAt) {
-  public UserDTO(User user) {
-    this(
-      user.getId(),
-      user.getName(),
-      user.getUsername(),
-      user.getEmail(),
-      user.getBio(),
-      user.getCreatedAt(),
-      user.getUpdatedAt());
-  }
 }
