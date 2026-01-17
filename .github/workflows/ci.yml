@@ -58,8 +58,6 @@ jobs:
       run: mvn clean test
       env:
         SPRING_PROFILES_ACTIVE: test
-        DOCKER_HOST: unix:///var/run/docker.sock
-        TESTCONTAINERS_HOST_OVERRIDE: localhost
         JWT_SECRET: ${{ secrets.JWT_SECRET_TEST }}
         SUPABASE_PROJECT_ID: test-project-ci
         SUPABASE_API_KEY: test-api-key-ci
@@ -72,19 +70,19 @@ jobs:
         TESTS=0
         FAILURES=0
         ERRORS=0
-        
+
         # Check if any TEST-*.xml files exist
         if ls target/surefire-reports/TEST-*.xml 1> /dev/null 2>&1; then
           TESTS=$(grep -o 'tests="[0-9]*"' target/surefire-reports/TEST-*.xml | grep -o '[0-9]*' | awk '{sum+=$1} END {print sum}')
           FAILURES=$(grep -o 'failures="[0-9]*"' target/surefire-reports/TEST-*.xml | grep -o '[0-9]*' | awk '{sum+=$1} END {print sum}')
           ERRORS=$(grep -o 'errors="[0-9]*"' target/surefire-reports/TEST-*.xml | grep -o '[0-9]*' | awk '{sum+=$1} END {print sum}')
         fi
-        
+
         # Ensure variables have values (fallback to 0 if empty)
         echo "TESTS=${TESTS:-0}" >> $GITHUB_ENV
         echo "FAILURES=${FAILURES:-0}" >> $GITHUB_ENV
         echo "ERRORS=${ERRORS:-0}" >> $GITHUB_ENV
-        
+
         # Debug output
         echo "Extracted test results:"
         echo "TESTS=${TESTS:-0}"
@@ -100,26 +98,26 @@ jobs:
           const failures = process.env.FAILURES || '0';
           const errors = process.env.ERRORS || '0';
           const success = failures === '0' && errors === '0';
-          
+
           const emoji = success ? '✅' : '❌';
           const status = success ? 'ALL TESTS PASSED' : 'TESTS FAILED';
-          
+
           const body = `## ${emoji} Test Results - Booker API
-          
+
           ### 📊 Summary
           - **Total Tests**: ${tests}
           - **Failures**: ${failures}
           - **Errors**: ${errors}
           - **Status**: **${status}**
-          
+
           ${success ? '🎉 **Ready to merge!**' : '⚠️ **Please fix failing tests before merging**'}
-          
+
           <details>
           <summary>📁 View Test Reports</summary>
-          
+
           - [Full Test Reports](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
           - [Download Artifacts](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
-          
+
           </details>`;
 
           github.rest.issues.createComment({
