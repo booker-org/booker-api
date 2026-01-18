@@ -12,18 +12,17 @@ import com.booker.models.Author;
 @Component
 public class AuthorMapper {
   public AuthorDTO toDTO(Author author) {
-    if (author == null)
-      return null;
+    if (author == null) return null;
 
     return new AuthorDTO(
       author.getId(),
       author.getName(),
-      author.getBiography());
+      author.getBiography()
+    );
   }
 
   public Author toEntity(AuthorCreateDTO authorCreateDTO) {
-    if (authorCreateDTO == null)
-      return null;
+    if (authorCreateDTO == null) return null;
 
     Author author = new Author();
 

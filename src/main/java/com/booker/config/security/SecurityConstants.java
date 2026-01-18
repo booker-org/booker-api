@@ -1,7 +1,6 @@
 package com.booker.config.security;
 
 public final class SecurityConstants {
-
   private SecurityConstants() {}
 
   // JWT Token Types

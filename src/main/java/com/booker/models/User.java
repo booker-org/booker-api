@@ -1,26 +1,28 @@
 package com.booker.models;
 
-import com.booker.config.security.SecurityConstants;
-import com.booker.models.enums.Role;
-import jakarta.persistence.*;
+import java.util.Collection;
+import java.util.List;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.List;
+import com.booker.config.security.SecurityConstants;
+import com.booker.models.enums.Role;
 
-@Entity
-@Table(name = "users")
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
+@Entity @Table(name = "users")
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class User extends BaseEntity implements UserDetails {
   @Column(length = 100, nullable = false)
   private String name;
@@ -37,8 +39,7 @@ public class User extends BaseEntity implements UserDetails {
   @Column(length = 300)
   private String bio;
 
-  @Enumerated(EnumType.STRING)
-  @Column(length = 20, nullable = false)
+  @Column(length = 20, nullable = false) @Enumerated(EnumType.STRING)
   private Role role = Role.USER;
 
   @Column(nullable = false)

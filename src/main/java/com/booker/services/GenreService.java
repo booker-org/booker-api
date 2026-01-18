@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -11,10 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.booker.models.Genre;
 import com.booker.repositories.GenreRepository;
-import lombok.RequiredArgsConstructor;
 
-@Service
-@RequiredArgsConstructor
+@Service @RequiredArgsConstructor
 public class GenreService {
   private final GenreRepository repository;
 
@@ -53,7 +53,7 @@ public class GenreService {
       Genre genreToUpdate = existingGenre.get();
 
       genreToUpdate.setName(genre.getName());
-      
+
       return Optional.of(repository.save(genreToUpdate));
     }
 

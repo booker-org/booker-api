@@ -5,5 +5,5 @@ import java.util.UUID;
 public record AuthorDTO(
   UUID id,
   String name,
-  String biography) {
-}
+  String biography
+) {}

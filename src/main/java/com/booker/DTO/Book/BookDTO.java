@@ -13,5 +13,5 @@ public record BookDTO(
   List<String> genres,
   String coverUrl,
   LocalDateTime createdAt,
-  LocalDateTime updatedAt) {
-}
+  LocalDateTime updatedAt
+) {}

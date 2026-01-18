@@ -21,21 +21,28 @@ public class SwaggerConfig {
       .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
       .components(
         new Components()
-          .addSecuritySchemes(securitySchemeName,
+          .addSecuritySchemes(
+            securitySchemeName,
             new SecurityScheme()
               .type(SecurityScheme.Type.HTTP)
               .scheme("bearer")
               .bearerFormat("JWT")
-              .description("Insira o token JWT obtido no endpoint /auth/login ou /auth/register")))
+              .description("Insira o token JWT obtido no endpoint /auth/login ou /auth/register")
+          )
+      )
       .info(new Info()
         .title("Booker API")
         .version("1.0.0")
         .description("API para gerenciamento de leituras e comunidade de leitores.")
         .contact(new Contact()
           .name("Equipe Booker")
-          .url("https://github.com/booker-org"))
+          .url("https://github.com/booker-org")
+        )
         .license(new License()
           .name("MIT")
-          .url("https://opensource.org/licenses/MIT")));
+          .url("https://opensource.org/licenses/MIT")
+        )
+      )
+    ;
   }
 }

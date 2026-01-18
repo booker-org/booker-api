@@ -3,6 +3,10 @@ package com.booker.controllers;
 import java.util.Optional;
 import java.util.UUID;
 
+import jakarta.validation.Valid;
+
+import lombok.RequiredArgsConstructor;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -23,8 +27,6 @@ import com.booker.DTO.Genre.GenreDTO;
 import com.booker.mappers.GenreMapper;
 import com.booker.models.Genre;
 import com.booker.services.GenreService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/genres")
@@ -37,7 +39,8 @@ public class GenreController {
   @GetMapping
   @Operation(summary = "Get all genres", description = "Get paginated list of all genres (max 100 per page)")
   public ResponseEntity<Page<GenreDTO>> getAllGenres(
-    @ParameterObject @PageableDefault(size = 10, sort = "name") Pageable pageable) {
+    @ParameterObject @PageableDefault(size = 10, sort = "name") Pageable pageable
+  ) {
     Page<Genre> genres = genreService.findAll(pageable);
     Page<GenreDTO> genreDTOs = genreMapper.toDTOPage(genres);
 
@@ -80,7 +83,8 @@ public class GenreController {
   })
   public ResponseEntity<GenreDTO> updateGenre(
     @Parameter(description = "Genre ID") @PathVariable UUID id,
-    @Valid @RequestBody GenreCreateDTO genreCreateDTO) {
+    @Valid @RequestBody GenreCreateDTO genreCreateDTO
+  ) {
     Genre genre = genreMapper.toEntity(genreCreateDTO);
     Optional<Genre> updatedGenre = genreService.update(id, genre);
 

@@ -4,7 +4,6 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 public class StrongPasswordValidator implements ConstraintValidator<StrongPassword, String> {
-
   private int minLength;
   private boolean requireUppercase;
   private boolean requireLowercase;
@@ -22,13 +21,9 @@ public class StrongPasswordValidator implements ConstraintValidator<StrongPasswo
 
   @Override
   public boolean isValid(String password, ConstraintValidatorContext context) {
-    if (password == null || password.isBlank()) {
-      return false;
-    }
+    if (password == null || password.isBlank()) return false;
 
-    if (password.length() < minLength) {
-      return false;
-    }
+    if (password.length() < minLength) return false;
 
     boolean hasUppercase = !requireUppercase || password.matches(".*[A-Z].*");
     boolean hasLowercase = !requireLowercase || password.matches(".*[a-z].*");

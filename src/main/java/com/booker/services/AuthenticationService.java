@@ -1,5 +1,21 @@
 package com.booker.services;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.util.Base64;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.booker.DTO.Auth.AuthenticationResponseDTO;
 import com.booker.DTO.Auth.LoginRequestDTO;
 import com.booker.DTO.Auth.RefreshTokenRequestDTO;
@@ -12,24 +28,9 @@ import com.booker.models.User;
 import com.booker.models.enums.Role;
 import com.booker.repositories.RefreshTokenRepository;
 import com.booker.repositories.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.time.Instant;
-import java.util.Base64;
-
-@Service
-@RequiredArgsConstructor
+@Service @RequiredArgsConstructor
 public class AuthenticationService {
-
   private final UserRepository userRepository;
   private final RefreshTokenRepository refreshTokenRepository;
   private final PasswordEncoder passwordEncoder;
@@ -48,6 +49,7 @@ public class AuthenticationService {
     }
 
     User user = new User();
+
     user.setName(request.name());
     user.setUsername(request.username());
     user.setEmail(request.email());
@@ -63,6 +65,7 @@ public class AuthenticationService {
 
     String deviceInfo = extractDeviceInfo(httpRequest);
     String ipAddress = extractIpAddress(httpRequest);
+
     saveRefreshToken(savedUser, refreshToken, deviceInfo, ipAddress);
 
     return new AuthenticationResponseDTO(
@@ -79,17 +82,21 @@ public class AuthenticationService {
     authenticationManager.authenticate(
       new UsernamePasswordAuthenticationToken(
         request.usernameOrEmail(),
-        request.password()));
+        request.password()
+      )
+    );
 
     User user = userRepository.findByUsername(request.usernameOrEmail())
       .or(() -> userRepository.findByEmail(request.usernameOrEmail()))
-      .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+      .orElseThrow(() -> new ResourceNotFoundException("User not found")
+    );
 
     String accessToken = jwtService.generateAccessToken(user);
     String refreshToken = jwtService.generateRefreshToken(user);
 
     String deviceInfo = extractDeviceInfo(httpRequest);
     String ipAddress = extractIpAddress(httpRequest);
+
     saveRefreshToken(user, refreshToken, deviceInfo, ipAddress);
 
     return new AuthenticationResponseDTO(
@@ -110,6 +117,7 @@ public class AuthenticationService {
     }
 
     String username = jwtService.extractUsername(refreshTokenValue);
+
     if (username == null || username.isBlank()) {
       throw new IllegalArgumentException("Refresh token inválido");
     }
@@ -117,7 +125,8 @@ public class AuthenticationService {
     String tokenHash = hashToken(refreshTokenValue);
 
     RefreshToken refreshToken = refreshTokenRepository.findByTokenHash(tokenHash)
-      .orElseThrow(() -> new IllegalArgumentException("Refresh token inválido"));
+      .orElseThrow(() -> new IllegalArgumentException("Refresh token inválido")
+    );
 
     if (!refreshToken.isValid()) {
       throw new IllegalArgumentException("Refresh token expirado ou revogado");
@@ -145,9 +154,7 @@ public class AuthenticationService {
 
   @Transactional
   public void logout(String refreshTokenValue) {
-    if (refreshTokenValue == null || refreshTokenValue.isBlank()) {
-      return;
-    }
+    if (refreshTokenValue == null || refreshTokenValue.isBlank()) return;
 
     String tokenHash = hashToken(refreshTokenValue);
 
@@ -175,7 +182,8 @@ public class AuthenticationService {
       .revoked(false)
       .deviceInfo(deviceInfo)
       .ipAddress(ipAddress)
-      .build();
+      .build()
+    ;
 
     refreshTokenRepository.save(refreshToken);
   }
@@ -184,6 +192,7 @@ public class AuthenticationService {
     try {
       MessageDigest digest = MessageDigest.getInstance("SHA-256");
       byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+
       return Base64.getEncoder().encodeToString(hash);
     } catch (NoSuchAlgorithmException e) {
       throw new RuntimeException("Erro ao gerar hash do token", e);
@@ -192,14 +201,17 @@ public class AuthenticationService {
 
   private String extractDeviceInfo(HttpServletRequest request) {
     String userAgent = request.getHeader(SecurityConstants.HEADER_USER_AGENT);
+
     return userAgent != null ? userAgent.substring(0, Math.min(userAgent.length(), 500)) : null;
   }
 
   private String extractIpAddress(HttpServletRequest request) {
     String xForwardedFor = request.getHeader(SecurityConstants.HEADER_X_FORWARDED_FOR);
+
     if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
       return xForwardedFor.split(",")[0].trim();
     }
+
     return request.getRemoteAddr();
   }
 }

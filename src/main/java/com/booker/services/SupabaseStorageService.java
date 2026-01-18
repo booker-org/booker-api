@@ -3,15 +3,15 @@ package com.booker.services;
 import java.io.IOException;
 import java.util.UUID;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.reactive.function.client.WebClient;
-import lombok.RequiredArgsConstructor;
 
-@Service
-@RequiredArgsConstructor
+@Service @RequiredArgsConstructor
 public class SupabaseStorageService {
   @Value("${supabase.project-id}")
   private String SUPABASE_PROJECT_ID;
@@ -38,7 +38,8 @@ public class SupabaseStorageService {
       .bodyValue(file.getBytes())
       .retrieve()
       .bodyToMono(String.class)
-      .block();
+      .block()
+    ;
 
     return getPublicUrl(fileName);
   }
@@ -56,13 +57,11 @@ public class SupabaseStorageService {
   }
 
   public String replaceCover(String oldCoverUrl, MultipartFile newFile) throws IOException {
-    if (oldCoverUrl == null || oldCoverUrl.isEmpty())
-      return uploadCover(newFile);
+    if (oldCoverUrl == null || oldCoverUrl.isEmpty()) return uploadCover(newFile);
 
     String fileName = extractFileNameFromUrl(oldCoverUrl);
 
-    if (fileName == null)
-      return uploadCover(newFile);
+    if (fileName == null) return uploadCover(newFile);
 
     String contentType = newFile.getContentType();
 
@@ -76,14 +75,15 @@ public class SupabaseStorageService {
       .bodyValue(newFile.getBytes())
       .retrieve()
       .bodyToMono(String.class)
-      .block();
+      .block()
+    ;
 
     return oldCoverUrl;
   }
 
   public String uploadOrReplaceCover(String existingCoverUrl, MultipartFile newFile) throws IOException {
-    if (existingCoverUrl == null || existingCoverUrl.isEmpty())
-      return uploadCover(newFile);
+    if (existingCoverUrl == null || existingCoverUrl.isEmpty()) return uploadCover(newFile);
+
     return replaceCover(existingCoverUrl, newFile);
   }
 
@@ -94,21 +94,18 @@ public class SupabaseStorageService {
   }
 
   private String getPublicUrl(String fileName) {
-    return "https://" + SUPABASE_PROJECT_ID + ".supabase.co/storage/v1/object/public/" + STORAGE_BUCKET + "/"
-      + fileName;
+    return "https://" + SUPABASE_PROJECT_ID + ".supabase.co/storage/v1/object/public/" + STORAGE_BUCKET + "/" + fileName;
   }
 
   public String extractFileNameFromUrl(String url) {
-    if (url == null || url.isEmpty())
-      return null;
+    if (url == null || url.isEmpty()) return null;
 
     // Extrai o nome do arquivo da URL pública do Supabase
     // Exemplo: https://project.supabase.co/storage/v1/object/public/bucket/covers/file.jpg
     String publicPath = "/storage/v1/object/public/" + STORAGE_BUCKET + "/";
     int index = url.indexOf(publicPath);
 
-    if (index != -1)
-      return url.substring(index + publicPath.length());
+    if (index != -1) return url.substring(index + publicPath.length());
 
     return null;
   }

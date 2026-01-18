@@ -7,5 +7,5 @@ public record AuthenticationResponseDTO(
   String refreshToken,
   String tokenType,
   Long expiresIn,
-  UserDTO user) {
-}
+  UserDTO user
+) {}

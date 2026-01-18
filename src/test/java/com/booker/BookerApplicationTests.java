@@ -12,21 +12,18 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Testcontainers
+@SpringBootTest @ActiveProfiles("test") @Testcontainers
 class BookerApplicationTests {
-  
   @Container
   static PostgreSQLContainer postgres = new PostgreSQLContainer(DockerImageName.parse("postgres:18.1"));
-  
+
   @DynamicPropertySource
   static void configureProperties(DynamicPropertyRegistry registry) {
     registry.add("spring.datasource.url", postgres::getJdbcUrl);
     registry.add("spring.datasource.username", postgres::getUsername);
     registry.add("spring.datasource.password", postgres::getPassword);
   }
-  
+
   @Test
   void contextLoads() {}
 }

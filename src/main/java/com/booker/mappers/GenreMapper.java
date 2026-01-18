@@ -12,17 +12,16 @@ import com.booker.models.Genre;
 @Component
 public class GenreMapper {
   public GenreDTO toDTO(Genre genre) {
-    if (genre == null)
-      return null;
+    if (genre == null) return null;
 
     return new GenreDTO(
       genre.getId(),
-      genre.getName());
+      genre.getName()
+    );
   }
 
   public Genre toEntity(GenreCreateDTO genreCreateDTO) {
-    if (genreCreateDTO == null)
-      return null;
+    if (genreCreateDTO == null) return null;
 
     Genre genre = new Genre();
 

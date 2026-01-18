@@ -1,13 +1,5 @@
 {
   "java.compile.nullAnalysis.mode": "automatic",
   "java.configuration.updateBuildConfiguration": "automatic",
-  "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx4G -Xms100m -Xlog:disable",
-  "java.format.settings.url": "linting.xml",
-  "java.format.settings.profile": "default",
-  "java.format.enabled": true,
-  "[java]": {
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "redhat.java"
-  },
-  "editor.formatOnPaste": true
+  "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx4G -Xms100m -Xlog:disable"
 }

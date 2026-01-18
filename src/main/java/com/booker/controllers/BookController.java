@@ -4,6 +4,10 @@ import java.net.URI;
 import java.util.Optional;
 import java.util.UUID;
 
+import jakarta.validation.Valid;
+
+import lombok.RequiredArgsConstructor;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -21,15 +25,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.booker.DTO.Book.BookCreateDTO;
-import jakarta.validation.Valid;
 import com.booker.DTO.Book.BookDTO;
 import com.booker.DTO.Book.BookDetailDTO;
 import com.booker.mappers.BookMapper;
 import com.booker.services.BookService;
-import lombok.RequiredArgsConstructor;
 
-@RestController
-@RequestMapping("/books")
+@RestController @RequestMapping("/books")
 @RequiredArgsConstructor
 @Tag(name = "Books", description = "Book management endpoints")
 public class BookController {
@@ -42,17 +43,14 @@ public class BookController {
     @ParameterObject @PageableDefault(size = 10, sort = "title") Pageable pageable,
     @Parameter(description = "Filter by title") @RequestParam(required = false) String title,
     @Parameter(description = "Filter by author ID") @RequestParam(required = false) UUID authorId,
-    @Parameter(description = "Search in title and synopsis") @RequestParam(required = false) String search) {
+    @Parameter(description = "Search in title and synopsis") @RequestParam(required = false) String search
+  ) {
     Page<BookDTO> books;
 
-    if (title != null && !title.trim().isEmpty())
-      books = bookService.findByTitle(title, pageable);
-    else if (authorId != null)
-      books = bookService.findByAuthor(authorId, pageable);
-    else if (search != null && !search.trim().isEmpty())
-      books = bookService.searchBooks(search, pageable);
-    else
-      books = bookService.findAll(pageable);
+    if (title != null && !title.trim().isEmpty()) books = bookService.findByTitle(title, pageable);
+    else if (authorId != null) books = bookService.findByAuthor(authorId, pageable);
+    else if (search != null && !search.trim().isEmpty()) books = bookService.searchBooks(search, pageable);
+    else books = bookService.findAll(pageable);
 
     return ResponseEntity.ok(books);
   }
@@ -65,6 +63,7 @@ public class BookController {
   })
   public ResponseEntity<BookDetailDTO> getBookById(@Parameter(description = "Book ID") @PathVariable UUID id) {
     BookDetailDTO book = bookService.findById(id);
+
     return ResponseEntity.ok(book);
   }
 
@@ -89,12 +88,14 @@ public class BookController {
   })
   public ResponseEntity<BookDetailDTO> updateBook(
     @Parameter(description = "Book ID") @PathVariable UUID id,
-    @Valid @RequestBody BookCreateDTO bookDTO) {
+    @Valid @RequestBody BookCreateDTO bookDTO
+  ) {
     Optional<BookDetailDTO> updatedBook = bookService.update(
       id,
       bookMapper.toEntity(bookDTO),
       bookDTO.authorId(),
-      bookDTO.genreIds());
+      bookDTO.genreIds()
+    );
 
     return updatedBook.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
   }
@@ -108,18 +109,23 @@ public class BookController {
   })
   public ResponseEntity<BookDetailDTO> patchBook(
     @Parameter(description = "Book ID") @PathVariable UUID id,
-    @RequestBody(required = false) BookCreateDTO book) {
-    BookCreateDTO bookData = book != null ? book
+    @RequestBody(required = false) BookCreateDTO book
+  ) {
+    BookCreateDTO bookData = book != null
+      ? book
       : new BookCreateDTO(
         null,
         null,
         null,
         null,
-        null);
+        null
+      )
+    ;
 
     Optional<BookDetailDTO> updatedBook = bookService.partialUpdate(
       id, bookMapper.toEntity(bookData),
-      book != null ? book.authorId() : null, book != null ? book.genreIds() : null);
+      book != null ? book.authorId() : null, book != null ? book.genreIds() : null
+    );
 
     return updatedBook
       .map(ResponseEntity::ok)
@@ -135,7 +141,8 @@ public class BookController {
   })
   public ResponseEntity<BookDetailDTO> uploadCover(
     @Parameter(description = "Book ID") @PathVariable UUID id,
-    @Parameter(description = "Cover image file", required = true) @RequestPart("cover") MultipartFile coverFile) {
+    @Parameter(description = "Cover image file", required = true) @RequestPart("cover") MultipartFile coverFile
+  ) {
     Optional<BookDetailDTO> updatedBook = bookService.updateCover(id, coverFile);
 
     return updatedBook

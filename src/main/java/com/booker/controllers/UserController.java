@@ -4,6 +4,9 @@ import java.net.URI;
 import java.util.UUID;
 
 import jakarta.validation.Valid;
+
+import lombok.RequiredArgsConstructor;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -32,7 +35,6 @@ import com.booker.DTO.User.UserDTO;
 import com.booker.mappers.UserMapper;
 import com.booker.models.User;
 import com.booker.services.UserService;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/users")
@@ -48,7 +50,8 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "Lista de usuários recuperada com sucesso")
   })
   public ResponseEntity<Page<UserDTO>> getAll(
-      @ParameterObject @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
+    @ParameterObject @PageableDefault(size = 10, sort = "createdAt") Pageable pageable
+  ) {
     Page<User> users = service.findAll(pageable);
 
     return ResponseEntity.ok(users.map(userMapper::toDTO));
@@ -68,8 +71,10 @@ public class UserController {
 
   @PostMapping
   @PreAuthorize("hasRole('ADMIN')")
-  @Operation(summary = "Create new user (Admin)",
-    description = "Create a new user with full control over all fields (Admin only)")
+  @Operation(
+    summary = "Create new user (Admin)",
+    description = "Create a new user with full control over all fields (Admin only)"
+  )
   @ApiResponses(value = {
     @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso"),
     @ApiResponse(responseCode = "400", description = "Dados de usuário inválidos"),
@@ -92,7 +97,8 @@ public class UserController {
   })
   public ResponseEntity<Void> patch(
     @PathVariable UUID id,
-    @RequestBody @Valid UpdateUserDTO data) {
+    @RequestBody @Valid UpdateUserDTO data
+  ) {
     service.update(id, data);
 
     return ResponseEntity.noContent().build();
@@ -107,7 +113,8 @@ public class UserController {
   })
   public ResponseEntity<Void> updatePassword(
     @PathVariable UUID id,
-    @RequestBody @Valid UpdatePasswordDTO data) {
+    @RequestBody @Valid UpdatePasswordDTO data
+  ) {
     service.updatePassword(id, data);
 
     return ResponseEntity.noContent().build();

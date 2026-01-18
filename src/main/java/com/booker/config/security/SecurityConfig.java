@@ -1,6 +1,7 @@
 package com.booker.config.security;
 
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -19,7 +20,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
   @Bean
@@ -27,10 +27,7 @@ public class SecurityConfig {
     return config.getAuthenticationManager();
   }
 
-  @Bean
-  @Profile({
-    "dev", "test"
-  })
+  @Bean @Profile({"dev", "test"})
   SecurityFilterChain devSecurityFilterChain(HttpSecurity http) throws Exception {
     http
       .csrf(AbstractHttpConfigurer::disable)
@@ -40,29 +37,34 @@ public class SecurityConfig {
           "/swagger-ui/**",
           "/swagger-ui.html",
           "/v3/api-docs/**",
-          "/actuator/health")
+          "/actuator/health"
+        )
         .permitAll()
-        .anyRequest().authenticated())
+        .anyRequest().authenticated()
+      )
       .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
       .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-      .headers(headers -> headers.frameOptions(frame -> frame.disable()));
+      .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+    ;
 
     return http.build();
   }
 
-  @Bean
-  @Profile("prod")
+  @Bean @Profile("prod")
   SecurityFilterChain prodSecurityFilterChain(HttpSecurity http) throws Exception {
     http
       .csrf(AbstractHttpConfigurer::disable)
       .authorizeHttpRequests(auth -> auth
         .requestMatchers(
           "/auth/**",
-          "/actuator/health")
+          "/actuator/health"
+        )
         .permitAll()
-        .anyRequest().authenticated())
+        .anyRequest().authenticated()
+      )
       .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-      .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+      .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+    ;
 
     return http.build();
   }
