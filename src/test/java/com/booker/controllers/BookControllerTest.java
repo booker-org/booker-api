@@ -34,7 +34,6 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 
 import com.booker.config.security.JwtAuthenticationFilter;
 import com.booker.config.security.SecurityConfig;
-import com.booker.config.SecurityConfig;
 import com.booker.DTO.Book.BookCreateDTO;
 import com.booker.DTO.Book.BookDTO;
 import com.booker.DTO.Book.BookDetailDTO;

@@ -27,7 +27,6 @@ import com.booker.DTO.Book.BookDetailDTO;
 import com.booker.mappers.BookMapper;
 import com.booker.services.BookService;
 import lombok.RequiredArgsConstructor;
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/books")
