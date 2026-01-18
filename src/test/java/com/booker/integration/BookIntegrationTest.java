@@ -131,10 +131,10 @@ class BookIntegrationTest {
       .andExpect(jsonPath("$.title").value("Dom Casmurro"))
       .andExpect(jsonPath("$.synopsis").value("A obra narra a vida de Bento Santiago..."))
       .andExpect(jsonPath("$.pageCount").value(256))
-      .andExpect(jsonPath("$.authorName").value("Machado de Assis"))
+      .andExpect(jsonPath("$.author.name").value("Machado de Assis"))
       .andExpect(jsonPath("$.genres").isArray())
       .andExpect(jsonPath("$.genres", hasSize(2)))
-      .andExpect(jsonPath("$.genres", containsInAnyOrder("Ficção", "Clássico")))
+      .andExpect(jsonPath("$.genres[*].name", containsInAnyOrder("Ficção", "Clássico")))
       .andExpect(jsonPath("$.createdAt").isNotEmpty())
       .andExpect(jsonPath("$.updatedAt").isNotEmpty());
 

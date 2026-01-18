@@ -1,6 +1,9 @@
 package com.booker.DTO.Book;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 
 import java.util.List;
 import java.util.UUID;

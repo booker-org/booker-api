@@ -32,9 +32,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
-import com.booker.DTO.Book.BookCreateDTO;
 import com.booker.config.security.JwtAuthenticationFilter;
 import com.booker.config.security.SecurityConfig;
+import com.booker.config.SecurityConfig;
+import com.booker.DTO.Book.BookCreateDTO;
+import com.booker.DTO.Book.BookDTO;
+import com.booker.DTO.Book.BookDetailDTO;
 import com.booker.mappers.AuthorMapper;
 import com.booker.mappers.BookMapper;
 import com.booker.mappers.GenreMapper;
@@ -107,11 +110,17 @@ class BookControllerTest {
   @Test
   void getBookById_ShouldReturnBook_WhenBookExists() throws Exception {
     final UUID bookId = UUID.randomUUID();
-    Book bookMock = createBaseBook();
 
-    bookMock.setId(bookId);
+    BookDetailDTO bookDTO = new BookDetailDTO(
+      bookId,
+      "Dom Casmurro",
+      "A obra narra a vida de Bento Santiago...",
+      256,
+      null, null,
+      "https://example.com/dom-casmurro.jpg",
+      null, null);
 
-    when(bookService.findById(bookId)).thenReturn(Optional.of(bookMock));
+    when(bookService.findById(bookId)).thenReturn(bookDTO);
 
     mockMvc.perform(get("/books/{id}", bookId).with(user("testuser")))
       .andExpect(status().isOk())
@@ -134,17 +143,22 @@ class BookControllerTest {
       authorId,
       List.of(genre1Id, genre2Id));
 
-    Book savedBook = createBaseBook();
-    savedBook.setId(UUID.randomUUID());
+    UUID savedBookId = UUID.randomUUID();
+    BookDetailDTO savedDTO = new BookDetailDTO(
+      savedBookId,
+      "Dom Casmurro",
+      "A obra narra a vida de Bento Santiago...",
+      256,
+      null, null, null, null, null);
 
     when(bookService.save(any(Book.class), eq(authorId), eq(List.of(genre1Id, genre2Id))))
-      .thenReturn(savedBook);
+      .thenReturn(savedDTO);
 
     mockMvc.perform(post("/books").with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(request)))
       .andExpect(status().isCreated())
-      .andExpect(jsonPath("$.id").value(savedBook.getId().toString()))
+      .andExpect(jsonPath("$.id").value(savedBookId.toString()))
       .andExpect(jsonPath("$.title").value("Dom Casmurro"));
   }
 
@@ -183,14 +197,15 @@ class BookControllerTest {
       authorId,
       List.of(genre1Id, genre2Id));
 
-    Book updated = createBaseBook();
-    updated.setId(bookId);
-    updated.setTitle("Dom Casmurro - Updated");
-    updated.setSynopsis("Updated synopsis...");
-    updated.setPageCount(300);
+    BookDetailDTO updatedDTO = new BookDetailDTO(
+      bookId,
+      "Dom Casmurro - Updated",
+      "Updated synopsis...",
+      300,
+      null, null, null, null, null);
 
     when(bookService.update(eq(bookId), any(Book.class), eq(authorId), eq(List.of(genre1Id, genre2Id))))
-      .thenReturn(Optional.of(updated));
+      .thenReturn(Optional.of(updatedDTO));
 
     mockMvc.perform(put("/books/{id}", bookId).with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
@@ -233,12 +248,15 @@ class BookControllerTest {
       null,
       null);
 
-    Book patched = createBaseBook();
-    patched.setId(bookId);
-    patched.setTitle("Novo Título");
+    BookDetailDTO patchedDTO = new BookDetailDTO(
+      bookId,
+      "Novo T\u00edtulo",
+      "A obra narra a vida de Bento Santiago...",
+      256,
+      null, null, null, null, null);
 
     when(bookService.partialUpdate(eq(bookId), any(Book.class), isNull(), isNull()))
-      .thenReturn(Optional.of(patched));
+      .thenReturn(Optional.of(patchedDTO));
 
     mockMvc.perform(patch("/books/{id}", bookId).with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
@@ -270,10 +288,15 @@ class BookControllerTest {
   @Test
   void uploadCover_ShouldReturnUpdatedBook() throws Exception {
     UUID bookId = UUID.randomUUID();
-    Book updated = createBaseBook();
 
-    updated.setId(bookId);
-    updated.setCoverUrl("https://example.com/new-cover.jpg");
+    BookDetailDTO updatedDTO = new BookDetailDTO(
+      bookId,
+      "Dom Casmurro",
+      null,
+      null,
+      null, null,
+      "https://example.com/new-cover.jpg",
+      null, null);
 
     MockMultipartFile cover = new MockMultipartFile(
       "cover",
@@ -281,7 +304,7 @@ class BookControllerTest {
       "image/jpeg",
       "fake".getBytes());
 
-    when(bookService.updateCover(eq(bookId), any())).thenReturn(Optional.of(updated));
+    when(bookService.updateCover(eq(bookId), any())).thenReturn(Optional.of(updatedDTO));
 
     mockMvc.perform(multipart("/books/{id}/cover", bookId)
       .file(cover)
@@ -317,7 +340,7 @@ class BookControllerTest {
   @Test
   void deleteCover_ShouldReturnNoContent() throws Exception {
     UUID bookId = UUID.randomUUID();
-    when(bookService.removeCover(bookId)).thenReturn(Optional.of(createBaseBook()));
+    when(bookService.removeCover(bookId)).thenReturn(true);
 
     mockMvc.perform(delete("/books/{id}/cover", bookId).with(user("testuser")))
       .andExpect(status().isNoContent());
@@ -326,7 +349,7 @@ class BookControllerTest {
   @Test
   void deleteCover_ShouldReturn404_WhenBookNotFound() throws Exception {
     UUID bookId = UUID.randomUUID();
-    when(bookService.removeCover(bookId)).thenReturn(Optional.empty());
+    when(bookService.removeCover(bookId)).thenReturn(false);
 
     mockMvc.perform(delete("/books/{id}/cover", bookId).with(user("testuser")))
       .andExpect(status().isNotFound());
@@ -352,7 +375,11 @@ class BookControllerTest {
 
   @Test
   void searchByTitle_ShouldReturnPagedResult() throws Exception {
-    Page<Book> page = new PageImpl<>(List.of(createBaseBook()));
+    BookDTO dto = new BookDTO(
+      UUID.randomUUID(),
+      "Dom Casmurro",
+      null, null, null, null, null, null, null);
+    Page<BookDTO> page = new PageImpl<>(List.of(dto));
 
     when(bookService.findByTitle(eq("Dom"), any(Pageable.class))).thenReturn(page);
 
@@ -363,7 +390,11 @@ class BookControllerTest {
 
   @Test
   void getAllBooks_ShouldReturnPagedResult() throws Exception {
-    Page<Book> page = new PageImpl<>(List.of(createBaseBook()));
+    BookDTO dto = new BookDTO(
+      UUID.randomUUID(),
+      "Dom Casmurro",
+      null, null, null, null, null, null, null);
+    Page<BookDTO> page = new PageImpl<>(List.of(dto));
 
     when(bookService.findAll(any(Pageable.class))).thenReturn(page);
 

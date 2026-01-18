@@ -15,8 +15,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.booker.DTO.Book.BookDTO;
+import com.booker.DTO.Book.BookDetailDTO;
 import com.booker.exceptions.CoverException;
 import com.booker.exceptions.ResourceNotFoundException;
+import com.booker.mappers.BookMapper;
 import com.booker.models.Author;
 import com.booker.models.Book;
 import com.booker.models.Genre;
@@ -27,37 +30,44 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class BookService {
   private final BookRepository bookRepository;
+  private final BookMapper bookMapper;
   private final AuthorService authorService;
   private final GenreService genreService;
   private final SupabaseStorageService storageService;
 
   @Transactional(readOnly = true)
-  public Page<Book> findAll(Pageable pageable) {
-    return bookRepository.findAll(pageable);
+  public Page<BookDTO> findAll(Pageable pageable) {
+    return bookRepository.findAll(pageable)
+      .map(bookMapper::toDTO);
   }
 
   @Transactional(readOnly = true)
-  public Optional<Book> findById(UUID id) {
-    return bookRepository.findById(id);
+  public BookDetailDTO findById(UUID id) {
+    return bookRepository.findById(id)
+      .map(bookMapper::toDetailDTO)
+      .orElseThrow(() -> new ResourceNotFoundException("Livro não encontrado"));
   }
 
   @Transactional(readOnly = true)
-  public Page<Book> findByTitle(String title, Pageable pageable) {
-    return bookRepository.findByTitleContainingIgnoreCase(title, pageable);
+  public Page<BookDTO> findByTitle(String title, Pageable pageable) {
+    return bookRepository.findByTitleContainingIgnoreCase(title, pageable)
+      .map(bookMapper::toDTO);
   }
 
   @Transactional(readOnly = true)
-  public Page<Book> findByAuthor(UUID authorId, Pageable pageable) {
-    return bookRepository.findByAuthorId(authorId, pageable);
+  public Page<BookDTO> findByAuthor(UUID authorId, Pageable pageable) {
+    return bookRepository.findByAuthorId(authorId, pageable)
+      .map(bookMapper::toDTO);
   }
 
   @Transactional(readOnly = true)
-  public Page<Book> searchBooks(String query, Pageable pageable) {
-    return bookRepository.findByTitleOrSynopsisContaining(query, pageable);
+  public Page<BookDTO> searchBooks(String query, Pageable pageable) {
+    return bookRepository.findByTitleOrSynopsisContaining(query, pageable)
+      .map(bookMapper::toDTO);
   }
 
   @Transactional
-  public Book save(Book book, UUID authorId, List<UUID> genreIds) {
+  public BookDetailDTO save(Book book, UUID authorId, List<UUID> genreIds) {
     validateBook(book);
 
     Author author = authorService
@@ -80,11 +90,12 @@ public class BookService {
       book.setGenres(genres);
     }
 
-    return bookRepository.save(book);
+    Book savedBook = bookRepository.save(book);
+    return bookMapper.toDetailDTO(savedBook);
   }
 
   @Transactional
-  public Optional<Book> update(UUID id, Book bookData, UUID authorId, List<UUID> genreIds) {
+  public Optional<BookDetailDTO> update(UUID id, Book bookData, UUID authorId, List<UUID> genreIds) {
     return bookRepository.findById(id)
       .map(existingBook -> {
         validateBook(bookData);
@@ -114,12 +125,13 @@ public class BookService {
         existingBook.setSynopsis(bookData.getSynopsis());
         existingBook.setPageCount(bookData.getPageCount());
 
-        return bookRepository.save(existingBook);
+        Book updatedBook = bookRepository.save(existingBook);
+        return bookMapper.toDetailDTO(updatedBook);
       });
   }
 
   @Transactional
-  public Optional<Book> partialUpdate(UUID id, Book bookData, UUID authorId, List<UUID> genreIds) {
+  public Optional<BookDetailDTO> partialUpdate(UUID id, Book bookData, UUID authorId, List<UUID> genreIds) {
     return bookRepository.findById(id)
       .map(existingBook -> {
         // Validar apenas se novos dados são fornecidos
@@ -167,12 +179,13 @@ public class BookService {
           existingBook.setGenres(genres);
         }
 
-        return bookRepository.save(existingBook);
+        Book updatedBook = bookRepository.save(existingBook);
+        return bookMapper.toDetailDTO(updatedBook);
       });
   }
 
   @Transactional
-  public Optional<Book> updateCover(UUID id, MultipartFile coverFile) {
+  public Optional<BookDetailDTO> updateCover(UUID id, MultipartFile coverFile) {
     if (coverFile == null || coverFile.isEmpty()) {
       throw new IllegalArgumentException("Arquivo de capa é obrigatório");
     }
@@ -184,7 +197,8 @@ public class BookService {
 
           existingBook.setCoverUrl(newCoverUrl);
 
-          return bookRepository.save(existingBook);
+          Book updatedBook = bookRepository.save(existingBook);
+          return bookMapper.toDetailDTO(updatedBook);
         } catch (IOException e) {
           throw new CoverException("Erro no upload da capa: " + e.getMessage());
         }
@@ -192,7 +206,7 @@ public class BookService {
   }
 
   @Transactional
-  public Optional<Book> removeCover(UUID id) {
+  public boolean removeCover(UUID id) {
     return bookRepository.findById(id)
       .map(existingBook -> {
         if (existingBook.getCoverUrl() != null && !existingBook.getCoverUrl().isEmpty()) {
@@ -202,12 +216,13 @@ public class BookService {
             storageService.deleteCover(fileName);
 
           existingBook.setCoverUrl(null);
-
-          return bookRepository.save(existingBook);
+          bookRepository.save(existingBook);
+          return true;
         }
 
-        return existingBook;
-      });
+        return false;
+      })
+      .orElse(false);
   }
 
   @Transactional
