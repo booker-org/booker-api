@@ -1,4 +1,4 @@
-package com.booker.DTO.Author;
+package com.booker.DTO.Book;
 
 import java.util.List;
 import java.util.UUID;

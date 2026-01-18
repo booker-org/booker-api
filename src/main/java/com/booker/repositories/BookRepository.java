@@ -17,7 +17,6 @@ public interface BookRepository extends JpaRepository<Book, UUID> {
 
   Page<Book> findByAuthorId(UUID authorId, Pageable pageable);
 
-  // Customized search with JPQL
   @Query("SELECT b FROM Book b WHERE b.title LIKE %:title% OR b.synopsis LIKE %:title%")
   Page<Book> findByTitleOrSynopsisContaining(@Param("title") String title, Pageable pageable);
 }
