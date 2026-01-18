@@ -246,8 +246,7 @@ public class BookService {
 
         return true;
       })
-      .orElse(false)
-    ;
+      .orElse(false);
   }
 
   private void validateBook(Book book) {

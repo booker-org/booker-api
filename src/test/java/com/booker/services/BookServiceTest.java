@@ -77,7 +77,9 @@ class BookServiceTest {
     return author;
   }
 
-  private Book createBaseBook() { return createBaseBook("Dom Casmurro"); }
+  private Book createBaseBook() {
+    return createBaseBook("Dom Casmurro");
+  }
 
   private Book createBaseBook(String title) {
     Book book = new Book();

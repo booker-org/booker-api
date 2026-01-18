@@ -2,26 +2,23 @@ package com.booker.mappers;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import com.booker.DTO.Book.BookCreateDTO;
 import com.booker.DTO.Book.BookDTO;
 import com.booker.DTO.Book.BookDetailDTO;
-import com.booker.DTO.Book.BookPageResponse;
 import com.booker.models.Book;
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class BookMapper {
-  @Autowired
-  private AuthorMapper authorMapper;
-
-  @Autowired
-  private GenreMapper genreMapper;
+  private final AuthorMapper authorMapper;
+  private final GenreMapper genreMapper;
 
   public Book toEntity(BookCreateDTO dto) {
-    if (dto == null) return null;
+    if (dto == null)
+      return null;
 
     Book book = new Book();
 
@@ -33,7 +30,8 @@ public class BookMapper {
   }
 
   public BookDTO toDTO(Book book) {
-    if (book == null) return null;
+    if (book == null)
+      return null;
 
     return new BookDTO(
       book.getId(),
@@ -44,12 +42,12 @@ public class BookMapper {
       book.getGenres().stream().map(g -> g.getName()).toList(),
       book.getCoverUrl(),
       book.getCreatedAt(),
-      book.getUpdatedAt()
-    );
+      book.getUpdatedAt());
   }
 
   public BookDetailDTO toDetailDTO(Book book) {
-    if (book == null) return null;
+    if (book == null)
+      return null;
 
     return new BookDetailDTO(
       book.getId(),
@@ -60,31 +58,18 @@ public class BookMapper {
       genreMapper.toDTOList(book.getGenres().stream().toList()),
       book.getCoverUrl(),
       book.getCreatedAt(),
-      book.getUpdatedAt()
-    );
+      book.getUpdatedAt());
   }
 
   public List<BookDTO> toDTOList(List<Book> books) {
     return books.stream()
       .map(this::toDTO)
-      .toList()
-    ;
+      .toList();
   }
 
   public List<BookDetailDTO> toDetailDTOList(List<Book> books) {
     return books.stream()
       .map(this::toDetailDTO)
-      .toList()
-    ;
-  }
-
-  public BookPageResponse toPageResponse(Page<Book> page) {
-    return new BookPageResponse(
-      toDTOList(page.getContent()),
-      page.getNumber(),
-      page.getSize(),
-      page.getTotalElements(),
-      page.getTotalPages()
-    );
+      .toList();
   }
 }

@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -12,23 +11,32 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.booker.models.Genre;
 import com.booker.repositories.GenreRepository;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class GenreService {
-  @Autowired
-  private GenreRepository repository;
+  private final GenreRepository repository;
 
   @Transactional(readOnly = true)
-  public List<Genre> findAll() { return repository.findAll(); }
+  public List<Genre> findAll() {
+    return repository.findAll();
+  }
 
   @Transactional(readOnly = true)
-  public Page<Genre> findAll(Pageable pageable) { return repository.findAll(pageable); }
+  public Page<Genre> findAll(Pageable pageable) {
+    return repository.findAll(pageable);
+  }
 
   @Transactional(readOnly = true)
-  public Optional<Genre> findById(UUID id) { return repository.findById(id); }
+  public Optional<Genre> findById(UUID id) {
+    return repository.findById(id);
+  }
 
   @Transactional(readOnly = true)
-  public Optional<Genre> findByName(String name) { return repository.findByName(name); }
+  public Optional<Genre> findByName(String name) {
+    return repository.findByName(name);
+  }
 
   @Transactional
   public Genre save(Genre genre) {
@@ -45,7 +53,7 @@ public class GenreService {
       Genre genreToUpdate = existingGenre.get();
 
       genreToUpdate.setName(genre.getName());
-
+      
       return Optional.of(repository.save(genreToUpdate));
     }
 

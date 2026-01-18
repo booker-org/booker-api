@@ -7,6 +7,7 @@ services:
       POSTGRES_USER: ${SPRING_DATASOURCE_USERNAME}
       POSTGRES_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       POSTGRES_DB: ${SPRING_DATASOURCE_NAME}
+      PGDATA: /var/lib/postgresql/18/docker
 
     volumes:
       - db_data:/var/lib/postgresql
@@ -20,6 +21,9 @@ services:
       timeout: 1s
       retries: 5
 
+    networks:
+      - booker-network
+
   migrations:
     image: flyway/flyway:11.17.2
     container_name: booker-migrations
@@ -32,6 +36,13 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
+    networks:
+      - booker-network
+
+networks:
+  booker-network:
+    name: booker-network
 
 volumes:
   db_data:

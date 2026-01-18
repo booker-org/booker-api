@@ -31,10 +31,10 @@ import com.booker.models.Author;
 import com.booker.models.Book;
 
 @DataJpaTest
-@Import(JPAConfig.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
 @Testcontainers
+@Import(JPAConfig.class)
 class BookRepositoryTest {
   @Container
   static PostgreSQLContainer postgres = new PostgreSQLContainer(DockerImageName.parse("postgres:18.1"));
@@ -54,8 +54,7 @@ class BookRepositoryTest {
     Flyway flyway = Flyway.configure()
       .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
       .locations("classpath:db/migration")
-      .load()
-    ;
+      .load();
 
     flyway.migrate();
   }
@@ -159,8 +158,7 @@ class BookRepositoryTest {
     assertThat(result.getContent()).hasSize(2);
     assertThat(result.getContent())
       .extracting(book -> book.getAuthor().getId())
-      .containsOnly(author1.getId())
-    ;
+      .containsOnly(author1.getId());
   }
 
   @Test

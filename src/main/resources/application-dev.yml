@@ -7,9 +7,6 @@ spring:
       mode: always
       data-locations: classpath:db/data.sql
 
-  flyway:
-    enabled: false
-
 logging:
   level:
-    root: ERROR
+    root: WARN

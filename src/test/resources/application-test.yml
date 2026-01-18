@@ -21,11 +21,3 @@ logging:
   level:
     org.flywaydb: DEBUG
     org.springframework.jdbc: DEBUG
-
-# Configurações mock do Supabase para testes
-supabase:
-  project-id: ${SUPABASE_PROJECT_ID:test-project}
-  api-key: ${SUPABASE_API_KEY:test-key}
-
-storage:
-  bucket: ${STORAGE_BUCKET:test-bucket}

@@ -30,6 +30,8 @@ import org.testcontainers.utility.DockerImageName;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+
 import com.booker.DTO.Book.BookCreateDTO;
 import com.booker.models.Author;
 import com.booker.models.Book;
@@ -120,7 +122,7 @@ class BookIntegrationTest {
       savedAuthor.getId(),
       List.of(savedGenre1.getId(), savedGenre2.getId()));
 
-    mockMvc.perform(post("/books")
+    mockMvc.perform(post("/books").with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(createRequest)))
       .andExpect(status().isCreated())
@@ -151,7 +153,7 @@ class BookIntegrationTest {
       savedAuthor.getId(),
       List.of(savedGenre1.getId()));
 
-    mockMvc.perform(post("/books")
+    mockMvc.perform(post("/books").with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(invalidRequest)))
       .andExpect(status().isBadRequest());
@@ -170,7 +172,7 @@ class BookIntegrationTest {
       UUID.randomUUID(),
       List.of(savedGenre1.getId()));
 
-    mockMvc.perform(post("/books")
+    mockMvc.perform(post("/books").with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(invalidRequest)))
       .andExpect(status().isBadRequest());
@@ -189,7 +191,7 @@ class BookIntegrationTest {
       List.of(savedGenre1.getId(), savedGenre2.getId()));
 
     // Create the book via API first
-    String createResponse = mockMvc.perform(post("/books")
+    String createResponse = mockMvc.perform(post("/books").with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(createRequest)))
       .andExpect(status().isCreated())
@@ -200,7 +202,7 @@ class BookIntegrationTest {
     UUID bookId = UUID.fromString(objectMapper.readTree(createResponse).path("id").asText());
 
     // When & Then
-    mockMvc.perform(get("/books/{id}", bookId))
+    mockMvc.perform(get("/books/{id}", bookId).with(user("testuser")))
       .andExpect(status().isOk())
       .andExpect(content().contentType(MediaType.APPLICATION_JSON))
       .andExpect(jsonPath("$.id").value(bookId.toString()))
@@ -212,7 +214,7 @@ class BookIntegrationTest {
   @Test
   void getBookById_ShouldReturn404_WhenBookNotExists() throws Exception {
     // When & Then
-    mockMvc.perform(get("/books/{id}", UUID.randomUUID()))
+    mockMvc.perform(get("/books/{id}", UUID.randomUUID()).with(user("testuser")))
       .andExpect(status().isNotFound());
   }
 
@@ -234,18 +236,18 @@ class BookIntegrationTest {
       List.of(savedGenre2.getId()));
 
     // Create books via API
-    mockMvc.perform(post("/books")
+    mockMvc.perform(post("/books").with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(book1Request)))
       .andExpect(status().isCreated());
 
-    mockMvc.perform(post("/books")
+    mockMvc.perform(post("/books").with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(book2Request)))
       .andExpect(status().isCreated());
 
     // When & Then
-    mockMvc.perform(get("/books")
+    mockMvc.perform(get("/books").with(user("testuser"))
       .param("size", "10")
       .param("page", "0"))
       .andExpect(status().isOk())
@@ -268,7 +270,7 @@ class BookIntegrationTest {
       savedAuthor.getId(),
       List.of(savedGenre1.getId()));
 
-    String createResponse = mockMvc.perform(post("/books")
+    String createResponse = mockMvc.perform(post("/books").with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(createRequest)))
       .andExpect(status().isCreated())
@@ -286,7 +288,7 @@ class BookIntegrationTest {
       List.of(savedGenre1.getId()));
 
     // When & Then
-    mockMvc.perform(put("/books/{id}", bookId)
+    mockMvc.perform(put("/books/{id}", bookId).with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(updateRequest)))
       .andExpect(status().isOk())
@@ -308,7 +310,7 @@ class BookIntegrationTest {
       List.of(savedGenre1.getId()));
 
     // When & Then
-    mockMvc.perform(put("/books/{id}", UUID.randomUUID())
+    mockMvc.perform(put("/books/{id}", UUID.randomUUID()).with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(updateRequest)))
       .andExpect(status().isNotFound());
@@ -326,7 +328,7 @@ class BookIntegrationTest {
       savedAuthor.getId(),
       List.of(savedGenre1.getId()));
 
-    String createResponse = mockMvc.perform(post("/books")
+    String createResponse = mockMvc.perform(post("/books").with(user("testuser"))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(createRequest)))
       .andExpect(status().isCreated())
@@ -337,7 +339,7 @@ class BookIntegrationTest {
     UUID bookId = UUID.fromString(objectMapper.readTree(createResponse).path("id").asText());
 
     // When & Then
-    mockMvc.perform(delete("/books/{id}", bookId))
+    mockMvc.perform(delete("/books/{id}", bookId).with(user("testuser")))
       .andExpect(status().isNoContent());
 
     // Verify it was deleted from the database
@@ -347,7 +349,7 @@ class BookIntegrationTest {
   @Test
   void deleteBook_ShouldReturn404_WhenBookNotExists() throws Exception {
     // When & Then
-    mockMvc.perform(delete("/books/{id}", UUID.randomUUID()))
+    mockMvc.perform(delete("/books/{id}", UUID.randomUUID()).with(user("testuser")))
       .andExpect(status().isNotFound());
   }
 }

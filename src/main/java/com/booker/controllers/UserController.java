@@ -11,11 +11,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -29,65 +29,70 @@ import com.booker.DTO.User.CreateUserDTO;
 import com.booker.DTO.User.UpdatePasswordDTO;
 import com.booker.DTO.User.UpdateUserDTO;
 import com.booker.DTO.User.UserDTO;
+import com.booker.mappers.UserMapper;
 import com.booker.models.User;
 import com.booker.services.UserService;
+import lombok.RequiredArgsConstructor;
 
-@RestController @RequestMapping("/users")
+@RestController
+@RequestMapping("/users")
+@RequiredArgsConstructor
 @Tag(name = "Users", description = "User management endpoints")
 public class UserController {
-  @Autowired
-  private UserService service;
+  private final UserService service;
+  private final UserMapper userMapper;
 
   @GetMapping
-  @Operation(summary = "Get all users", description = "Get paginated list of all users")
+  @Operation(summary = "Get all users", description = "Get paginated list of all users (max 100 per page)")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "List of users retrieved successfully")
+    @ApiResponse(responseCode = "200", description = "Lista de usuários recuperada com sucesso")
   })
-  public ResponseEntity<Page<UserDTO>> getAll(@ParameterObject @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
+  public ResponseEntity<Page<UserDTO>> getAll(
+      @ParameterObject @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
     Page<User> users = service.findAll(pageable);
 
-    Page<UserDTO> usersDTO = users.map(UserDTO::new);
-
-    return ResponseEntity.ok(usersDTO);
+    return ResponseEntity.ok(users.map(userMapper::toDTO));
   }
 
   @GetMapping("/{id}")
   @Operation(summary = "Get user by ID", description = "Get a specific user by its ID")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "User found"),
-    @ApiResponse(responseCode = "404", description = "User not found")
+    @ApiResponse(responseCode = "200", description = "Usuário encontrado"),
+    @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
   })
   public ResponseEntity<UserDTO> getById(@PathVariable UUID id) {
     User user = service.findById(id);
 
-    return ResponseEntity.ok(new UserDTO(user));
+    return ResponseEntity.ok(userMapper.toDTO(user));
   }
 
   @PostMapping
-  @Operation(summary = "Create new user", description = "Create a new user")
+  @PreAuthorize("hasRole('ADMIN')")
+  @Operation(summary = "Create new user (Admin)",
+    description = "Create a new user with full control over all fields (Admin only)")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "201", description = "User created successfully"),
-    @ApiResponse(responseCode = "400", description = "Invalid user data")
+    @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso"),
+    @ApiResponse(responseCode = "400", description = "Dados de usuário inválidos"),
+    @ApiResponse(responseCode = "403", description = "Acesso negado - necessário perfil de Administrador")
   })
   public ResponseEntity<UserDTO> post(@RequestBody @Valid CreateUserDTO data) {
     User savedUser = service.save(data);
 
     URI uri = URI.create("/users/" + savedUser.getId());
 
-    return ResponseEntity.created(uri).body(new UserDTO(savedUser));
+    return ResponseEntity.created(uri).body(userMapper.toDTO(savedUser));
   }
 
   @PatchMapping("/{id}")
   @Operation(summary = "Update user", description = "Update an existing user's information")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "User updated successfully"),
-    @ApiResponse(responseCode = "404", description = "User not found", content = @Content),
+    @ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso"),
+    @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content),
     @ApiResponse(responseCode = "400", description = "Invalid user data", content = @Content)
   })
   public ResponseEntity<Void> patch(
     @PathVariable UUID id,
-    @RequestBody @Valid UpdateUserDTO data
-  ) {
+    @RequestBody @Valid UpdateUserDTO data) {
     service.update(id, data);
 
     return ResponseEntity.noContent().build();
@@ -96,14 +101,13 @@ public class UserController {
   @PatchMapping("/{id}/password")
   @Operation(summary = "Update user password", description = "Update an existing user's password")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Password updated successfully"),
-    @ApiResponse(responseCode = "404", description = "User not found", content = @Content),
-    @ApiResponse(responseCode = "400", description = "Invalid password data", content = @Content)
+    @ApiResponse(responseCode = "200", description = "Senha atualizada com sucesso"),
+    @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content),
+    @ApiResponse(responseCode = "400", description = "Dados de senha inválidos", content = @Content)
   })
   public ResponseEntity<Void> updatePassword(
     @PathVariable UUID id,
-    @RequestBody @Valid UpdatePasswordDTO data
-  ) {
+    @RequestBody @Valid UpdatePasswordDTO data) {
     service.updatePassword(id, data);
 
     return ResponseEntity.noContent().build();
@@ -112,8 +116,8 @@ public class UserController {
   @DeleteMapping("/{id}")
   @Operation(summary = "Delete user", description = "Delete a user by ID")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "204", description = "User deleted successfully"),
-    @ApiResponse(responseCode = "404", description = "User not found")
+    @ApiResponse(responseCode = "204", description = "Usuário excluído com sucesso"),
+    @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
   })
   public ResponseEntity<Void> delete(@PathVariable UUID id) {
     service.delete(id);
