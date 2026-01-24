@@ -36,6 +36,7 @@ import com.booker.mappers.UserMapper;
 import com.booker.models.User;
 import com.booker.services.UserService;
 
+import static com.booker.constants.Auth.ADMIN_ROLE;
 import static com.booker.constants.Auth.ADMIN_AUTHORIZATION;
 
 @RestController
@@ -47,7 +48,7 @@ public class UserController {
   private final UserMapper userMapper;
 
   @GetMapping @PreAuthorize(ADMIN_AUTHORIZATION)
-  @Operation(summary = "Get all users", description = "Get paginated list of all users (max 100 per page)")
+  @Operation(summary = "Get all users - " + ADMIN_ROLE, description = "Get paginated list of all users (max 100 per page)")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "200", description = "Lista de usuários recuperada com sucesso")
   })
@@ -73,7 +74,7 @@ public class UserController {
 
   @PostMapping @PreAuthorize(ADMIN_AUTHORIZATION)
   @Operation(
-    summary = "Create new user (Admin)",
+    summary = "Create new user - " + ADMIN_ROLE,
     description = "Create a new user with full control over all fields (Admin only)"
   )
   @ApiResponses(value = {

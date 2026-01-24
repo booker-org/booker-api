@@ -29,6 +29,7 @@ import com.booker.mappers.AuthorMapper;
 import com.booker.models.Author;
 import com.booker.services.AuthorService;
 
+import static com.booker.constants.Auth.ADMIN_ROLE;
 import static com.booker.constants.Auth.ADMIN_AUTHORIZATION;
 
 @RestController @RequestMapping("/authors")
@@ -64,7 +65,7 @@ public class AuthorController {
   }
 
   @PostMapping @PreAuthorize(ADMIN_AUTHORIZATION)
-  @Operation(summary = "Create new author", description = "Create a new author")
+  @Operation(summary = "Create new author - " + ADMIN_ROLE, description = "Create a new author")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "201", description = "Author created successfully"),
     @ApiResponse(responseCode = "400", description = "Invalid author data")
@@ -77,7 +78,7 @@ public class AuthorController {
   }
 
   @PutMapping("/{id}") @PreAuthorize(ADMIN_AUTHORIZATION)
-  @Operation(summary = "Update author", description = "Update an existing author")
+  @Operation(summary = "Update author - " + ADMIN_ROLE, description = "Update an existing author")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "200", description = "Author updated successfully"),
     @ApiResponse(responseCode = "404", description = "Author not found", content = @Content),
@@ -96,7 +97,7 @@ public class AuthorController {
   }
 
   @PatchMapping("/{id}") @PreAuthorize(ADMIN_AUTHORIZATION)
-  @Operation(summary = "Partially update author", description = "Partially update an existing author")
+  @Operation(summary = "Partially update author - " + ADMIN_ROLE, description = "Partially update an existing author")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "200", description = "Author updated successfully"),
     @ApiResponse(responseCode = "404", description = "Author not found", content = @Content),
@@ -115,7 +116,7 @@ public class AuthorController {
   }
 
   @DeleteMapping("/{id}") @PreAuthorize(ADMIN_AUTHORIZATION)
-  @Operation(summary = "Delete author", description = "Delete an author by ID")
+  @Operation(summary = "Delete author - " + ADMIN_ROLE, description = "Delete an author by ID")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "204", description = "Author deleted successfully"),
     @ApiResponse(responseCode = "404", description = "Author not found")

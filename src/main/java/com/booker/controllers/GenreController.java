@@ -29,6 +29,7 @@ import com.booker.mappers.GenreMapper;
 import com.booker.models.Genre;
 import com.booker.services.GenreService;
 
+import static com.booker.constants.Auth.ADMIN_ROLE;
 import static com.booker.constants.Auth.ADMIN_AUTHORIZATION;
 
 @RestController
@@ -65,7 +66,7 @@ public class GenreController {
   }
 
   @PostMapping @PreAuthorize(ADMIN_AUTHORIZATION)
-  @Operation(summary = "Create new genre", description = "Create a new genre")
+  @Operation(summary = "Create new genre - " + ADMIN_ROLE, description = "Create a new genre")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "201", description = "Gênero criado com sucesso"),
     @ApiResponse(responseCode = "400", description = "Dados de gênero inválidos")
@@ -78,7 +79,7 @@ public class GenreController {
   }
 
   @PutMapping("/{id}") @PreAuthorize(ADMIN_AUTHORIZATION)
-  @Operation(summary = "Update genre", description = "Update an existing genre")
+  @Operation(summary = "Update genre - " + ADMIN_ROLE, description = "Update an existing genre")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "200", description = "Gênero atualizado com sucesso"),
     @ApiResponse(responseCode = "404", description = "Gênero não encontrado", content = @Content),
@@ -97,7 +98,7 @@ public class GenreController {
   }
 
   @DeleteMapping("/{id}") @PreAuthorize(ADMIN_AUTHORIZATION)
-  @Operation(summary = "Delete genre", description = "Delete a genre by ID")
+  @Operation(summary = "Delete genre - " + ADMIN_ROLE, description = "Delete a genre by ID")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "204", description = "Gênero excluído com sucesso"),
     @ApiResponse(responseCode = "404", description = "Gênero não encontrado")
