@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.booker.DTO.Genre.GenreCreateDTO;
@@ -27,6 +28,8 @@ import com.booker.DTO.Genre.GenreDTO;
 import com.booker.mappers.GenreMapper;
 import com.booker.models.Genre;
 import com.booker.services.GenreService;
+
+import static com.booker.constants.Auth.ADMIN_AUTHORIZATION;
 
 @RestController
 @RequestMapping("/genres")
@@ -61,7 +64,7 @@ public class GenreController {
       .orElse(ResponseEntity.notFound().build());
   }
 
-  @PostMapping
+  @PostMapping @PreAuthorize(ADMIN_AUTHORIZATION)
   @Operation(summary = "Create new genre", description = "Create a new genre")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "201", description = "Gênero criado com sucesso"),
@@ -74,7 +77,7 @@ public class GenreController {
     return ResponseEntity.status(HttpStatus.CREATED).body(genreMapper.toDTO(savedGenre));
   }
 
-  @PutMapping("/{id}")
+  @PutMapping("/{id}") @PreAuthorize(ADMIN_AUTHORIZATION)
   @Operation(summary = "Update genre", description = "Update an existing genre")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "200", description = "Gênero atualizado com sucesso"),
@@ -93,7 +96,7 @@ public class GenreController {
       .orElse(ResponseEntity.notFound().build());
   }
 
-  @DeleteMapping("/{id}")
+  @DeleteMapping("/{id}") @PreAuthorize(ADMIN_AUTHORIZATION)
   @Operation(summary = "Delete genre", description = "Delete a genre by ID")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "204", description = "Gênero excluído com sucesso"),
