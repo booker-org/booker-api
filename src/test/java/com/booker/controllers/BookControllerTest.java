@@ -45,6 +45,8 @@ import com.booker.models.Book;
 import com.booker.services.BookService;
 import com.booker.services.JwtService;
 
+import static com.booker.constants.Auth.ADMIN_ROLE;
+
 @WebMvcTest(
   controllers = BookController.class,
   includeFilters = @ComponentScan.Filter(
@@ -131,7 +133,7 @@ class BookControllerTest {
       .thenReturn(savedDTO)
     ;
 
-    mockMvc.perform(post("/books").with(user("testuser"))
+    mockMvc.perform(post("/books").with(user("testuser").roles(ADMIN_ROLE))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(request)))
       .andExpect(status().isCreated())
@@ -157,7 +159,7 @@ class BookControllerTest {
       .thenThrow(new IllegalArgumentException("Dados inválidos")
     );
 
-    mockMvc.perform(post("/books").with(user("testuser"))
+    mockMvc.perform(post("/books").with(user("testuser").roles(ADMIN_ROLE))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(request)))
       .andExpect(status().isBadRequest()
@@ -191,7 +193,7 @@ class BookControllerTest {
       .thenReturn(Optional.of(updatedDTO)
     );
 
-    mockMvc.perform(put("/books/{id}", bookId).with(user("testuser"))
+    mockMvc.perform(put("/books/{id}", bookId).with(user("testuser").roles(ADMIN_ROLE))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(request)))
       .andExpect(status().isOk())
@@ -218,7 +220,7 @@ class BookControllerTest {
       .thenReturn(Optional.empty()
     );
 
-    mockMvc.perform(put("/books/{id}", bookId).with(user("testuser"))
+    mockMvc.perform(put("/books/{id}", bookId).with(user("testuser").roles(ADMIN_ROLE))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(request)))
       .andExpect(status().isNotFound()
@@ -249,7 +251,7 @@ class BookControllerTest {
       .thenReturn(Optional.of(patchedDTO)
     );
 
-    mockMvc.perform(patch("/books/{id}", bookId).with(user("testuser"))
+    mockMvc.perform(patch("/books/{id}", bookId).with(user("testuser").roles(ADMIN_ROLE))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(request)))
       .andExpect(status().isOk())
@@ -273,7 +275,7 @@ class BookControllerTest {
       .thenReturn(Optional.empty()
     );
 
-    mockMvc.perform(patch("/books/{id}", bookId).with(user("testuser"))
+    mockMvc.perform(patch("/books/{id}", bookId).with(user("testuser").roles(ADMIN_ROLE))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(request)))
       .andExpect(status().isNotFound()
@@ -309,7 +311,7 @@ class BookControllerTest {
         request.setMethod("PUT");
         return request;
       })
-      .with(user("testuser")))
+      .with(user("testuser").roles(ADMIN_ROLE)))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.coverUrl").value("https://example.com/new-cover.jpg")
     );
@@ -334,7 +336,7 @@ class BookControllerTest {
         request.setMethod("PUT");
         return request;
       })
-      .with(user("testuser")))
+      .with(user("testuser").roles(ADMIN_ROLE)))
       .andExpect(status().isNotFound()
     );
   }
@@ -344,7 +346,7 @@ class BookControllerTest {
     UUID bookId = UUID.randomUUID();
     when(bookService.removeCover(bookId)).thenReturn(true);
 
-    mockMvc.perform(delete("/books/{id}/cover", bookId).with(user("testuser")))
+    mockMvc.perform(delete("/books/{id}/cover", bookId).with(user("testuser").roles(ADMIN_ROLE)))
       .andExpect(status().isNoContent()
     );
   }
@@ -354,7 +356,7 @@ class BookControllerTest {
     UUID bookId = UUID.randomUUID();
     when(bookService.removeCover(bookId)).thenReturn(false);
 
-    mockMvc.perform(delete("/books/{id}/cover", bookId).with(user("testuser")))
+    mockMvc.perform(delete("/books/{id}/cover", bookId).with(user("testuser").roles(ADMIN_ROLE)))
       .andExpect(status().isNotFound()
     );
   }
@@ -364,7 +366,7 @@ class BookControllerTest {
     UUID bookId = UUID.randomUUID();
     when(bookService.deleteById(bookId)).thenReturn(true);
 
-    mockMvc.perform(delete("/books/{id}", bookId).with(user("testuser")))
+    mockMvc.perform(delete("/books/{id}", bookId).with(user("testuser").roles(ADMIN_ROLE)))
       .andExpect(status().isNoContent()
     );
   }
@@ -374,7 +376,7 @@ class BookControllerTest {
     UUID bookId = UUID.randomUUID();
     when(bookService.deleteById(bookId)).thenReturn(false);
 
-    mockMvc.perform(delete("/books/{id}", bookId).with(user("testuser")))
+    mockMvc.perform(delete("/books/{id}", bookId).with(user("testuser").roles(ADMIN_ROLE)))
       .andExpect(status().isNotFound()
     );
   }
