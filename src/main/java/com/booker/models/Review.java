@@ -26,7 +26,7 @@ public class Review extends BaseEntity {
   private String text;
 
   @Column(nullable = false)
-  private Integer likeCount;
+  private Integer likeCount = 0;
 
   @ManyToOne @JoinColumn(name = "user_id", nullable = false)
   private User user;
