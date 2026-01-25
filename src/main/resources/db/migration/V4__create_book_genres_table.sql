@@ -1,4 +1,4 @@
--- Tabela de junção para relacionamento Many-to-Many entre livros e gêneros
+-- Join table for many-to-many relationship between books and genres
 CREATE TABLE book_genres (
   book_id UUID  NOT NULL,
   genre_id UUID NOT NULL,

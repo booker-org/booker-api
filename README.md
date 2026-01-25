@@ -1,32 +1,32 @@
-# Booker - API RESTful
+# Booker - RESTful API
 
-## Como rodar o projeto
+## How to run the project
 
-### Requisitos
-> - Docker / Podman
-> - docker-compose / podman-compose
-> - Arquivo .env (veja o .env.example)
+### Requirements
+- Docker / Podman
+- docker-compose / podman-compose
+- A .env file (see `.env.example`)
 
-#### Rode na raiz do projeto o comando:
+#### Run the following command from the project root:
 
 ```bash
- docker compose up 
+docker compose up
 ```
 
-Em seguida, rode a aplicação pela sua IDE na classe `BookerApplication.java` ou rode o comando `mvn spring-boot:run` no terminal.
+Then run the application from your IDE using the `BookerApplication.java` class or execute `mvn spring-boot:run` in the terminal.
 
-##### O projeto estará disponível em http://localhost:8080
+##### The application will be available at http://localhost:8080
 
-## Documentação da API
+## API Documentation
 
-> Esse projeto utiliza Swagger para documentação, ela se torna disponível em: http://localhost:8080/swagger-ui/index.html#/, quando o projeto estiver rodando localmente.
+This project uses Swagger for API documentation. When running locally, the UI is available at: http://localhost:8080/swagger-ui/index.html#/
 
-## Contribuição
+## Contributing
 
-> A formatação do código segue o padrão configurado em `.editorconfig`, para utilizá-lo, instale a extensão **EditorConfig** no seu editor de código.
+Code formatting follows the rules defined in `.editorconfig`. To use it, install the **EditorConfig** extension in your editor.
 
-> Os commits devem seguir o padrão do Conventional Commits, para facilitar a visualização e o versionamento semântico.
+Commits should follow the Conventional Commits convention to help with visibility and semantic versioning.
 
-> É requisito abrir pull requests para contribuir com o projeto, e descrever detalhadamente as mudanças feitas.
+Please open pull requests to contribute and describe your changes in detail.
 
-> É requisito que todos os testes estejam passando antes de mergear um pull request.
+All tests must be passing before merging a pull request.

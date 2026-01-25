@@ -14,7 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.booker.models.Author;
 import com.booker.repositories.AuthorRepository;
 
-@Service @RequiredArgsConstructor
+@Service
+@RequiredArgsConstructor
 public class AuthorService {
   private final AuthorRepository repository;
 
@@ -95,7 +96,7 @@ public class AuthorService {
 
   private void validateAuthor(Author author) {
     if (author.getName() == null || author.getName().trim().isEmpty()) {
-      throw new IllegalArgumentException("Nome do autor é obrigatório");
+      throw new IllegalArgumentException("Author name is required");
     }
   }
 }

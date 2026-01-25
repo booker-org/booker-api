@@ -27,7 +27,8 @@ import com.booker.models.Book;
 import com.booker.models.Genre;
 import com.booker.repositories.BookRepository;
 
-@Service @RequiredArgsConstructor
+@Service
+@RequiredArgsConstructor
 public class BookService {
   private final BookRepository bookRepository;
   private final BookMapper bookMapper;
@@ -38,33 +39,32 @@ public class BookService {
   @Transactional(readOnly = true)
   public Page<BookDTO> findAll(Pageable pageable) {
     return bookRepository.findAll(pageable)
-      .map(bookMapper::toDTO);
+        .map(bookMapper::toDTO);
   }
 
   @Transactional(readOnly = true)
   public BookDetailDTO findById(UUID id) {
     return bookRepository.findById(id)
-      .map(bookMapper::toDetailDTO)
-      .orElseThrow(() -> new ResourceNotFoundException("Livro não encontrado")
-    );
+        .map(bookMapper::toDetailDTO)
+        .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
   }
 
   @Transactional(readOnly = true)
   public Page<BookDTO> findByTitle(String title, Pageable pageable) {
     return bookRepository.findByTitleContainingIgnoreCase(title, pageable)
-      .map(bookMapper::toDTO);
+        .map(bookMapper::toDTO);
   }
 
   @Transactional(readOnly = true)
   public Page<BookDTO> findByAuthor(UUID authorId, Pageable pageable) {
     return bookRepository.findByAuthorId(authorId, pageable)
-      .map(bookMapper::toDTO);
+        .map(bookMapper::toDTO);
   }
 
   @Transactional(readOnly = true)
   public Page<BookDTO> searchBooks(String query, Pageable pageable) {
     return bookRepository.findByTitleOrSynopsisContaining(query, pageable)
-      .map(bookMapper::toDTO);
+        .map(bookMapper::toDTO);
   }
 
   @Transactional
@@ -72,9 +72,8 @@ public class BookService {
     validateBook(book);
 
     Author author = authorService
-      .findById(authorId)
-      .orElseThrow(() -> new IllegalArgumentException("ID do autor inválido")
-    );
+        .findById(authorId)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid author ID"));
 
     book.setAuthor(author);
 
@@ -83,9 +82,8 @@ public class BookService {
 
       for (UUID genreId : genreIds) {
         Genre genre = genreService
-          .findById(genreId)
-          .orElseThrow(() -> new EntityNotFoundException("Gênero não encontrado: " + genreId)
-        );
+            .findById(genreId)
+            .orElseThrow(() -> new EntityNotFoundException("Genre not found: " + genreId));
 
         genres.add(genre);
       }
@@ -101,181 +99,177 @@ public class BookService {
   @Transactional
   public Optional<BookDetailDTO> update(UUID id, Book bookData, UUID authorId, List<UUID> genreIds) {
     return bookRepository.findById(id)
-      .map(existingBook -> {
-        validateBook(bookData);
+        .map(existingBook -> {
+          validateBook(bookData);
 
-        Author author = authorService
-          .findById(authorId)
-          .orElseThrow(() -> new IllegalArgumentException("ID do autor inválido")
-        );
+          Author author = authorService
+              .findById(authorId)
+              .orElseThrow(() -> new IllegalArgumentException("Invalid author ID"));
 
-        existingBook.setAuthor(author);
+          existingBook.setAuthor(author);
 
-        if (genreIds != null) {
-          Set<Genre> genres = new HashSet<>();
+          if (genreIds != null) {
+            Set<Genre> genres = new HashSet<>();
 
-          for (UUID genreId : genreIds) {
-            Genre genre = genreService
-              .findById(genreId)
-              .orElseThrow(() -> new EntityNotFoundException("Gênero não encontrado: " + genreId)
-            );
+            for (UUID genreId : genreIds) {
+              Genre genre = genreService
+                  .findById(genreId)
+                  .orElseThrow(() -> new EntityNotFoundException("Genre not found: " + genreId));
 
-            genres.add(genre);
-          }
+              genres.add(genre);
+            }
 
-          existingBook.setGenres(genres);
-        } else existingBook.getGenres().clear();
+            existingBook.setGenres(genres);
+          } else
+            existingBook.getGenres().clear();
 
-        existingBook.setTitle(bookData.getTitle());
-        existingBook.setSynopsis(bookData.getSynopsis());
-        existingBook.setPageCount(bookData.getPageCount());
+          existingBook.setTitle(bookData.getTitle());
+          existingBook.setSynopsis(bookData.getSynopsis());
+          existingBook.setPageCount(bookData.getPageCount());
 
-        Book updatedBook = bookRepository.save(existingBook);
+          Book updatedBook = bookRepository.save(existingBook);
 
-        return bookMapper.toDetailDTO(updatedBook);
-      }
-    );
+          return bookMapper.toDetailDTO(updatedBook);
+        });
   }
 
   @Transactional
   public Optional<BookDetailDTO> partialUpdate(UUID id, Book bookData, UUID authorId, List<UUID> genreIds) {
     return bookRepository.findById(id)
-      .map(existingBook -> {
-        // Validar apenas se novos dados são fornecidos
-        if (bookData.getTitle() != null) {
-          if (bookData.getTitle().length() < 2 || bookData.getTitle().length() > 200) {
-            throw new IllegalArgumentException("Título deve ter entre 2 e 200 caracteres");
+        .map(existingBook -> {
+          // Validate only if new data are provided
+          if (bookData.getTitle() != null) {
+            if (bookData.getTitle().length() < 2 || bookData.getTitle().length() > 200) {
+              throw new IllegalArgumentException("Title must be between 2 and 200 characters");
+            }
+
+            existingBook.setTitle(bookData.getTitle());
           }
 
-          existingBook.setTitle(bookData.getTitle());
-        }
+          if (bookData.getSynopsis() != null)
+            existingBook.setSynopsis(bookData.getSynopsis());
 
-        if (bookData.getSynopsis() != null) existingBook.setSynopsis(bookData.getSynopsis());
+          if (bookData.getPageCount() != null) {
+            if (bookData.getPageCount() <= 0) {
+              throw new IllegalArgumentException("Number of pages must be greater than zero");
+            }
 
-        if (bookData.getPageCount() != null) {
-          if (bookData.getPageCount() <= 0) {
-            throw new IllegalArgumentException("Número de páginas deve ser maior que zero");
+            existingBook.setPageCount(bookData.getPageCount());
           }
 
-          existingBook.setPageCount(bookData.getPageCount());
-        }
+          if (bookData.getAuthor() != null)
+            existingBook.setAuthor(bookData.getAuthor());
 
-        if (bookData.getAuthor() != null) existingBook.setAuthor(bookData.getAuthor());
+          if (authorId != null) {
+            Author author = authorService
+                .findById(authorId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid author ID"));
 
-        if (authorId != null) {
-          Author author = authorService
-            .findById(authorId)
-            .orElseThrow(() -> new IllegalArgumentException("ID do autor inválido")
-          );
-
-          existingBook.setAuthor(author);
-        }
-
-        if (genreIds != null) {
-          Set<Genre> genres = new HashSet<>();
-
-          for (UUID genreId : genreIds) {
-            Genre genre = genreService
-              .findById(genreId)
-              .orElseThrow(() -> new ResourceNotFoundException("Gênero não encontrado: " + genreId)
-            );
-
-            genres.add(genre);
+            existingBook.setAuthor(author);
           }
 
-          existingBook.setGenres(genres);
-        }
+          if (genreIds != null) {
+            Set<Genre> genres = new HashSet<>();
 
-        Book updatedBook = bookRepository.save(existingBook);
+            for (UUID genreId : genreIds) {
+              Genre genre = genreService
+                  .findById(genreId)
+                  .orElseThrow(() -> new ResourceNotFoundException("Genre not found: " + genreId));
 
-        return bookMapper.toDetailDTO(updatedBook);
-      }
-    );
+              genres.add(genre);
+            }
+
+            existingBook.setGenres(genres);
+          }
+
+          Book updatedBook = bookRepository.save(existingBook);
+
+          return bookMapper.toDetailDTO(updatedBook);
+        });
   }
 
   @Transactional
   public Optional<BookDetailDTO> updateCover(UUID id, MultipartFile coverFile) {
     if (coverFile == null || coverFile.isEmpty()) {
-      throw new IllegalArgumentException("Arquivo de capa é obrigatório");
+      throw new IllegalArgumentException("Cover file is required");
     }
 
     return bookRepository.findById(id)
-      .map(existingBook -> {
-        try {
-          String newCoverUrl = storageService.uploadOrReplaceCover(existingBook.getCoverUrl(), coverFile);
+        .map(existingBook -> {
+          try {
+            String newCoverUrl = storageService.uploadOrReplaceCover(existingBook.getCoverUrl(), coverFile);
 
-          existingBook.setCoverUrl(newCoverUrl);
+            existingBook.setCoverUrl(newCoverUrl);
 
-          Book updatedBook = bookRepository.save(existingBook);
+            Book updatedBook = bookRepository.save(existingBook);
 
-          return bookMapper.toDetailDTO(updatedBook);
-        } catch (IOException e) {
-          throw new CoverException("Erro no upload da capa: " + e.getMessage());
-        }
-      }
-    );
+            return bookMapper.toDetailDTO(updatedBook);
+          } catch (IOException e) {
+            throw new CoverException("Error uploading cover: " + e.getMessage());
+          }
+        });
   }
 
   @Transactional
   public boolean removeCover(UUID id) {
     return bookRepository.findById(id)
-      .map(existingBook -> {
-        if (existingBook.getCoverUrl() != null && !existingBook.getCoverUrl().isEmpty()) {
-          String fileName = storageService.extractFileNameFromUrl(existingBook.getCoverUrl());
+        .map(existingBook -> {
+          if (existingBook.getCoverUrl() != null && !existingBook.getCoverUrl().isEmpty()) {
+            String fileName = storageService.extractFileNameFromUrl(existingBook.getCoverUrl());
 
-          if (fileName != null) storageService.deleteCover(fileName);
+            if (fileName != null)
+              storageService.deleteCover(fileName);
 
-          existingBook.setCoverUrl(null);
-          bookRepository.save(existingBook);
+            existingBook.setCoverUrl(null);
+            bookRepository.save(existingBook);
 
-          return true;
-        }
+            return true;
+          }
 
-        return false;
-      })
-      .orElse(false)
-    ;
+          return false;
+        })
+        .orElse(false);
   }
 
   @Transactional
   public boolean deleteById(UUID id) {
     return bookRepository.findById(id)
-      .map(book -> {
-        // Deleta a capa do Supabase se existir
-        if (book.getCoverUrl() != null && !book.getCoverUrl().isEmpty()) {
-          try {
-            String fileName = storageService.extractFileNameFromUrl(book.getCoverUrl());
+        .map(book -> {
+          // Delete the Supabase cover if it exists
+          if (book.getCoverUrl() != null && !book.getCoverUrl().isEmpty()) {
+            try {
+              String fileName = storageService.extractFileNameFromUrl(book.getCoverUrl());
 
-            if (fileName != null) storageService.deleteCover(fileName);
-          } catch (Exception e) {
-            // Log do erro, mas não falha a deleção do livro
-            System.err.println("Erro ao deletar capa do livro " + id + ": " + e.getMessage());
+              if (fileName != null)
+                storageService.deleteCover(fileName);
+            } catch (Exception e) {
+              // Log the error but do not fail book deletion
+              System.err.println("Error deleting book cover " + id + ": " + e.getMessage());
+            }
           }
-        }
 
-        bookRepository.deleteById(id);
+          bookRepository.deleteById(id);
 
-        return true;
-      })
-      .orElse(false)
-    ;
+          return true;
+        })
+        .orElse(false);
   }
 
   private void validateBook(Book book) {
     if (book == null) {
-      throw new IllegalArgumentException("Livro não pode ser nulo");
+      throw new IllegalArgumentException("Book cannot be null");
     }
 
     if (book.getTitle() == null) {
-      throw new IllegalArgumentException("Título é obrigatório");
+      throw new IllegalArgumentException("Title is required");
     }
 
     if (book.getTitle().length() < 2 || book.getTitle().length() > 200) {
-      throw new IllegalArgumentException("Título deve ter entre 2 e 200 caracteres");
+      throw new IllegalArgumentException("Title must be between 2 and 200 characters");
     }
 
     if (book.getPageCount() == null || book.getPageCount() <= 0) {
-      throw new IllegalArgumentException("Número de páginas deve ser maior que zero");
+      throw new IllegalArgumentException("Number of pages must be greater than zero");
     }
   }
 }

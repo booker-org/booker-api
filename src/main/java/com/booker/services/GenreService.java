@@ -14,7 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.booker.models.Genre;
 import com.booker.repositories.GenreRepository;
 
-@Service @RequiredArgsConstructor
+@Service
+@RequiredArgsConstructor
 public class GenreService {
   private final GenreRepository repository;
 
@@ -73,7 +74,7 @@ public class GenreService {
 
   private void validateGenre(Genre genre) {
     if (genre.getName() == null || genre.getName().trim().isEmpty()) {
-      throw new IllegalArgumentException("Nome do gênero é obrigatório");
+      throw new IllegalArgumentException("Genre name is required");
     }
   }
 }

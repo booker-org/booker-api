@@ -156,7 +156,7 @@ class BookControllerTest {
     );
 
     when(bookService.save(any(Book.class), eq(authorId), eq(List.of(genreId))))
-      .thenThrow(new IllegalArgumentException("Dados inválidos")
+      .thenThrow(new IllegalArgumentException("Invalid book data")
     );
 
     mockMvc.perform(post("/books").with(user("testuser").roles(ADMIN_ROLE))
@@ -241,7 +241,7 @@ class BookControllerTest {
 
     BookDetailDTO patchedDTO = new BookDetailDTO(
       bookId,
-      "Novo T\u00edtulo",
+      "Novo Título",
       "A obra narra a vida de Bento Santiago...",
       256,
       null, null, null, null, null
