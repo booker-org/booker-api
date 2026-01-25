@@ -301,16 +301,27 @@ INSERT INTO users (
   username,
   email,
   password,
-  bio
-)
-VALUES
+  bio,
+  role
+) VALUES
+  (
+    '11000001-0000-0000-0000-000000000001',
+    'Admin',
+    'admin',
+    'admin@email.com',
+    '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta',
+    'Admin',
+    'ADMIN'
+  ),
+
   (
     '10000001-0000-0000-0000-000000000001',
     'Ana Silva',
     'ana.silva',
     'ana.silva@email.com',
     '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta',
-    'Apaixonada por literatura clássica e moderna.'
+    'Apaixonada por literatura clássica e moderna.',
+    'USER'
   ),
   (
     '20000002-0000-0000-0000-000000000002',
@@ -318,7 +329,8 @@ VALUES
     'bruno.costa',
     'bruno.costa@email.com',
     '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta',
-    'Leitor voraz de ficção científica.'
+    'Leitor voraz de ficção científica.',
+    'USER'
   ),
   (
     '30000003-0000-0000-0000-000000000003',
@@ -326,7 +338,8 @@ VALUES
     'carla.santos',
     'carla.santos@email.com',
     '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta',
-    'Amante de romances e histórias de amor.'
+    'Amante de romances e histórias de amor.',
+    'USER'
   ),
   (
     '40000004-0000-0000-0000-000000000004',
@@ -334,7 +347,8 @@ VALUES
     'daniel.oliveira',
     'daniel.oliveira@email.com',
     '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta',
-    'Fã de mistério e suspense.'
+    'Fã de mistério e suspense.',
+    'USER'
   ),
   (
     '50000005-0000-0000-0000-000000000005',
@@ -342,7 +356,8 @@ VALUES
     'eduardo.lima',
     'eduardo.lima@email.com',
     '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta',
-    'Entusiasta de terror e horror.'
+    'Entusiasta de terror e horror.',
+    'USER'
   ),
   (
     '60000006-0000-0000-0000-000000000006',
@@ -350,7 +365,8 @@ VALUES
     'fernanda.alves',
     'fernanda.alves@email.com',
     '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta',
-    'Leitora de fantasia e aventura.'
+    'Leitora de fantasia e aventura.',
+    'USER'
   ),
   (
     '70000007-0000-0000-0000-000000000007',
@@ -358,7 +374,8 @@ VALUES
     'gabriel.pereira',
     'gabriel.pereira@email.com',
     '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta',
-    'Apreciador de dramas intensos.'
+    'Apreciador de dramas intensos.',
+    'USER'
   ),
   (
     '80000008-0000-0000-0000-000000000008',
@@ -366,7 +383,8 @@ VALUES
     'helena.rodrigues',
     'helena.rodrigues@email.com',
     '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta',
-    'Interessada em literatura filosófica.'
+    'Interessada em literatura filosófica.',
+    'USER'
   ),
   (
     '90000009-0000-0000-0000-000000000009',
@@ -374,7 +392,8 @@ VALUES
     'igor.fernandes',
     'igor.fernandes@email.com',
     '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta',
-    'Leitor de histórias de aventura.'
+    'Leitor de histórias de aventura.',
+    'USER'
   ),
   (
     'a0000010-0000-0000-0000-000000000010',
@@ -382,7 +401,8 @@ VALUES
     'julia.martins',
     'julia.martins@email.com',
     '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta',
-    'Fã de realismo mágico.'
+    'Fã de realismo mágico.',
+    'USER'
   ),
   (
     'b0000011-0000-0000-0000-000000000011',
@@ -390,7 +410,8 @@ VALUES
     'lucas.ribeiro',
     'lucas.ribeiro@email.com',
     '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta',
-    'Admirador de clássicos da literatura.'
+    'Admirador de clássicos da literatura.',
+    'USER'
   ),
   (
     'c0000012-0000-0000-0000-000000000012',
@@ -398,7 +419,8 @@ VALUES
     'mariana.souza',
     'mariana.souza@email.com',
     '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta',
-    'Leitora de ficção contemporânea.'
+    'Leitora de ficção contemporânea.',
+    'USER'
   ),
   (
     'd0000013-0000-0000-0000-000000000013',
@@ -406,7 +428,8 @@ VALUES
     'nicolas.araujo',
     'nicolas.araujo@email.com',
     '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta',
-    'Interessado em psicologia e mente humana.'
+    'Interessado em psicologia e mente humana.',
+    'USER'
   ),
   (
     'e0000014-0000-0000-0000-000000000014',
@@ -414,7 +437,8 @@ VALUES
     'olivia.carvalho',
     'olivia.carvalho@email.com',
     '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta',
-    'Apaixonada por romances históricos.'
+    'Apaixonada por romances históricos.',
+    'USER'
   ),
   (
     'f0000015-0000-0000-0000-000000000015',
@@ -422,6 +446,7 @@ VALUES
     'pedro.gomes',
     'pedro.gomes@email.com',
     '$2a$12$.USjv6yuJpWy2dd1E3xrq.9fHdsFiT9rkVAhdGvQZFIbSPqbvYDta',
-    'Leitor de distopias e futuros alternativos.'
+    'Leitor de distopias e futuros alternativos.',
+    'USER'
   )
 ON CONFLICT (id) DO NOTHING;

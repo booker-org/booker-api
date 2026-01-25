@@ -40,6 +40,8 @@ import com.booker.repositories.AuthorRepository;
 import com.booker.repositories.BookRepository;
 import com.booker.repositories.GenreRepository;
 
+import static com.booker.constants.Auth.ADMIN_ROLE;
+
 @SpringBootTest @AutoConfigureMockMvc
 @ActiveProfiles("test") @Testcontainers
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -123,7 +125,7 @@ class BookIntegrationTest {
       List.of(savedGenre1.getId(), savedGenre2.getId())
     );
 
-    mockMvc.perform(post("/books").with(user("testuser"))
+    mockMvc.perform(post("/books").with(user("testuser").roles(ADMIN_ROLE))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(createRequest)))
       .andExpect(status().isCreated())
@@ -156,7 +158,7 @@ class BookIntegrationTest {
       List.of(savedGenre1.getId())
     );
 
-    mockMvc.perform(post("/books").with(user("testuser"))
+    mockMvc.perform(post("/books").with(user("testuser").roles(ADMIN_ROLE))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(invalidRequest)))
       .andExpect(status().isBadRequest()
@@ -177,7 +179,7 @@ class BookIntegrationTest {
       List.of(savedGenre1.getId())
     );
 
-    mockMvc.perform(post("/books").with(user("testuser"))
+    mockMvc.perform(post("/books").with(user("testuser").roles(ADMIN_ROLE))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(invalidRequest)))
       .andExpect(status().isBadRequest()
@@ -198,7 +200,7 @@ class BookIntegrationTest {
     );
 
     // Create the book via API first
-    String createResponse = mockMvc.perform(post("/books").with(user("testuser"))
+    String createResponse = mockMvc.perform(post("/books").with(user("testuser").roles(ADMIN_ROLE))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(createRequest)))
       .andExpect(status().isCreated())
@@ -248,13 +250,13 @@ class BookIntegrationTest {
     );
 
     // Create books via API
-    mockMvc.perform(post("/books").with(user("testuser"))
+    mockMvc.perform(post("/books").with(user("testuser").roles(ADMIN_ROLE))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(book1Request)))
       .andExpect(status().isCreated()
     );
 
-    mockMvc.perform(post("/books").with(user("testuser"))
+    mockMvc.perform(post("/books").with(user("testuser").roles(ADMIN_ROLE))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(book2Request)))
       .andExpect(status().isCreated()
@@ -286,7 +288,7 @@ class BookIntegrationTest {
       List.of(savedGenre1.getId())
     );
 
-    String createResponse = mockMvc.perform(post("/books").with(user("testuser"))
+    String createResponse = mockMvc.perform(post("/books").with(user("testuser").roles(ADMIN_ROLE))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(createRequest)))
       .andExpect(status().isCreated())
@@ -306,7 +308,7 @@ class BookIntegrationTest {
     );
 
     // When & Then
-    mockMvc.perform(put("/books/{id}", bookId).with(user("testuser"))
+    mockMvc.perform(put("/books/{id}", bookId).with(user("testuser").roles(ADMIN_ROLE))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(updateRequest)))
       .andExpect(status().isOk())
@@ -330,7 +332,7 @@ class BookIntegrationTest {
     );
 
     // When & Then
-    mockMvc.perform(put("/books/{id}", UUID.randomUUID()).with(user("testuser"))
+    mockMvc.perform(put("/books/{id}", UUID.randomUUID()).with(user("testuser").roles(ADMIN_ROLE))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(updateRequest)))
       .andExpect(status().isNotFound()
@@ -350,7 +352,7 @@ class BookIntegrationTest {
       List.of(savedGenre1.getId())
     );
 
-    String createResponse = mockMvc.perform(post("/books").with(user("testuser"))
+    String createResponse = mockMvc.perform(post("/books").with(user("testuser").roles(ADMIN_ROLE))
       .contentType(MediaType.APPLICATION_JSON)
       .content(objectMapper.writeValueAsString(createRequest)))
       .andExpect(status().isCreated())
@@ -362,7 +364,7 @@ class BookIntegrationTest {
     UUID bookId = UUID.fromString(objectMapper.readTree(createResponse).path("id").asText());
 
     // When & Then
-    mockMvc.perform(delete("/books/{id}", bookId).with(user("testuser")))
+    mockMvc.perform(delete("/books/{id}", bookId).with(user("testuser").roles(ADMIN_ROLE)))
       .andExpect(status().isNoContent()
     );
 
@@ -373,7 +375,7 @@ class BookIntegrationTest {
   @Test
   void deleteBook_ShouldReturn404_WhenBookNotExists() throws Exception {
     // When & Then
-    mockMvc.perform(delete("/books/{id}", UUID.randomUUID()).with(user("testuser")))
+    mockMvc.perform(delete("/books/{id}", UUID.randomUUID()).with(user("testuser").roles(ADMIN_ROLE)))
       .andExpect(status().isNotFound()
     );
   }

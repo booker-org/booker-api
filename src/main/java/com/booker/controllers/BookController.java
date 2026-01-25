@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,6 +30,9 @@ import com.booker.DTO.Book.BookDTO;
 import com.booker.DTO.Book.BookDetailDTO;
 import com.booker.mappers.BookMapper;
 import com.booker.services.BookService;
+
+import static com.booker.constants.Auth.ADMIN_ROLE;
+import static com.booker.constants.Auth.ADMIN_AUTHORIZATION;
 
 @RestController
 @RequestMapping("/books")
@@ -71,8 +75,8 @@ public class BookController {
     return ResponseEntity.ok(book);
   }
 
-  @PostMapping
-  @Operation(summary = "Create new book", description = "Create a new book")
+  @PostMapping @PreAuthorize(ADMIN_AUTHORIZATION)
+  @Operation(summary = "Create new book - " + ADMIN_ROLE, description = "Create a new book")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "201", description = "Book created successfully"),
       @ApiResponse(responseCode = "400", description = "Invalid book data"),
@@ -83,8 +87,8 @@ public class BookController {
     return ResponseEntity.created(URI.create("/books/" + savedBook.id())).body(savedBook);
   }
 
-  @PutMapping(value = "/{id}")
-  @Operation(summary = "Update book", description = "Update an existing book")
+  @PutMapping(value = "/{id}") @PreAuthorize(ADMIN_AUTHORIZATION)
+  @Operation(summary = "Update book - " + ADMIN_ROLE, description = "Update an existing book")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Book updated successfully"),
       @ApiResponse(responseCode = "404", description = "Book not found", content = @Content),
@@ -102,8 +106,8 @@ public class BookController {
     return updatedBook.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
   }
 
-  @PatchMapping(value = "/{id}")
-  @Operation(summary = "Partially update book", description = "Partially update an existing book")
+  @PatchMapping(value = "/{id}") @PreAuthorize(ADMIN_AUTHORIZATION)
+  @Operation(summary = "Partially update book - " + ADMIN_ROLE, description = "Partially update an existing book")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Book updated successfully"),
       @ApiResponse(responseCode = "404", description = "Book not found", content = @Content),
@@ -131,7 +135,8 @@ public class BookController {
   }
 
   @PutMapping(value = "/{id}/cover", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @Operation(summary = "Upload or replace book cover", description = "Upload a new cover image for the book")
+  @PreAuthorize(ADMIN_AUTHORIZATION)
+  @Operation(summary = "Upload or replace book cover - " + ADMIN_ROLE, description = "Upload a new cover image for the book")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Cover uploaded successfully"),
       @ApiResponse(responseCode = "404", description = "Book not found", content = @Content),
@@ -147,8 +152,8 @@ public class BookController {
         .orElse(ResponseEntity.notFound().build());
   }
 
-  @DeleteMapping("/{id}/cover")
-  @Operation(summary = "Remove book cover", description = "Delete the existing cover image for the book")
+  @DeleteMapping("/{id}/cover") @PreAuthorize(ADMIN_AUTHORIZATION)
+  @Operation(summary = "Remove book cover - " + ADMIN_ROLE, description = "Delete the existing cover image for the book")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "204", description = "Cover removed successfully"),
       @ApiResponse(responseCode = "404", description = "Book not found", content = @Content),
@@ -161,8 +166,8 @@ public class BookController {
         : ResponseEntity.notFound().build();
   }
 
-  @DeleteMapping("/{id}")
-  @Operation(summary = "Delete book", description = "Delete a book by ID")
+  @DeleteMapping("/{id}") @PreAuthorize(ADMIN_AUTHORIZATION)
+  @Operation(summary = "Delete book - " + ADMIN_ROLE, description = "Delete a book by ID")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "204", description = "Book deleted successfully"),
       @ApiResponse(responseCode = "404", description = "Book not found"),
