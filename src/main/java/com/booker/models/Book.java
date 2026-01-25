@@ -35,7 +35,10 @@ public class Book extends BaseEntity {
   @Column(length = 2048, name = "cover_url")
   private String coverUrl;
 
-  @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+  @ManyToMany(
+    cascade = { CascadeType.PERSIST, CascadeType.MERGE },
+    fetch = FetchType.EAGER
+  )
   @JoinTable(
     name = "book_genres",
     joinColumns = @JoinColumn(name = "book_id"),
