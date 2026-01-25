@@ -3,6 +3,7 @@ package com.booker.services;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.booker.DTO.Book.BookDetailDTO;
 import com.booker.DTO.Review.CreateReviewDTO;
 import com.booker.DTO.Review.UpdateReviewDTO;
+import com.booker.exceptions.BusinessRuleException;
 import com.booker.exceptions.ResourceNotFoundException;
 import com.booker.mappers.BookMapper;
 import com.booker.mappers.ReviewMapper;
@@ -53,6 +55,11 @@ public class ReviewService {
     Book book = bookMapper.toEntity(bookDTO);
 
     Review review = mapper.toEntity(data, user, book);
+
+    try { repository.save(review); }
+    catch (DataIntegrityViolationException exception) {
+      throw new BusinessRuleException("It's not allowed to create more than one review per book");
+    }
 
     return repository.save(review);
   }
