@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -32,10 +33,12 @@ import com.booker.DTO.Review.ReviewDTO;
 import com.booker.DTO.Review.UpdateReviewDTO;
 import com.booker.mappers.ReviewMapper;
 import com.booker.models.Review;
+import com.booker.models.User;
 import com.booker.services.ReviewService;
 
 import static com.booker.constants.Auth.ADMIN_AUTHORIZATION;
 import static com.booker.constants.Auth.ADMIN_ROLE;
+import static com.booker.constants.Auth.REVIEW_OWNER_OR_ADMIN;
 
 @RestController @RequestMapping("/reviews")
 @Tag(name = "Reviews", description = "Review management endpoints")
@@ -73,13 +76,17 @@ public class ReviewController {
   }
 
   @PostMapping
-  @Operation(summary = "Create new review", description = "Create a new review")
+  @Operation(summary = "Create new review", description = "Create a new review for the authenticated user")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "201", description = "Review created successfully"),
-    @ApiResponse(responseCode = "400", description = "Invalid review data")
+    @ApiResponse(responseCode = "400", description = "Invalid review data"),
+    @ApiResponse(responseCode = "409", description = "User already reviewed this book", content = @Content)
   })
-  public ResponseEntity<ReviewDTO> create(@Valid @RequestBody CreateReviewDTO data) {
-    Review review = service.create(data);
+  public ResponseEntity<ReviewDTO> create(
+    @AuthenticationPrincipal User currentUser,
+    @Valid @RequestBody CreateReviewDTO data
+  ) {
+    Review review = service.create(data, currentUser);
     ReviewDTO result = mapper.toDTO(review);
     URI uri = URI.create("/reviews/" + review.getId());
 
@@ -87,9 +94,11 @@ public class ReviewController {
   }
 
   @PatchMapping("/{id}")
-  @Operation(summary = "Update review", description = "Update an existing review")
+  @PreAuthorize(REVIEW_OWNER_OR_ADMIN)
+  @Operation(summary = "Update review", description = "Update an existing review (owner or admin only)")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "204", description = "Review updated successfully"),
+    @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
     @ApiResponse(responseCode = "404", description = "Review not found", content = @Content),
     @ApiResponse(responseCode = "400", description = "Invalid review data", content = @Content)
   })
@@ -103,9 +112,11 @@ public class ReviewController {
   }
 
   @DeleteMapping("/{id}")
-  @Operation(summary = "Delete review", description = "Delete a review by ID")
+  @PreAuthorize(REVIEW_OWNER_OR_ADMIN)
+  @Operation(summary = "Delete review", description = "Delete a review by ID (owner or admin only)")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "204", description = "Review deleted successfully"),
+    @ApiResponse(responseCode = "403", description = "Access denied", content = @Content),
     @ApiResponse(responseCode = "404", description = "Review not found")
   })
   public ResponseEntity<Void> delete(@PathVariable UUID id) {

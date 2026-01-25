@@ -24,9 +24,6 @@ public record CreateReviewDTO(
   @Size(max = 2048, message = "Text length must be at most {max}")
   String text,
 
-  @NotNull(message = "User ID is required")
-  UUID userID,
-
   @NotNull(message = "Book ID is required")
   UUID bookID
 ) {}

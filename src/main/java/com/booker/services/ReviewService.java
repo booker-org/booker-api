@@ -27,9 +27,6 @@ public class ReviewService {
   private ReviewRepository repository;
 
   @Autowired
-  private UserService userService;
-
-  @Autowired
   private BookService bookService;
 
   @Autowired
@@ -49,30 +46,39 @@ public class ReviewService {
     ;
   }
 
-  public Review create(CreateReviewDTO data) {
-    User user = userService.findById(data.userID());
+  public Review create(CreateReviewDTO data, User currentUser) {
     BookDetailDTO bookDTO = bookService.findById(data.bookID());
     Book book = bookMapper.toEntity(bookDTO);
 
-    Review review = mapper.toEntity(data, user, book);
+    Review review = mapper.toEntity(data, currentUser, book);
 
-    try { repository.save(review); }
+    try { return repository.save(review); }
     catch (DataIntegrityViolationException exception) {
       throw new BusinessRuleException("It's not allowed to create more than one review per book");
     }
-
-    return repository.save(review);
   }
 
   public void update(UUID id, UpdateReviewDTO data) {
     Review review = findById(id);
 
-    review.setScore(data.score());
-    review.setHeadline(data.headline());
-    review.setText(data.text());
+    if (data.score() != null) review.setScore(data.score());
+    if (data.headline() != null) review.setHeadline(data.headline());
+    if (data.text() != null) review.setText(data.text());
 
     repository.save(review);
   }
 
-  public void delete(UUID id) { repository.deleteById(id); }
+  public void delete(UUID id) {
+    if (!repository.existsById(id)) throw new ResourceNotFoundException("Review not found for ID: " + id);
+
+    repository.deleteById(id);
+  }
+
+  @Transactional(readOnly = true)
+  public boolean isOwner(UUID id, String username) {
+    return repository.findById(id)
+      .map(review -> review.getUser().getUsername().equals(username))
+      .orElse(false)
+    ;
+  }
 }
