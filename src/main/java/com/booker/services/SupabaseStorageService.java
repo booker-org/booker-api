@@ -100,8 +100,8 @@ public class SupabaseStorageService {
   public String extractFileNameFromUrl(String url) {
     if (url == null || url.isEmpty()) return null;
 
-    // Extrai o nome do arquivo da URL pública do Supabase
-    // Exemplo: https://project.supabase.co/storage/v1/object/public/bucket/covers/file.jpg
+    // Extract the file name from the Supabase public URL
+    // Example: https://project.supabase.co/storage/v1/object/public/bucket/covers/file.jpg
     String publicPath = "/storage/v1/object/public/" + STORAGE_BUCKET + "/";
     int index = url.indexOf(publicPath);
 

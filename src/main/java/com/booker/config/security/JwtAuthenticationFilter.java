@@ -33,10 +33,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(
-    HttpServletRequest request,
-    HttpServletResponse response,
-    FilterChain filterChain
-  ) throws ServletException, IOException {
+      HttpServletRequest request,
+      HttpServletResponse response,
+      FilterChain filterChain) throws ServletException, IOException {
     final String authHeader = request.getHeader(SecurityConstants.HEADER_AUTHORIZATION);
 
     if (authHeader == null || !authHeader.startsWith(SecurityConstants.BEARER_PREFIX)) {
@@ -50,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
       if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
         if (!jwtService.isAccessToken(jwt)) {
-          log.warn("Tipo de token inválido. Esperado token de acesso para autenticação. Usuário: {}", username);
+          log.warn("Invalid token type. Expected access token for authentication. User: {}", username);
           filterChain.doFilter(request, response);
 
           return;
@@ -59,27 +58,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
         if (jwtService.isTokenValid(jwt, userDetails)) {
-          log.debug("Token JWT validado com sucesso para o usuário: {}", username);
+          log.debug("JWT token successfully validated for user: {}", username);
 
           UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-            userDetails,
-            null,
-            userDetails.getAuthorities()
-          );
+              userDetails,
+              null,
+              userDetails.getAuthorities());
 
           authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
           SecurityContextHolder.getContext().setAuthentication(authToken);
-        } else log.warn("Falha na validação do token JWT para o usuário: {}", username);
+        } else
+          log.warn("JWT token validation failed for user: {}", username);
       }
     } catch (ExpiredJwtException e) {
-      log.warn("Token JWT expirado para a requisição: {} {}", request.getMethod(), request.getRequestURI());
+      log.warn("Expired JWT token for request: {} {}", request.getMethod(), request.getRequestURI());
     } catch (SignatureException e) {
-      log.warn("Assinatura JWT inválida para a requisição: {} {}", request.getMethod(), request.getRequestURI());
+      log.warn("Invalid JWT signature for request: {} {}", request.getMethod(), request.getRequestURI());
     } catch (MalformedJwtException e) {
-      log.warn("Token JWT malformado para a requisição: {} {}", request.getMethod(), request.getRequestURI());
+      log.warn("Malformed JWT token for request: {} {}", request.getMethod(), request.getRequestURI());
     } catch (Exception e) {
-      log.error("Erro ao processar o token JWT: {}", e.getMessage());
+      log.error("Error processing JWT token: {}", e.getMessage());
     }
 
     filterChain.doFilter(request, response);

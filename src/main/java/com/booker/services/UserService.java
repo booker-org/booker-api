@@ -22,7 +22,8 @@ import com.booker.models.User;
 import com.booker.models.enums.Role;
 import com.booker.repositories.UserRepository;
 
-@Service @RequiredArgsConstructor
+@Service
+@RequiredArgsConstructor
 public class UserService implements UserDetailsService {
   private final UserRepository repository;
   private final PasswordEncoder passwordEncoder;
@@ -31,9 +32,8 @@ public class UserService implements UserDetailsService {
   @Transactional(readOnly = true)
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
     return repository.findByUsername(username)
-      .or(() -> repository.findByEmail(username))
-      .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com username ou email: " + username)
-    );
+        .or(() -> repository.findByEmail(username))
+        .orElseThrow(() -> new UsernameNotFoundException("User not found with username or email: " + username));
   }
 
   @Transactional(readOnly = true)
@@ -44,32 +44,31 @@ public class UserService implements UserDetailsService {
   @Transactional(readOnly = true)
   public User findById(UUID id) {
     return repository
-      .findById(id)
-      .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado para o ID: " + id)
-    );
+        .findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found for ID: " + id));
   }
 
   @Transactional(readOnly = true)
   public User findByUsername(String username) {
     return repository
-      .findByUsername(username)
-      .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado para o username: " + username)
-    );
+        .findByUsername(username)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found for username: " + username));
   }
 
   @Transactional(readOnly = true)
   public User findByEmail(String email) {
     return repository
-      .findByEmail(email)
-      .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado para o email: " + email)
-    );
+        .findByEmail(email)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found for email: " + email));
   }
 
   @Transactional
   public User save(RegisterRequestDTO data) {
-    if (repository.existsByUsername(data.username())) throw new IllegalArgumentException("Esse nome de usuário já está em uso");
+    if (repository.existsByUsername(data.username()))
+      throw new IllegalArgumentException("This username is already in use");
 
-    if (repository.existsByEmail(data.email())) throw new IllegalArgumentException("Esse email já está em uso");
+    if (repository.existsByEmail(data.email()))
+      throw new IllegalArgumentException("This email is already in use");
 
     User user = new User();
 
@@ -86,9 +85,11 @@ public class UserService implements UserDetailsService {
 
   @Transactional
   public User save(CreateUserDTO data) {
-    if (repository.existsByUsername(data.username())) throw new IllegalArgumentException("Esse nome de usuário já está em uso");
+    if (repository.existsByUsername(data.username()))
+      throw new IllegalArgumentException("This username is already in use");
 
-    if (repository.existsByEmail(data.email())) throw new IllegalArgumentException("Esse email já está em uso");
+    if (repository.existsByEmail(data.email()))
+      throw new IllegalArgumentException("This email is already in use");
 
     User user = new User();
 
@@ -109,19 +110,23 @@ public class UserService implements UserDetailsService {
     User user = findById(id);
 
     if (data.username() != null) {
-      if (repository.existsByUsername(data.username())) throw new IllegalArgumentException("Esse nome de usuário já está em uso");
+      if (repository.existsByUsername(data.username()))
+        throw new IllegalArgumentException("This username is already in use");
 
       user.setUsername(data.username());
     }
 
     if (data.email() != null) {
-      if (repository.existsByEmail(data.email())) throw new IllegalArgumentException("Esse email já está em uso");
+      if (repository.existsByEmail(data.email()))
+        throw new IllegalArgumentException("This email is already in use");
 
       user.setEmail(data.email());
     }
 
-    if (data.name() != null) user.setName(data.name());
-    if (data.bio() != null) user.setBio(data.bio());
+    if (data.name() != null)
+      user.setName(data.name());
+    if (data.bio() != null)
+      user.setBio(data.bio());
 
     repository.save(user);
   }
@@ -131,7 +136,7 @@ public class UserService implements UserDetailsService {
     User user = findById(id);
 
     if (!passwordEncoder.matches(data.currentPassword(), user.getPassword())) {
-      throw new IllegalArgumentException("Senha incorreta");
+      throw new IllegalArgumentException("Incorrect password");
     }
 
     user.setPassword(passwordEncoder.encode(data.newPassword()));

@@ -29,7 +29,8 @@ import com.booker.models.enums.Role;
 import com.booker.repositories.RefreshTokenRepository;
 import com.booker.repositories.UserRepository;
 
-@Service @RequiredArgsConstructor
+@Service
+@RequiredArgsConstructor
 public class AuthenticationService {
   private final UserRepository userRepository;
   private final RefreshTokenRepository refreshTokenRepository;
@@ -41,11 +42,11 @@ public class AuthenticationService {
   @Transactional
   public AuthenticationResponseDTO register(RegisterRequestDTO request, HttpServletRequest httpRequest) {
     if (userRepository.existsByUsername(request.username())) {
-      throw new IllegalArgumentException("Nome de usuário já existe");
+      throw new IllegalArgumentException("Username already exists");
     }
 
     if (userRepository.existsByEmail(request.email())) {
-      throw new IllegalArgumentException("Email já existe");
+      throw new IllegalArgumentException("Email already exists");
     }
 
     User user = new User();
@@ -69,27 +70,23 @@ public class AuthenticationService {
     saveRefreshToken(savedUser, refreshToken, deviceInfo, ipAddress);
 
     return new AuthenticationResponseDTO(
-      accessToken,
-      refreshToken,
-      SecurityConstants.BEARER_PREFIX.trim(),
-      jwtService.getAccessTokenExpirationInSeconds(),
-      userMapper.toDTO(savedUser)
-    );
+        accessToken,
+        refreshToken,
+        SecurityConstants.BEARER_PREFIX.trim(),
+        jwtService.getAccessTokenExpirationInSeconds(),
+        userMapper.toDTO(savedUser));
   }
 
   @Transactional
   public AuthenticationResponseDTO login(LoginRequestDTO request, HttpServletRequest httpRequest) {
     authenticationManager.authenticate(
-      new UsernamePasswordAuthenticationToken(
-        request.usernameOrEmail(),
-        request.password()
-      )
-    );
+        new UsernamePasswordAuthenticationToken(
+            request.usernameOrEmail(),
+            request.password()));
 
     User user = userRepository.findByUsername(request.usernameOrEmail())
-      .or(() -> userRepository.findByEmail(request.usernameOrEmail()))
-      .orElseThrow(() -> new ResourceNotFoundException("User not found")
-    );
+        .or(() -> userRepository.findByEmail(request.usernameOrEmail()))
+        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
     String accessToken = jwtService.generateAccessToken(user);
     String refreshToken = jwtService.generateRefreshToken(user);
@@ -100,12 +97,11 @@ public class AuthenticationService {
     saveRefreshToken(user, refreshToken, deviceInfo, ipAddress);
 
     return new AuthenticationResponseDTO(
-      accessToken,
-      refreshToken,
-      SecurityConstants.BEARER_PREFIX.trim(),
-      jwtService.getAccessTokenExpirationInSeconds(),
-      userMapper.toDTO(user)
-    );
+        accessToken,
+        refreshToken,
+        SecurityConstants.BEARER_PREFIX.trim(),
+        jwtService.getAccessTokenExpirationInSeconds(),
+        userMapper.toDTO(user));
   }
 
   @Transactional
@@ -113,23 +109,22 @@ public class AuthenticationService {
     String refreshTokenValue = request.refreshToken();
 
     if (!jwtService.isRefreshToken(refreshTokenValue)) {
-      throw new IllegalArgumentException("Tipo de token inválido. Esperado refresh token.");
+      throw new IllegalArgumentException("Invalid token type. Expected refresh token.");
     }
 
     String username = jwtService.extractUsername(refreshTokenValue);
 
     if (username == null || username.isBlank()) {
-      throw new IllegalArgumentException("Refresh token inválido");
+      throw new IllegalArgumentException("Invalid refresh token");
     }
 
     String tokenHash = hashToken(refreshTokenValue);
 
     RefreshToken refreshToken = refreshTokenRepository.findByTokenHash(tokenHash)
-      .orElseThrow(() -> new IllegalArgumentException("Refresh token inválido")
-    );
+        .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
 
     if (!refreshToken.isValid()) {
-      throw new IllegalArgumentException("Refresh token expirado ou revogado");
+      throw new IllegalArgumentException("Refresh token expired or revoked");
     }
 
     User user = refreshToken.getUser();
@@ -144,17 +139,17 @@ public class AuthenticationService {
     saveRefreshToken(user, newRefreshToken, refreshToken.getDeviceInfo(), refreshToken.getIpAddress());
 
     return new AuthenticationResponseDTO(
-      newAccessToken,
-      newRefreshToken,
-      SecurityConstants.BEARER_PREFIX.trim(),
-      jwtService.getAccessTokenExpirationInSeconds(),
-      userMapper.toDTO(user)
-    );
+        newAccessToken,
+        newRefreshToken,
+        SecurityConstants.BEARER_PREFIX.trim(),
+        jwtService.getAccessTokenExpirationInSeconds(),
+        userMapper.toDTO(user));
   }
 
   @Transactional
   public void logout(String refreshTokenValue) {
-    if (refreshTokenValue == null || refreshTokenValue.isBlank()) return;
+    if (refreshTokenValue == null || refreshTokenValue.isBlank())
+      return;
 
     String tokenHash = hashToken(refreshTokenValue);
 
@@ -176,14 +171,13 @@ public class AuthenticationService {
     Instant expiresAt = Instant.now().plusSeconds(expirationSeconds);
 
     RefreshToken refreshToken = RefreshToken.builder()
-      .tokenHash(tokenHash)
-      .user(user)
-      .expiresAt(expiresAt)
-      .revoked(false)
-      .deviceInfo(deviceInfo)
-      .ipAddress(ipAddress)
-      .build()
-    ;
+        .tokenHash(tokenHash)
+        .user(user)
+        .expiresAt(expiresAt)
+        .revoked(false)
+        .deviceInfo(deviceInfo)
+        .ipAddress(ipAddress)
+        .build();
 
     refreshTokenRepository.save(refreshToken);
   }
@@ -195,7 +189,7 @@ public class AuthenticationService {
 
       return Base64.getEncoder().encodeToString(hash);
     } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException("Erro ao gerar hash do token", e);
+      throw new RuntimeException("Error generating token hash", e);
     }
   }
 

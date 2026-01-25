@@ -341,7 +341,7 @@ class BookIntegrationTest {
 
   @Test
   void deleteBook_ShouldReturnNoContent_WhenBookExists() throws Exception {
-    // Given - Criar um livro primeiro
+    // Given - Create a book first
     BookCreateDTO createRequest = new BookCreateDTO(
       "Dom Casmurro",
       "A obra narra a vida de Bento Santiago...",

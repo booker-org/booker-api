@@ -294,7 +294,7 @@ VALUES
   ('b0000015-0000-0000-0000-000000000015', '11111111-1111-1111-1111-111111111111')
 ON CONFLICT (book_id, genre_id) DO NOTHING;
 
--- Nota: Senhas são bcrypt hash de "password123" para desenvolvimento)
+-- Note: Passwords are bcrypt hashes of "password123" for development
 INSERT INTO users (
   id,
   name,

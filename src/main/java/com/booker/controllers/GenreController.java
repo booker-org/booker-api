@@ -39,8 +39,7 @@ public class GenreController {
   @GetMapping
   @Operation(summary = "Get all genres", description = "Get paginated list of all genres (max 100 per page)")
   public ResponseEntity<Page<GenreDTO>> getAllGenres(
-    @ParameterObject @PageableDefault(size = 10, sort = "name") Pageable pageable
-  ) {
+      @ParameterObject @PageableDefault(size = 10, sort = "name") Pageable pageable) {
     Page<Genre> genres = genreService.findAll(pageable);
     Page<GenreDTO> genreDTOs = genreMapper.toDTOPage(genres);
 
@@ -50,22 +49,22 @@ public class GenreController {
   @GetMapping("/{id}")
   @Operation(summary = "Get genre by ID", description = "Get a specific genre by its ID")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Genre found"),
-    @ApiResponse(responseCode = "404", description = "Genre not found")
+      @ApiResponse(responseCode = "200", description = "Genre found"),
+      @ApiResponse(responseCode = "404", description = "Genre not found")
   })
   public ResponseEntity<GenreDTO> getGenreById(@Parameter(description = "Genre ID") @PathVariable UUID id) {
     Optional<Genre> genre = genreService.findById(id);
 
     return genre.map(genreMapper::toDTO)
-      .map(ResponseEntity::ok)
-      .orElse(ResponseEntity.notFound().build());
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
   }
 
   @PostMapping
   @Operation(summary = "Create new genre", description = "Create a new genre")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "201", description = "Gênero criado com sucesso"),
-    @ApiResponse(responseCode = "400", description = "Dados de gênero inválidos")
+      @ApiResponse(responseCode = "201", description = "Genre created successfully"),
+      @ApiResponse(responseCode = "400", description = "Invalid genre data"),
   })
   public ResponseEntity<GenreDTO> createGenre(@Valid @RequestBody GenreCreateDTO genreCreateDTO) {
     Genre genre = genreMapper.toEntity(genreCreateDTO);
@@ -77,33 +76,32 @@ public class GenreController {
   @PutMapping("/{id}")
   @Operation(summary = "Update genre", description = "Update an existing genre")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Gênero atualizado com sucesso"),
-    @ApiResponse(responseCode = "404", description = "Gênero não encontrado", content = @Content),
-    @ApiResponse(responseCode = "400", description = "Dados de gênero inválidos", content = @Content)
+      @ApiResponse(responseCode = "200", description = "Genre updated successfully"),
+      @ApiResponse(responseCode = "404", description = "Genre not found", content = @Content),
+      @ApiResponse(responseCode = "400", description = "Invalid genre data", content = @Content),
   })
   public ResponseEntity<GenreDTO> updateGenre(
-    @Parameter(description = "Genre ID") @PathVariable UUID id,
-    @Valid @RequestBody GenreCreateDTO genreCreateDTO
-  ) {
+      @Parameter(description = "Genre ID") @PathVariable UUID id,
+      @Valid @RequestBody GenreCreateDTO genreCreateDTO) {
     Genre genre = genreMapper.toEntity(genreCreateDTO);
     Optional<Genre> updatedGenre = genreService.update(id, genre);
 
     return updatedGenre.map(genreMapper::toDTO)
-      .map(ResponseEntity::ok)
-      .orElse(ResponseEntity.notFound().build());
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
   }
 
   @DeleteMapping("/{id}")
   @Operation(summary = "Delete genre", description = "Delete a genre by ID")
   @ApiResponses(value = {
-    @ApiResponse(responseCode = "204", description = "Gênero excluído com sucesso"),
-    @ApiResponse(responseCode = "404", description = "Gênero não encontrado")
+      @ApiResponse(responseCode = "204", description = "Genre deleted successfully"),
+      @ApiResponse(responseCode = "404", description = "Genre not found"),
   })
   public ResponseEntity<Void> deleteGenre(@Parameter(description = "Genre ID") @PathVariable UUID id) {
     boolean deleted = genreService.deleteById(id);
 
     return deleted
-      ? ResponseEntity.noContent().build()
-      : ResponseEntity.notFound().build();
+        ? ResponseEntity.noContent().build()
+        : ResponseEntity.notFound().build();
   }
 }

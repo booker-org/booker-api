@@ -100,12 +100,11 @@ class BookServiceTest {
   void findById_ShouldReturnBook_WhenBookExists() {
     // Given - Existing ID
     BookDetailDTO expectedDTO = new BookDetailDTO(
-      testBook.getId(),
-      testBook.getTitle(),
-      testBook.getSynopsis(),
-      testBook.getPageCount(),
-      null, null, null, null, null
-    );
+        testBook.getId(),
+        testBook.getTitle(),
+        testBook.getSynopsis(),
+        testBook.getPageCount(),
+        null, null, null, null, null);
 
     when(bookRepository.findById(TEST_BOOK_ID)).thenReturn(Optional.of(testBook));
     when(bookMapper.toDetailDTO(testBook)).thenReturn(expectedDTO);
@@ -218,36 +217,35 @@ class BookServiceTest {
 
   @Test
   void save_ShouldReturnSavedBook_WhenValidBook() {
-    // Given - IDs para autor e gênero
+    // Given - IDs for author and genre
     final UUID authorId = UUID.randomUUID();
     final UUID genreId = UUID.randomUUID();
 
-    // Livro novo (sem ID ainda) e livro salvo (com ID gerado)
+    // New book (no ID yet) and saved book (with generated ID)
     Book newBook = createBaseBook();
 
     Book savedBook = createBaseBook();
     savedBook.setId(UUID.randomUUID());
 
-    // Mock do autor
+    // Mock the author
     Author mockAuthor = createBaseAuthor();
     mockAuthor.setId(authorId);
     when(authorService.findById(authorId)).thenReturn(Optional.of(mockAuthor));
 
-    // Mock do gênero
+    // Mock the genre
     Genre mockGenre1 = new Genre();
     mockGenre1.setId(genreId);
     mockGenre1.setName("Ficção");
     when(genreService.findById(genreId)).thenReturn(Optional.of(mockGenre1));
 
     BookDetailDTO expectedDTO = new BookDetailDTO(
-      savedBook.getId(),
-      savedBook.getTitle(),
-      savedBook.getSynopsis(),
-      savedBook.getPageCount(),
-      null, null, null, null, null
-    );
+        savedBook.getId(),
+        savedBook.getTitle(),
+        savedBook.getSynopsis(),
+        savedBook.getPageCount(),
+        null, null, null, null, null);
 
-    // Mock do save
+    // Mock the save
     when(bookRepository.save(any(Book.class))).thenReturn(savedBook);
     when(bookMapper.toDetailDTO(savedBook)).thenReturn(expectedDTO);
 
@@ -266,7 +264,7 @@ class BookServiceTest {
 
   @Test
   void save_ShouldThrowException_WhenBookIsNull() {
-    // Given - IDs válidos mas livro nulo
+    // Given - valid IDs but null book
     final UUID authorId = UUID.randomUUID();
     final UUID genreId = UUID.randomUUID();
 
@@ -292,7 +290,7 @@ class BookServiceTest {
       bookService.save(invalidBook, authorId, List.of(genreId));
     });
 
-    assertEquals("Título é obrigatório", exception.getMessage());
+    assertEquals("Title is required", exception.getMessage());
     verify(bookRepository, never()).save(any());
   }
 
@@ -310,7 +308,7 @@ class BookServiceTest {
       bookService.save(invalidBook, authorId, List.of(genreId));
     });
 
-    assertEquals("Título deve ter entre 2 e 200 caracteres", exception.getMessage());
+    assertEquals("Title must be between 2 and 200 characters", exception.getMessage());
     verify(bookRepository, never()).save(any());
   }
 
@@ -328,7 +326,7 @@ class BookServiceTest {
       bookService.save(invalidBook, authorId, List.of(genreId));
     });
 
-    assertEquals("Título deve ter entre 2 e 200 caracteres", exception.getMessage());
+    assertEquals("Title must be between 2 and 200 characters", exception.getMessage());
     verify(bookRepository, never()).save(any());
   }
 
@@ -346,7 +344,7 @@ class BookServiceTest {
       bookService.save(invalidBook, authorId, List.of(genreId));
     });
 
-    assertEquals("Número de páginas deve ser maior que zero", exception.getMessage());
+    assertEquals("Number of pages must be greater than zero", exception.getMessage());
     verify(bookRepository, never()).save(any());
   }
 
@@ -364,7 +362,7 @@ class BookServiceTest {
       bookService.save(validBook, nonExistentAuthorId, List.of(genreId));
     });
 
-    assertTrue(exception.getMessage().contains("ID do autor"));
+    assertTrue(exception.getMessage().contains("Invalid author ID"));
     verify(authorService).findById(nonExistentAuthorId);
     verify(bookRepository, never()).save(any());
   }
@@ -387,7 +385,7 @@ class BookServiceTest {
       bookService.save(validBook, authorId, List.of(nonExistentGenreId));
     });
 
-    assertTrue(exception.getMessage().contains("Gênero não encontrado"));
+    assertTrue(exception.getMessage().contains("Genre not found"));
     verify(genreService).findById(nonExistentGenreId);
     verify(bookRepository, never()).save(any());
   }
@@ -396,7 +394,7 @@ class BookServiceTest {
 
   @Test
   void update_ShouldReturnUpdatedBook_WhenBookExists() {
-    // Given - IDs válidos
+    // Given - valid IDs
     UUID bookId = UUID.randomUUID();
     UUID authorId = UUID.randomUUID();
     UUID genreId = UUID.randomUUID();
@@ -426,12 +424,11 @@ class BookServiceTest {
     when(bookRepository.save(any(Book.class))).thenReturn(updatedBook);
 
     BookDetailDTO expectedDTO = new BookDetailDTO(
-      updatedBook.getId(),
-      "Título Atualizado",
-      updatedBook.getSynopsis(),
-      300,
-      null, null, null, null, null
-    );
+        updatedBook.getId(),
+        "Título Atualizado",
+        updatedBook.getSynopsis(),
+        300,
+        null, null, null, null, null);
     when(bookMapper.toDetailDTO(updatedBook)).thenReturn(expectedDTO);
 
     // When
@@ -450,7 +447,7 @@ class BookServiceTest {
 
   @Test
   void update_ShouldReturnEmpty_WhenBookNotExists() {
-    // Given - ID não existente
+    // Given - non-existent ID
     UUID nonExistentId = UUID.randomUUID();
     UUID authorId = UUID.randomUUID();
     UUID genreId = UUID.randomUUID();
@@ -489,12 +486,11 @@ class BookServiceTest {
     when(bookRepository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
     BookDetailDTO expectedDTO = new BookDetailDTO(
-      bookId,
-      "Título Parcialmente Atualizado",
-      "Synopsis Original",
-      400,
-      null, null, "url-original.jpg", null, null
-    );
+        bookId,
+        "Título Parcialmente Atualizado",
+        "Synopsis Original",
+        400,
+        null, null, "url-original.jpg", null, null);
     when(bookMapper.toDetailDTO(any(Book.class))).thenReturn(expectedDTO);
 
     // When
@@ -550,7 +546,7 @@ class BookServiceTest {
       bookService.partialUpdate(bookId, partialUpdate, null, null);
     });
 
-    assertEquals("Número de páginas deve ser maior que zero", exception.getMessage());
+    assertEquals("Number of pages must be greater than zero", exception.getMessage());
     verify(bookRepository, never()).save(any());
   }
 
@@ -581,12 +577,11 @@ class BookServiceTest {
     when(bookRepository.save(any(Book.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
     BookDetailDTO expectedDTO = new BookDetailDTO(
-      bookId,
-      "Novo Título",
-      null,
-      null,
-      null, null, null, null, null
-    );
+        bookId,
+        "Novo Título",
+        null,
+        null,
+        null, null, null, null, null);
     when(bookMapper.toDetailDTO(any(Book.class))).thenReturn(expectedDTO);
 
     // When
