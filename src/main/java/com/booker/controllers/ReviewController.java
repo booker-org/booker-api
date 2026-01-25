@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -27,6 +28,8 @@ import com.booker.mappers.ReviewMapper;
 import com.booker.models.Review;
 import com.booker.services.ReviewService;
 
+import static com.booker.constants.Auth.ADMIN_AUTHORIZATION;
+
 @RestController @RequestMapping("/reviews")
 public class ReviewController {
   @Autowired
@@ -35,7 +38,7 @@ public class ReviewController {
   @Autowired
   private ReviewMapper mapper;
 
-  @GetMapping
+  @GetMapping @PreAuthorize(ADMIN_AUTHORIZATION)
   public ResponseEntity<Page<ReviewDTO>> getAll(
     @ParameterObject @PageableDefault(size = 10)
     Pageable pageable
