@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.booker.DTO.Author.AuthorCreateDTO;
@@ -27,6 +28,9 @@ import com.booker.DTO.Author.AuthorDTO;
 import com.booker.mappers.AuthorMapper;
 import com.booker.models.Author;
 import com.booker.services.AuthorService;
+
+import static com.booker.constants.Auth.ADMIN_ROLE;
+import static com.booker.constants.Auth.ADMIN_AUTHORIZATION;
 
 @RestController @RequestMapping("/authors")
 @RequiredArgsConstructor
@@ -60,8 +64,8 @@ public class AuthorController {
       .orElse(ResponseEntity.notFound().build());
   }
 
-  @PostMapping
-  @Operation(summary = "Create new author", description = "Create a new author")
+  @PostMapping @PreAuthorize(ADMIN_AUTHORIZATION)
+  @Operation(summary = "Create new author - " + ADMIN_ROLE, description = "Create a new author")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "201", description = "Author created successfully"),
     @ApiResponse(responseCode = "400", description = "Invalid author data")
@@ -73,8 +77,8 @@ public class AuthorController {
     return ResponseEntity.status(HttpStatus.CREATED).body(authorMapper.toDTO(savedAuthor));
   }
 
-  @PutMapping("/{id}")
-  @Operation(summary = "Update author", description = "Update an existing author")
+  @PutMapping("/{id}") @PreAuthorize(ADMIN_AUTHORIZATION)
+  @Operation(summary = "Update author - " + ADMIN_ROLE, description = "Update an existing author")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "200", description = "Author updated successfully"),
     @ApiResponse(responseCode = "404", description = "Author not found", content = @Content),
@@ -92,8 +96,8 @@ public class AuthorController {
       .orElse(ResponseEntity.notFound().build());
   }
 
-  @PatchMapping("/{id}")
-  @Operation(summary = "Partially update author", description = "Partially update an existing author")
+  @PatchMapping("/{id}") @PreAuthorize(ADMIN_AUTHORIZATION)
+  @Operation(summary = "Partially update author - " + ADMIN_ROLE, description = "Partially update an existing author")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "200", description = "Author updated successfully"),
     @ApiResponse(responseCode = "404", description = "Author not found", content = @Content),
@@ -111,8 +115,8 @@ public class AuthorController {
       .orElse(ResponseEntity.notFound().build());
   }
 
-  @DeleteMapping("/{id}")
-  @Operation(summary = "Delete author", description = "Delete an author by ID")
+  @DeleteMapping("/{id}") @PreAuthorize(ADMIN_AUTHORIZATION)
+  @Operation(summary = "Delete author - " + ADMIN_ROLE, description = "Delete an author by ID")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "204", description = "Author deleted successfully"),
     @ApiResponse(responseCode = "404", description = "Author not found")
