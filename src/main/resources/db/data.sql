@@ -449,4 +449,4 @@ INSERT INTO users (
     'Leitor de distopias e futuros alternativos.',
     'USER'
   )
-;
+ON CONFLICT (id) DO NOTHING;
