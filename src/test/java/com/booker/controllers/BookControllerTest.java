@@ -41,9 +41,12 @@ import com.booker.DTO.Book.BookDetailDTO;
 import com.booker.mappers.AuthorMapper;
 import com.booker.mappers.BookMapper;
 import com.booker.mappers.GenreMapper;
+import com.booker.mappers.ReviewMapper;
+import com.booker.mappers.UserMapper;
 import com.booker.models.Book;
 import com.booker.services.BookService;
 import com.booker.services.JwtService;
+import com.booker.services.ReviewService;
 
 import static com.booker.constants.Auth.ADMIN_ROLE;
 
@@ -54,7 +57,9 @@ import static com.booker.constants.Auth.ADMIN_ROLE;
     classes = {
       BookMapper.class,
       AuthorMapper.class,
-      GenreMapper.class
+      GenreMapper.class,
+      ReviewMapper.class,
+      UserMapper.class
     }
   )
 )
@@ -80,6 +85,9 @@ class BookControllerTest {
 
   @MockitoBean
   private BookService bookService;
+
+  @MockitoBean
+  private ReviewService reviewService;
 
   @Test
   void getBookById_ShouldReturnBook_WhenBookExists() throws Exception {
