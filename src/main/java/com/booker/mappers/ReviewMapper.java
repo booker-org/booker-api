@@ -1,6 +1,7 @@
 package com.booker.mappers;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Component;
 
 import com.booker.DTO.Review.CreateReviewDTO;
@@ -9,13 +10,10 @@ import com.booker.models.Book;
 import com.booker.models.Review;
 import com.booker.models.User;
 
-@Component
+@Component @RequiredArgsConstructor
 public class ReviewMapper {
-  @Autowired
-  private UserMapper userMapper;
-
-  @Autowired
-  private BookMapper bookMapper;
+  private final UserMapper userMapper;
+  private final BookMapper bookMapper;
 
   public ReviewDTO toDTO(Review review) {
     return new ReviewDTO(

@@ -11,8 +11,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -41,13 +42,11 @@ import static com.booker.constants.Auth.ADMIN_ROLE;
 import static com.booker.constants.Auth.REVIEW_OWNER_OR_ADMIN;
 
 @RestController @RequestMapping("/reviews")
+@RequiredArgsConstructor
 @Tag(name = "Reviews", description = "Review management endpoints")
 public class ReviewController {
-  @Autowired
-  private ReviewService service;
-
-  @Autowired
-  private ReviewMapper mapper;
+  private final ReviewService service;
+  private final ReviewMapper mapper;
 
   @GetMapping @PreAuthorize(ADMIN_AUTHORIZATION)
   @Operation(summary = "Get all reviews - " + ADMIN_ROLE, description = "Get paginated list of all reviews")
@@ -93,8 +92,7 @@ public class ReviewController {
     return ResponseEntity.created(uri).body(result);
   }
 
-  @PatchMapping("/{id}")
-  @PreAuthorize(REVIEW_OWNER_OR_ADMIN)
+  @PatchMapping("/{id}") @PreAuthorize(REVIEW_OWNER_OR_ADMIN)
   @Operation(summary = "Update review", description = "Update an existing review (owner or admin only)")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "204", description = "Review updated successfully"),
@@ -111,8 +109,7 @@ public class ReviewController {
     return ResponseEntity.noContent().build();
   }
 
-  @DeleteMapping("/{id}")
-  @PreAuthorize(REVIEW_OWNER_OR_ADMIN)
+  @DeleteMapping("/{id}") @PreAuthorize(REVIEW_OWNER_OR_ADMIN)
   @Operation(summary = "Delete review", description = "Delete a review by ID (owner or admin only)")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "204", description = "Review deleted successfully"),

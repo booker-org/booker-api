@@ -2,7 +2,6 @@ package com.booker.services;
 
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,19 +20,14 @@ import com.booker.models.Review;
 import com.booker.models.User;
 import com.booker.repositories.ReviewRepository;
 
-@Service @Transactional
+import lombok.RequiredArgsConstructor;
+
+@Service @Transactional @RequiredArgsConstructor
 public class ReviewService {
-  @Autowired
-  private ReviewRepository repository;
-
-  @Autowired
-  private BookService bookService;
-
-  @Autowired
-  private BookMapper bookMapper;
-
-  @Autowired
-  private ReviewMapper mapper;
+  private final ReviewRepository repository;
+  private final BookService bookService;
+  private final BookMapper bookMapper;
+  private final ReviewMapper mapper;
 
   @Transactional(readOnly = true)
   public Page<Review> findAll(Pageable pageable) { return repository.findAll(pageable); }
