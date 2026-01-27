@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import com.booker.DTO.Review.CreateReviewDTO;
 import com.booker.DTO.Review.ReviewDTO;
+import com.booker.DTO.Review.SimpleReviewDTO;
 import com.booker.models.Book;
 import com.booker.models.Review;
 import com.booker.models.User;
@@ -24,6 +25,19 @@ public class ReviewMapper {
       review.getLikeCount(),
       userMapper.toDTO(review.getUser()),
       bookMapper.toDTO(review.getBook()),
+      review.getCreatedAt(),
+      review.getUpdatedAt()
+    );
+  }
+
+  public SimpleReviewDTO toSimpleDTO(Review review) {
+    return new SimpleReviewDTO(
+      review.getId(),
+      review.getScore(),
+      review.getHeadline(),
+      review.getText(),
+      review.getLikeCount(),
+      userMapper.toDTO(review.getUser()),
       review.getCreatedAt(),
       review.getUpdatedAt()
     );
