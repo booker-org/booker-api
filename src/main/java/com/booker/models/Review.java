@@ -7,7 +7,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,7 +17,9 @@ import lombok.Setter;
 @Entity @Table(name = "reviews")
 @NoArgsConstructor @AllArgsConstructor @Getter @Setter
 public class Review extends BaseEntity {
-  @Column(nullable = false)
+  @DecimalMin(value = "0.0", message = "Score must be at least {value}")
+  @DecimalMax(value = "5.0", message = "Score must be at most {value}")
+  @Column(nullable = false, precision = 2, scale = 1)
   private BigDecimal score;
 
   @Column(length =  50)
