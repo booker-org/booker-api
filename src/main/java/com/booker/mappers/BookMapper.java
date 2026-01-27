@@ -1,6 +1,7 @@
 package com.booker.mappers;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +25,24 @@ public class BookMapper {
     book.setTitle(dto.title());
     book.setSynopsis(dto.synopsis());
     book.setPageCount(dto.pageCount());
+
+    return book;
+  }
+
+  public Book toEntity(BookDetailDTO dto) {
+    if (dto == null) return null;
+
+    Book book = new Book();
+
+    book.setId(dto.id());
+    book.setTitle(dto.title());
+    book.setSynopsis(dto.synopsis());
+    book.setPageCount(dto.pageCount());
+    book.setAuthor(authorMapper.toEntity(dto.author()));
+    book.setGenres(dto.genres().stream().map(genreMapper::toEntity).collect(Collectors.toSet()));
+    book.setCoverUrl(dto.coverUrl());
+    book.setCreatedAt(dto.createdAt());
+    book.setUpdatedAt(dto.updatedAt());
 
     return book;
   }

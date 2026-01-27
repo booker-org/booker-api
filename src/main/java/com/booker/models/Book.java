@@ -2,6 +2,7 @@ package com.booker.models;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -34,13 +35,23 @@ public class Book extends BaseEntity {
   @Column(length = 2048, name = "cover_url")
   private String coverUrl;
 
-  @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+  @ManyToMany(
+    cascade = { CascadeType.PERSIST, CascadeType.MERGE },
+    fetch = FetchType.EAGER
+  )
   @JoinTable(
     name = "book_genres",
     joinColumns = @JoinColumn(name = "book_id"),
     inverseJoinColumns = @JoinColumn(name = "genre_id")
   )
   private Set<Genre> genres = new HashSet<>();
+
+  @OneToMany(
+    mappedBy = "book",
+    cascade = CascadeType.ALL,
+    orphanRemoval = true
+  )
+  private List<Review> reviews;
 
   public Set<Genre> getGenres() {
     return genres != null ? Collections.unmodifiableSet(genres) : Collections.emptySet();

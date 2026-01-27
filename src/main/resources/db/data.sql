@@ -450,3 +450,163 @@ INSERT INTO users (
     'USER'
   )
 ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO reviews (
+  id,
+  score,
+  headline,
+  text,
+  user_id,
+  book_id
+) VALUES
+  (
+    '01949e60-1a00-7c85-9a21-4325a1b2c3d4',
+    5.0,
+    'Uma obra-prima absoluta',
+    'A profundidade dos personagens e a complexidade da trama me prenderam do início ao fim. Impossível largar.',
+
+    -- User 1, book 1
+    '10000001-0000-0000-0000-000000000001',
+    'b0000001-0000-0000-0000-000000000001'
+  ),
+  (
+    '01949e60-2e00-7d92-8b34-5637e2f3a4b5',
+    4.5,
+    'Excelente, mas denso',
+    'A escrita é poética e rica, embora em alguns momentos o ritmo da narrativa fique um pouco lento.',
+
+    -- User 2, book 2
+    '20000002-0000-0000-0000-000000000002',
+    'b0000002-0000-0000-0000-000000000002'
+  ),
+  (
+    '01949e60-4200-7e10-9c45-6748f3a5b6c7',
+    3.0,
+    'Entrega o que promete',
+    'Um livro honesto. Não vai mudar sua vida, mas é um ótimo passatempo para um fim de semana chuvoso.',
+
+    -- User 3, book 3
+    '30000003-0000-0000-0000-000000000003',
+    'b0000003-0000-0000-0000-000000000003'
+  ),
+  (
+    '01949e60-5600-7f23-0d56-7859a4b6c7d8',
+    2.0,
+    'Decepcionante',
+    'A premissa era incrível, mas a execução deixou muito a desejar. O final pareceu apressado e sem sentido.',
+
+    -- User 4, book 4
+    '40000004-0000-0000-0000-000000000004',
+    'b0000004-0000-0000-0000-000000000004'
+  ),
+  (
+    '01949e60-6a00-7a34-1e67-8960b5c7d8e9',
+    1.0,
+    'Não consegui terminar',
+    'Achei a linguagem confusa e os diálogos extremamente artificiais. Uma pena, pois a capa é linda.',
+
+    -- User 5, book 5
+    '50000005-0000-0000-0000-000000000005',
+    'b0000005-0000-0000-0000-000000000005'
+  ),
+  (
+    '01949e60-7e00-7b45-2f78-9071c6d8e9f0',
+    5.0,
+    'O melhor do ano',
+    'Simplesmente devorei este livro em dois dias. O plot twist no final me pegou completamente desprevenido.',
+
+    -- User 6, book 6
+    '60000006-0000-0000-0000-000000000006',
+    'b0000006-0000-0000-0000-000000000006'
+  ),
+  (
+    '01949e60-9200-7c56-3a89-0182d7e9f0a1',
+    3.5,
+    'Bom, com ressalvas',
+    'Gostei muito da construção do mundo, mas o protagonista toma decisões que não fazem sentido com sua personalidade.',
+
+    -- User 7, book 7
+    '70000007-0000-0000-0000-000000000007',
+    'b0000007-0000-0000-0000-000000000007'
+  ),
+  (
+    '01949e60-a600-7d67-4b90-1293e8f0a1b2',
+    4.0,
+    'Muito envolvente',
+    'Uma leitura fluida e agradável. Recomendo para quem gosta do gênero, embora não traga nada de muito inovador.',
+
+    -- User 8, book 8
+    '80000008-0000-0000-0000-000000000008',
+    'b0000008-0000-0000-0000-000000000008'
+  ),
+  (
+    '01949e60-ba00-7e78-5c01-2304f9a1b2c3',
+    0.5,
+    'Terrível',
+    'Erros de revisão, furos no roteiro e personagens antipáticos. Não recomendo nem para meu pior inimigo.',
+
+    -- User 9, book 9
+    '90000009-0000-0000-0000-000000000009',
+    'b0000009-0000-0000-0000-000000000009'
+  ),
+  (
+    '01949e60-ce00-7f89-6d12-3415a2b3c4d5',
+    2.5,
+    'Começa bem, termina mal',
+    'A primeira metade do livro é fantástica, mas a segunda metade se perde em subtramas desnecessárias.',
+
+    -- User 10, book 10
+    'a0000010-0000-0000-0000-000000000010',
+    'b0000010-0000-0000-0000-000000000010'
+  ),
+  (
+    '01949e60-e200-7a90-7e23-4526b3c4d5e6',
+    4.8,
+    'Quase perfeito',
+    'Teria dado 5 estrelas se não fosse por um capítulo específico que achei meio deslocado. Fora isso, brilhante.',
+
+    -- User 11, book 11
+    'b0000011-0000-0000-0000-000000000011',
+    'b0000011-0000-0000-0000-000000000011'
+  ),
+  (
+    '01949e60-f600-7b01-8f34-5637c4d5e6f7',
+    3.2,
+    'Interessante',
+    'Traz reflexões importantes sobre a sociedade atual, mas achei o tom um pouco professoral demais em certas partes.',
+
+    -- User 12, book 12
+    'c0000012-0000-0000-0000-000000000012',
+    'b0000012-0000-0000-0000-000000000012'
+  ),
+  (
+    '01949e61-0a00-7c12-9a45-6748d5e6f7a8',
+    5.0,
+    'Inesquecível',
+    'Dificilmente um livro me faz chorar, mas este aqui conseguiu. Uma montanha-russa de emoções.',
+
+    -- User 13, book 13
+    'd0000013-0000-0000-0000-000000000013',
+    'b0000013-0000-0000-0000-000000000013'
+  ),
+  (
+    '01949e61-1e00-7d23-0b56-7859e6f7a8b9',
+    1.5,
+    'Arrastado demais',
+    'Poderia ter 200 páginas a menos. O autor descreve cada detalhe de forma exaustiva, o que torna a leitura cansativa.',
+
+    -- User 14, book 14
+    'e0000014-0000-0000-0000-000000000014',
+    'b0000014-0000-0000-0000-000000000014'
+  ),
+  (
+    '01949e61-3200-7e34-1c67-8960f7a8b9c0',
+    4.2,
+    'Surpreendente',
+    'Não dava nada por este livro, mas ele se provou uma das leituras mais inteligentes que fiz ultimamente.',
+
+    -- User 15, book 15
+    'f0000015-0000-0000-0000-000000000015',
+    'b0000015-0000-0000-0000-000000000015'
+  )
+ON CONFLICT (id) DO NOTHING;
