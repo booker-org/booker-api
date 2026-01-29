@@ -190,7 +190,7 @@ public class BookController {
   @Operation(summary = "Get reviews for a book", description = "Get paginated list of reviews for a specific book")
   @ApiResponses(value = {
     @ApiResponse(responseCode = "200", description = "Reviews found"),
-    @ApiResponse(responseCode = "404", description = "Reviews not found")
+    @ApiResponse(responseCode = "404", description = "Book not found")
   })
   public ResponseEntity<Page<SimpleReviewDTO>> getReviewsForBook(
     @Parameter(description = "Book ID") @PathVariable UUID id,
