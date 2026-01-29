@@ -69,12 +69,7 @@ public class ReviewService {
   }
 
   @Transactional(readOnly = true)
-  public Page<Review> findByBookID(UUID bookID, Pageable pageable) {
-    BookDetailDTO bookDTO = bookService.findById(bookID);
-    Book book = bookMapper.toEntity(bookDTO);
-
-    return repository.findByBookId(book.getId(), pageable);
-  }
+  public Page<Review> findByBookID(UUID bookID, Pageable pageable) { return repository.findByBookId(bookID, pageable); }
 
   @Transactional(readOnly = true)
   public boolean isOwner(UUID id, String username) {
