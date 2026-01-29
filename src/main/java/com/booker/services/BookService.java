@@ -27,8 +27,7 @@ import com.booker.models.Book;
 import com.booker.models.Genre;
 import com.booker.repositories.BookRepository;
 
-@Service
-@RequiredArgsConstructor
+@Service @Transactional @RequiredArgsConstructor
 public class BookService {
   private final BookRepository bookRepository;
   private final BookMapper bookMapper;
@@ -38,15 +37,15 @@ public class BookService {
 
   @Transactional(readOnly = true)
   public Page<BookDTO> findAll(Pageable pageable) {
-    return bookRepository.findAll(pageable)
-        .map(bookMapper::toDTO);
+    return bookRepository.findAllWithGenres(pageable).map(bookMapper::toDTO);
   }
 
   @Transactional(readOnly = true)
   public BookDetailDTO findById(UUID id) {
-    return bookRepository.findById(id)
-        .map(bookMapper::toDetailDTO)
-        .orElseThrow(() -> new ResourceNotFoundException("Book not found"));
+    return bookRepository.findByIdWithGenres(id)
+      .map(bookMapper::toDetailDTO)
+      .orElseThrow(() -> new ResourceNotFoundException("Book not found"))
+    ;
   }
 
   @Transactional(readOnly = true)
@@ -67,7 +66,6 @@ public class BookService {
         .map(bookMapper::toDTO);
   }
 
-  @Transactional
   public BookDetailDTO save(Book book, UUID authorId, List<UUID> genreIds) {
     validateBook(book);
 
@@ -96,7 +94,6 @@ public class BookService {
     return bookMapper.toDetailDTO(savedBook);
   }
 
-  @Transactional
   public Optional<BookDetailDTO> update(UUID id, Book bookData, UUID authorId, List<UUID> genreIds) {
     return bookRepository.findById(id)
         .map(existingBook -> {
@@ -133,7 +130,6 @@ public class BookService {
         });
   }
 
-  @Transactional
   public Optional<BookDetailDTO> partialUpdate(UUID id, Book bookData, UUID authorId, List<UUID> genreIds) {
     return bookRepository.findById(id)
         .map(existingBook -> {
@@ -188,7 +184,6 @@ public class BookService {
         });
   }
 
-  @Transactional
   public Optional<BookDetailDTO> updateCover(UUID id, MultipartFile coverFile) {
     if (coverFile == null || coverFile.isEmpty()) {
       throw new IllegalArgumentException("Cover file is required");
@@ -210,7 +205,6 @@ public class BookService {
         });
   }
 
-  @Transactional
   public boolean removeCover(UUID id) {
     return bookRepository.findById(id)
         .map(existingBook -> {
@@ -231,7 +225,6 @@ public class BookService {
         .orElse(false);
   }
 
-  @Transactional
   public boolean deleteById(UUID id) {
     return bookRepository.findById(id)
         .map(book -> {

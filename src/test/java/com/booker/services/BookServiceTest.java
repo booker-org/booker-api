@@ -106,7 +106,7 @@ class BookServiceTest {
         testBook.getPageCount(),
         null, null, null, null, null);
 
-    when(bookRepository.findById(TEST_BOOK_ID)).thenReturn(Optional.of(testBook));
+    when(bookRepository.findByIdWithGenres(TEST_BOOK_ID)).thenReturn(Optional.of(testBook));
     when(bookMapper.toDetailDTO(testBook)).thenReturn(expectedDTO);
 
     // When
@@ -116,7 +116,7 @@ class BookServiceTest {
     assertNotNull(result);
     assertEquals(testBook.getId(), result.id());
     assertEquals(testBook.getTitle(), result.title());
-    verify(bookRepository).findById(TEST_BOOK_ID);
+    verify(bookRepository).findByIdWithGenres(TEST_BOOK_ID);
     verify(bookMapper).toDetailDTO(testBook);
   }
 
@@ -125,14 +125,14 @@ class BookServiceTest {
     final UUID randomID = UUID.randomUUID();
 
     // Given - Non-existent ID
-    when(bookRepository.findById(randomID)).thenReturn(Optional.empty());
+    when(bookRepository.findByIdWithGenres(randomID)).thenReturn(Optional.empty());
 
     // When & Then
     assertThrows(ResourceNotFoundException.class, () -> {
       bookService.findById(randomID);
     });
 
-    verify(bookRepository).findById(randomID);
+    verify(bookRepository).findByIdWithGenres(randomID);
   }
 
   @Test
@@ -200,7 +200,7 @@ class BookServiceTest {
     BookDTO dto1 = new BookDTO(testBook.getId(), testBook.getTitle(), null, null, null, null, null, null, null);
     BookDTO dto2 = new BookDTO(UUID.randomUUID(), book2.getTitle(), null, null, null, null, null, null, null);
 
-    when(bookRepository.findAll(pageable)).thenReturn(bookPage);
+    when(bookRepository.findAllWithGenres(pageable)).thenReturn(bookPage);
     when(bookMapper.toDTO(testBook)).thenReturn(dto1);
     when(bookMapper.toDTO(book2)).thenReturn(dto2);
 
@@ -210,7 +210,7 @@ class BookServiceTest {
     // Then
     assertEquals(2, result.getContent().size());
     assertEquals(testBook.getTitle(), result.getContent().get(0).title());
-    verify(bookRepository).findAll(pageable);
+    verify(bookRepository).findAllWithGenres(pageable);
   }
 
   // ========== SAVE TESTS ==========
