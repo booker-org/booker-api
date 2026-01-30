@@ -125,6 +125,19 @@ public class GlobalExceptionHandler {
     return ResponseEntity.badRequest().body(errorResponse);
   }
 
+  @ExceptionHandler(BusinessRuleException.class)
+  public ResponseEntity<ErrorResponse> handleBusinessRule(BusinessRuleException ex) {
+    HttpStatus status = HttpStatus.BAD_REQUEST;
+
+    ErrorResponse error = new ErrorResponse(
+      status.value(),
+      ex.getMessage(),
+      LocalDateTime.now()
+    );
+
+    return ResponseEntity.status(status).body(error);
+  }
+
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ErrorResponse> handleException(Exception ex) {
     log.error("Unexpected error occurred", ex);

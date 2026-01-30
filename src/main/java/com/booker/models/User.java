@@ -3,10 +3,12 @@ package com.booker.models;
 import java.util.Collection;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
@@ -47,6 +49,13 @@ public class User extends BaseEntity implements UserDetails {
 
   @Column(name = "account_non_locked", nullable = false)
   private Boolean accountNonLocked = true;
+
+  @OneToMany(
+    mappedBy = "user",
+    cascade = CascadeType.ALL,
+    orphanRemoval = true
+  )
+  private List<Review> reviews;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {

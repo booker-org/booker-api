@@ -32,6 +32,18 @@ public class AuthorMapper {
     return author;
   }
 
+  public Author toEntity(AuthorDTO dto) {
+    if (dto == null) return null;
+
+    Author author = new Author();
+
+    author.setId(dto.id());
+    author.setName(dto.name());
+    author.setBiography(dto.biography());
+
+    return author;
+  }
+
   public List<AuthorDTO> toDTOList(List<Author> authors) {
     return authors.stream()
       .map(this::toDTO)
