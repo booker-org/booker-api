@@ -13,6 +13,8 @@ RUN ./mvnw clean package -DskipTests
 
 FROM eclipse-temurin:25-jre AS runtime
 
+EXPOSE 8080
+
 WORKDIR /app
 
 COPY --from=build /app/target/*.jar app.jar
