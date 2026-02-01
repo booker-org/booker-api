@@ -26,14 +26,18 @@ spring:
     baseline-on-migrate: true
     validate-on-migrate: false
     connect-retries: 3
-    migrate-at-start: true
 
   jpa:
     open-in-view: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+    defer-datasource-initialization: true
 
     hibernate:
       ddl-auto: validate
+
+    properties:
+      hibernate:
+        '[javax.persistence.schema-generation.database.action]': none
 
 jwt:
   secret: ${JWT_SECRET}
