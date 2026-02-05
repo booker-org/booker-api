@@ -1,4 +1,7 @@
 spring:
+  flyway:
+    enabled: false
+
   jpa:
     defer-datasource-initialization: true
 
