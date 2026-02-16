@@ -21,6 +21,8 @@ import com.booker.DTO.Auth.LoginRequestDTO;
 import com.booker.DTO.Auth.RefreshTokenRequestDTO;
 import com.booker.DTO.Auth.RegisterRequestDTO;
 import com.booker.config.security.SecurityConstants;
+import com.booker.exceptions.BusinessRuleException;
+import com.booker.exceptions.ErrorCode;
 import com.booker.exceptions.ResourceNotFoundException;
 import com.booker.mappers.UserMapper;
 import com.booker.models.RefreshToken;
@@ -42,11 +44,11 @@ public class AuthenticationService {
   @Transactional
   public AuthenticationResponseDTO register(RegisterRequestDTO request, HttpServletRequest httpRequest) {
     if (userRepository.existsByUsername(request.username())) {
-      throw new IllegalArgumentException("Username already exists");
+      throw new BusinessRuleException("Username already exists", ErrorCode.USERNAME_ALREADY_EXISTS);
     }
 
     if (userRepository.existsByEmail(request.email())) {
-      throw new IllegalArgumentException("Email already exists");
+      throw new BusinessRuleException("Email already exists", ErrorCode.EMAIL_ALREADY_EXISTS);
     }
 
     User user = new User();
@@ -109,22 +111,22 @@ public class AuthenticationService {
     String refreshTokenValue = request.refreshToken();
 
     if (!jwtService.isRefreshToken(refreshTokenValue)) {
-      throw new IllegalArgumentException("Invalid token type. Expected refresh token.");
+      throw new BusinessRuleException("Invalid token type. Expected refresh token.", ErrorCode.INVALID_TOKEN);
     }
 
     String username = jwtService.extractUsername(refreshTokenValue);
 
     if (username == null || username.isBlank()) {
-      throw new IllegalArgumentException("Invalid refresh token");
+      throw new BusinessRuleException("Invalid refresh token", ErrorCode.INVALID_TOKEN);
     }
 
     String tokenHash = hashToken(refreshTokenValue);
 
     RefreshToken refreshToken = refreshTokenRepository.findByTokenHash(tokenHash)
-        .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
+        .orElseThrow(() -> new BusinessRuleException("Invalid refresh token", ErrorCode.INVALID_TOKEN));
 
     if (!refreshToken.isValid()) {
-      throw new IllegalArgumentException("Refresh token expired or revoked");
+      throw new BusinessRuleException("Refresh token expired or revoked", ErrorCode.TOKEN_EXPIRED);
     }
 
     User user = refreshToken.getUser();

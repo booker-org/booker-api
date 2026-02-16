@@ -23,6 +23,7 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
     ErrorResponse error = new ErrorResponse(
       HttpStatus.NOT_FOUND.value(),
+      ErrorCode.RESOURCE_NOT_FOUND.name(),
       ex.getMessage(),
       LocalDateTime.now()
     );
@@ -34,6 +35,7 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleCoverException(CoverException ex) {
     ErrorResponse error = new ErrorResponse(
       HttpStatus.BAD_REQUEST.value(),
+      ErrorCode.COVER_ERROR.name(),
       ex.getMessage(),
       LocalDateTime.now()
     );
@@ -45,6 +47,7 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
     ErrorResponse error = new ErrorResponse(
       HttpStatus.BAD_REQUEST.value(),
+      ErrorCode.INVALID_ARGUMENT.name(),
       ex.getMessage(),
       LocalDateTime.now()
     );
@@ -58,6 +61,7 @@ public class GlobalExceptionHandler {
 
     ErrorResponse error = new ErrorResponse(
       HttpStatus.UNAUTHORIZED.value(),
+      ErrorCode.INVALID_CREDENTIALS.name(),
       "Invalid username or password",
       LocalDateTime.now()
     );
@@ -71,6 +75,7 @@ public class GlobalExceptionHandler {
 
     ErrorResponse error = new ErrorResponse(
       HttpStatus.UNAUTHORIZED.value(),
+      ErrorCode.AUTHENTICATION_FAILED.name(),
       "Authentication failed",
       LocalDateTime.now()
     );
@@ -84,6 +89,7 @@ public class GlobalExceptionHandler {
 
     ErrorResponse error = new ErrorResponse(
       HttpStatus.FORBIDDEN.value(),
+      ErrorCode.ACCESS_DENIED.name(),
       "Access denied",
       LocalDateTime.now()
     );
@@ -95,31 +101,41 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleTypeMismatchException(MethodArgumentTypeMismatchException ex) {
     log.warn("Type mismatch for parameter '{}': {}", ex.getName(), ex.getMessage());
 
+    Map<String, Object> meta = Map.of(
+      "parameter", ex.getName(),
+      "rejectedValue", String.valueOf(ex.getValue())
+    );
+
     ErrorResponse error = new ErrorResponse(
       HttpStatus.BAD_REQUEST.value(),
+      ErrorCode.TYPE_MISMATCH.name(),
       String.format("Invalid value for parameter '%s'", ex.getName()),
-      LocalDateTime.now()
+      LocalDateTime.now(),
+      meta
     );
 
     return ResponseEntity.badRequest().body(error);
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<ValidationErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
-    Map<String, String> errors = new HashMap<>();
+  public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    Map<String, String> fieldErrors = new HashMap<>();
 
     ex.getBindingResult().getAllErrors().forEach(error -> {
       String fieldName = ((FieldError) error).getField();
       String errorMessage = error.getDefaultMessage();
 
-      errors.put(fieldName, errorMessage);
+      fieldErrors.put(fieldName, errorMessage);
     });
 
-    ValidationErrorResponse errorResponse = new ValidationErrorResponse(
+    Map<String, Object> meta = Map.of("fieldErrors", fieldErrors);
+
+    ErrorResponse errorResponse = new ErrorResponse(
       HttpStatus.BAD_REQUEST.value(),
+      ErrorCode.VALIDATION_ERROR.name(),
       "Validation failed",
       LocalDateTime.now(),
-      errors
+      meta
     );
 
     return ResponseEntity.badRequest().body(errorResponse);
@@ -127,15 +143,14 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(BusinessRuleException.class)
   public ResponseEntity<ErrorResponse> handleBusinessRule(BusinessRuleException ex) {
-    HttpStatus status = HttpStatus.BAD_REQUEST;
-
     ErrorResponse error = new ErrorResponse(
-      status.value(),
+      HttpStatus.BAD_REQUEST.value(),
+      ex.getCode().name(),
       ex.getMessage(),
       LocalDateTime.now()
     );
 
-    return ResponseEntity.status(status).body(error);
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
   }
 
   @ExceptionHandler(Exception.class)
@@ -144,20 +159,11 @@ public class GlobalExceptionHandler {
 
     ErrorResponse error = new ErrorResponse(
       HttpStatus.INTERNAL_SERVER_ERROR.value(),
+      ErrorCode.INTERNAL_ERROR.name(),
       "An unexpected error occurred",
       LocalDateTime.now()
     );
 
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
   }
-
-  // Error response classes
-  record ErrorResponse(int status, String message, LocalDateTime timestamp) {}
-
-  record ValidationErrorResponse(
-    int status,
-    String message,
-    LocalDateTime timestamp,
-    Map<String, String> errors
-  ) {}
 }

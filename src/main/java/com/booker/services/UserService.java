@@ -17,6 +17,8 @@ import com.booker.DTO.Auth.RegisterRequestDTO;
 import com.booker.DTO.User.CreateUserDTO;
 import com.booker.DTO.User.UpdatePasswordDTO;
 import com.booker.DTO.User.UpdateUserDTO;
+import com.booker.exceptions.BusinessRuleException;
+import com.booker.exceptions.ErrorCode;
 import com.booker.exceptions.ResourceNotFoundException;
 import com.booker.models.User;
 import com.booker.models.enums.Role;
@@ -65,10 +67,10 @@ public class UserService implements UserDetailsService {
   @Transactional
   public User save(RegisterRequestDTO data) {
     if (repository.existsByUsername(data.username()))
-      throw new IllegalArgumentException("This username is already in use");
+      throw new BusinessRuleException("This username is already in use", ErrorCode.USERNAME_ALREADY_EXISTS);
 
     if (repository.existsByEmail(data.email()))
-      throw new IllegalArgumentException("This email is already in use");
+      throw new BusinessRuleException("This email is already in use", ErrorCode.EMAIL_ALREADY_EXISTS);
 
     User user = new User();
 
@@ -86,10 +88,10 @@ public class UserService implements UserDetailsService {
   @Transactional
   public User save(CreateUserDTO data) {
     if (repository.existsByUsername(data.username()))
-      throw new IllegalArgumentException("This username is already in use");
+      throw new BusinessRuleException("This username is already in use", ErrorCode.USERNAME_ALREADY_EXISTS);
 
     if (repository.existsByEmail(data.email()))
-      throw new IllegalArgumentException("This email is already in use");
+      throw new BusinessRuleException("This email is already in use", ErrorCode.EMAIL_ALREADY_EXISTS);
 
     User user = new User();
 
@@ -111,14 +113,14 @@ public class UserService implements UserDetailsService {
 
     if (data.username() != null) {
       if (repository.existsByUsername(data.username()))
-        throw new IllegalArgumentException("This username is already in use");
+        throw new BusinessRuleException("This username is already in use", ErrorCode.USERNAME_ALREADY_EXISTS);
 
       user.setUsername(data.username());
     }
 
     if (data.email() != null) {
       if (repository.existsByEmail(data.email()))
-        throw new IllegalArgumentException("This email is already in use");
+        throw new BusinessRuleException("This email is already in use", ErrorCode.EMAIL_ALREADY_EXISTS);
 
       user.setEmail(data.email());
     }
@@ -136,7 +138,7 @@ public class UserService implements UserDetailsService {
     User user = findById(id);
 
     if (!passwordEncoder.matches(data.currentPassword(), user.getPassword())) {
-      throw new IllegalArgumentException("Incorrect password");
+      throw new BusinessRuleException("Incorrect password", ErrorCode.INCORRECT_PASSWORD);
     }
 
     user.setPassword(passwordEncoder.encode(data.newPassword()));
