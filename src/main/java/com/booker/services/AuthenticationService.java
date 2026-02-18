@@ -23,6 +23,7 @@ import com.booker.DTO.Auth.RegisterRequestDTO;
 import com.booker.config.security.SecurityConstants;
 import com.booker.exceptions.BusinessRuleException;
 import com.booker.exceptions.ErrorCode;
+import com.booker.exceptions.InvalidTokenException;
 import com.booker.exceptions.ResourceNotFoundException;
 import com.booker.mappers.UserMapper;
 import com.booker.models.RefreshToken;
@@ -111,22 +112,22 @@ public class AuthenticationService {
     String refreshTokenValue = request.refreshToken();
 
     if (!jwtService.isRefreshToken(refreshTokenValue)) {
-      throw new BusinessRuleException("Invalid token type. Expected refresh token.", ErrorCode.INVALID_TOKEN);
+      throw new InvalidTokenException("Invalid token type. Expected refresh token.");
     }
 
     String username = jwtService.extractUsername(refreshTokenValue);
 
     if (username == null || username.isBlank()) {
-      throw new BusinessRuleException("Invalid refresh token", ErrorCode.INVALID_TOKEN);
+      throw new InvalidTokenException("Invalid refresh token");
     }
 
     String tokenHash = hashToken(refreshTokenValue);
 
     RefreshToken refreshToken = refreshTokenRepository.findByTokenHash(tokenHash)
-        .orElseThrow(() -> new BusinessRuleException("Invalid refresh token", ErrorCode.INVALID_TOKEN));
+        .orElseThrow(() -> new InvalidTokenException("Invalid refresh token"));
 
     if (!refreshToken.isValid()) {
-      throw new BusinessRuleException("Refresh token expired or revoked", ErrorCode.TOKEN_EXPIRED);
+      throw new InvalidTokenException("Refresh token expired or revoked", ErrorCode.TOKEN_EXPIRED);
     }
 
     User user = refreshToken.getUser();
