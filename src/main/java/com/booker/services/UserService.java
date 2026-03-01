@@ -170,4 +170,11 @@ public class UserService implements UserDetailsService {
   public void delete(UUID id) {
     repository.deleteById(id);
   }
+
+  @Transactional(readOnly = true)
+  public boolean isSelf(UUID id, String username) {
+    return repository.findById(id)
+        .map(user -> user.getUsername().equals(username))
+        .orElse(false);
+  }
 }

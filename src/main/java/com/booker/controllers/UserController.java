@@ -39,6 +39,7 @@ import com.booker.services.UserService;
 
 import static com.booker.constants.Auth.ADMIN_ROLE;
 import static com.booker.constants.Auth.ADMIN_AUTHORIZATION;
+import static com.booker.constants.Auth.USER_SELF_OR_ADMIN;
 
 @RestController
 @RequestMapping("/users")
@@ -92,6 +93,7 @@ public class UserController {
   }
 
   @PatchMapping("/{id}")
+  @PreAuthorize(USER_SELF_OR_ADMIN)
   @Operation(summary = "Update user", description = "Update an existing user's information")
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "User updated successfully"),
