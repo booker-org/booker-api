@@ -118,14 +118,14 @@ public class UserService implements UserDetailsService {
     User user = findById(id);
 
     if (data.username() != null) {
-      if (repository.existsByUsernameAndIdNot(data.username(), id))
+      if (!data.username().equals(user.getUsername()) && repository.existsByUsername(data.username()))
         throw new BusinessRuleException("This username is already in use", ErrorCode.USERNAME_ALREADY_EXISTS);
 
       user.setUsername(data.username());
     }
 
     if (data.email() != null) {
-      if (repository.existsByEmailAndIdNot(data.email(), id))
+      if (!data.email().equals(user.getEmail()) && repository.existsByEmail(data.email()))
         throw new BusinessRuleException("This email is already in use", ErrorCode.EMAIL_ALREADY_EXISTS);
 
       user.setEmail(data.email());
