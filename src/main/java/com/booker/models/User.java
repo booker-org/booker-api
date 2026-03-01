@@ -1,5 +1,6 @@
 package com.booker.models;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -55,7 +56,7 @@ public class User extends BaseEntity implements UserDetails {
     cascade = CascadeType.ALL,
     orphanRemoval = true
   )
-  private List<Review> reviews;
+  private List<Review> reviews = new ArrayList<>();
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
