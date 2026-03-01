@@ -1,5 +1,6 @@
 package com.booker.DTO.User;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 
@@ -19,6 +20,9 @@ public record UpdateUserDTO(
   @Size(max = 300, message = "Bio must not exceed 300 characters")
   String bio,
 
+  @Schema(description = "Admin only: change the user's role.")
   Role role,
+
+  @Schema(description = "Admin only: lock (false) or unlock (true) the user's account.")
   Boolean accountNonLocked
 ) {}

@@ -92,11 +92,15 @@ public class UserController {
   }
 
   @PatchMapping("/{id}")
-  @Operation(summary = "Update user", description = "Update an existing user's information")
+  @Operation(
+    summary = "Update user",
+    description = "Update an existing user's information. The fields 'role' and 'accountNonLocked' are admin-only."
+  )
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "User updated successfully"),
+      @ApiResponse(responseCode = "204", description = "User updated successfully"),
       @ApiResponse(responseCode = "404", description = "User not found", content = @Content),
-      @ApiResponse(responseCode = "400", description = "Invalid user data", content = @Content)
+      @ApiResponse(responseCode = "400", description = "Invalid user data", content = @Content),
+      @ApiResponse(responseCode = "403", description = "Access denied - 'role' and 'accountNonLocked' require ADMIN privileges", content = @Content)
   })
   public ResponseEntity<Void> patch(
       @PathVariable UUID id,
