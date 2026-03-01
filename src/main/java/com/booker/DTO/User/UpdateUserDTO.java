@@ -3,6 +3,8 @@ package com.booker.DTO.User;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 
+import com.booker.models.enums.Role;
+
 public record UpdateUserDTO(
   @Size(min = 2, max = 100, message = "Name must be between 2 and 100 characters")
   String name,
@@ -15,5 +17,8 @@ public record UpdateUserDTO(
   String email,
 
   @Size(max = 300, message = "Bio must not exceed 300 characters")
-  String bio
+  String bio,
+
+  Role role,
+  Boolean accountNonLocked
 ) {}

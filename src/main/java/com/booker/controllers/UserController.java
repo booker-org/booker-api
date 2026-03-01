@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.booker.DTO.User.AdminUserDTO;
 import com.booker.DTO.User.CreateUserDTO;
 import com.booker.DTO.User.UpdatePasswordDTO;
 import com.booker.DTO.User.UpdateUserDTO;
@@ -52,11 +53,11 @@ public class UserController {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "User list successfully retrieved")
   })
-  public ResponseEntity<Page<UserDTO>> getAll(
+  public ResponseEntity<Page<AdminUserDTO>> getAll(
       @ParameterObject @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
     Page<User> users = service.findAll(pageable);
 
-    return ResponseEntity.ok(users.map(userMapper::toDTO));
+    return ResponseEntity.ok(users.map(userMapper::toAdminDTO));
   }
 
   @GetMapping("/{id}")
