@@ -24,5 +24,5 @@ public record UpdateUserDTO(
   Role role,
 
   @Schema(description = "Admin only: lock (false) or unlock (true) the user's account.")
-  Boolean accountNonLocked
+  boolean accountNonLocked
 ) {}

@@ -12,7 +12,7 @@ public record AdminUserDTO(
   String email,
   String bio,
   Role role,
-  Boolean accountNonLocked,
+  boolean accountNonLocked,
   LocalDateTime createdAt,
   LocalDateTime updatedAt
 ) {}

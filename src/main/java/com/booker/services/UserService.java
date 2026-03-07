@@ -136,7 +136,7 @@ public class UserService implements UserDetailsService {
     if (data.bio() != null)
       user.setBio(data.bio());
 
-    if (data.role() != null || data.accountNonLocked() != null) {
+    if (data.role() != null) {
       Authentication auth = SecurityContextHolder.getContext().getAuthentication();
       boolean isAdmin = auth != null && auth.getAuthorities().stream()
           .anyMatch(a -> a.getAuthority().equals(ROLE_PREFIX + ADMIN_ROLE));
@@ -146,8 +146,7 @@ public class UserService implements UserDetailsService {
 
       if (data.role() != null)
         user.setRole(data.role());
-      if (data.accountNonLocked() != null)
-        user.setAccountNonLocked(data.accountNonLocked());
+      user.setAccountNonLocked(data.accountNonLocked());
     }
 
     repository.save(user);

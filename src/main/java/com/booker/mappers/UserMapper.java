@@ -31,7 +31,7 @@ public class UserMapper {
       user.getEmail(),
       user.getBio(),
       user.getRole(),
-      user.getAccountNonLocked(),
+      user.isAccountNonLocked(),
       user.getCreatedAt(),
       user.getUpdatedAt()
     );
