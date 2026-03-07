@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.booker.DTO.User.AdminUserDTO;
 import com.booker.DTO.User.CreateUserDTO;
 import com.booker.DTO.User.UpdatePasswordDTO;
 import com.booker.DTO.User.UpdateUserDTO;
@@ -38,6 +39,7 @@ import com.booker.services.UserService;
 
 import static com.booker.constants.Auth.ADMIN_ROLE;
 import static com.booker.constants.Auth.ADMIN_AUTHORIZATION;
+import static com.booker.constants.Auth.USER_SELF_OR_ADMIN;
 
 @RestController
 @RequestMapping("/users")
@@ -52,11 +54,11 @@ public class UserController {
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "User list successfully retrieved")
   })
-  public ResponseEntity<Page<UserDTO>> getAll(
+  public ResponseEntity<Page<AdminUserDTO>> getAll(
       @ParameterObject @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
     Page<User> users = service.findAll(pageable);
 
-    return ResponseEntity.ok(users.map(userMapper::toDTO));
+    return ResponseEntity.ok(users.map(userMapper::toAdminDTO));
   }
 
   @GetMapping("/{id}")
@@ -91,11 +93,16 @@ public class UserController {
   }
 
   @PatchMapping("/{id}")
-  @Operation(summary = "Update user", description = "Update an existing user's information")
+  @PreAuthorize(USER_SELF_OR_ADMIN)
+  @Operation(
+    summary = "Update user",
+    description = "Update an existing user's information. The fields 'role' and 'accountNonLocked' are admin-only."
+  )
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "User updated successfully"),
+      @ApiResponse(responseCode = "204", description = "User updated successfully"),
       @ApiResponse(responseCode = "404", description = "User not found", content = @Content),
-      @ApiResponse(responseCode = "400", description = "Invalid user data", content = @Content)
+      @ApiResponse(responseCode = "400", description = "Invalid user data", content = @Content),
+      @ApiResponse(responseCode = "403", description = "Access denied - 'role' and 'accountNonLocked' require ADMIN privileges", content = @Content)
   })
   public ResponseEntity<Void> patch(
       @PathVariable UUID id,

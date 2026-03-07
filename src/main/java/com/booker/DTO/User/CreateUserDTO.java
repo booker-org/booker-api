@@ -34,8 +34,8 @@ public record CreateUserDTO(
   Role role,
 
   @NotNull(message = "Enabled status is required")
-  Boolean enabled,
+  boolean enabled,
 
   @NotNull(message = "Account lock status is required")
-  Boolean accountNonLocked
+  boolean accountNonLocked
 ) {}
