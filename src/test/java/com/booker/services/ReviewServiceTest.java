@@ -64,7 +64,7 @@ public class ReviewServiceTest {
   private ReviewMapper mapper;
 
   @Test @DisplayName("Should retrieve a page of reviews")
-  void findAll() {
+  void findAll_ShouldReturnPageOfReviews() {
     // Given
     Pageable pageable = mock(Pageable.class);
     Page<Review> page = Page.empty();
@@ -81,7 +81,7 @@ public class ReviewServiceTest {
   }
 
   @Test @DisplayName("Should retrieve a review given an id")
-  void findByIdCase1() {
+  void findById_ShouldReturnReview_WhenReviewExists() {
     // Given
     Review review = mock(Review.class);
 
@@ -97,7 +97,7 @@ public class ReviewServiceTest {
   }
 
   @Test @DisplayName("Should throw error if review not found")
-  void findByIdCase2() {
+  void findById_ShouldThrowException_WhenReviewNotFound() {
     // Given
     given(repository.findById(DEFAULT_TEST_ID)).willReturn(Optional.empty());
 
@@ -106,7 +106,7 @@ public class ReviewServiceTest {
   }
 
   @Test @DisplayName("Should create a review given valid data")
-  void createCase1() {
+  void create_ShouldReturnReview_WhenValidData() {
     // Given
     CreateReviewDTO data = ReviewFixtures.validCreateReviewDTO();
     User currentUser = mock(User.class);
@@ -135,7 +135,7 @@ public class ReviewServiceTest {
   }
 
   @Test @DisplayName("Should throw error if already exists a review made by that user for that book")
-  void createCase2() {
+  void create_ShouldThrowException_WhenReviewAlreadyExistsForUserAndBook() {
     // Given
     CreateReviewDTO data = ReviewFixtures.validCreateReviewDTO();
     User currentUser = mock(User.class);
@@ -153,7 +153,7 @@ public class ReviewServiceTest {
   }
 
   @Test @DisplayName("Should update a review given valid data - All fields")
-  void updateCase1() {
+  void update_ShouldUpdateAllFields_WhenValidData() {
     // Given
     final BigDecimal newScore = BigDecimal.TEN;
     final String newHeadline = "New";
@@ -180,7 +180,7 @@ public class ReviewServiceTest {
   }
 
   @Test @DisplayName("Should update a review given valid data - Only given fields")
-  void updateCase2() {
+  void update_ShouldUpdateOnlyProvidedFields_WhenPartialData() {
     // Given
     final String oldHeadline = "Old";
     final String oldText = "Old text";
@@ -207,7 +207,7 @@ public class ReviewServiceTest {
   }
 
   @Test @DisplayName("Should not modify a review when all values are null")
-  void updateCase3() {
+  void update_ShouldKeepValuesUnchanged_WhenAllFieldsAreNull() {
     // Given
     final BigDecimal oldScore = BigDecimal.ONE;
     final String oldHeadline = "Old";
@@ -234,7 +234,7 @@ public class ReviewServiceTest {
   }
 
   @Test @DisplayName("Should throw exception when review not found")
-  void updateCase4() {
+  void update_ShouldThrowException_WhenReviewNotFound() {
     // Given
     UpdateReviewDTO data = new UpdateReviewDTO(BigDecimal.ONE, "New", "New text");
 
@@ -245,7 +245,7 @@ public class ReviewServiceTest {
   }
 
   @Test @DisplayName("Should delete review if it exists")
-  void deleteCase1() {
+  void delete_ShouldDeleteReview_WhenReviewExists() {
     // Given
     given(repository.existsById(DEFAULT_TEST_ID)).willReturn(true);
 
@@ -257,7 +257,7 @@ public class ReviewServiceTest {
   }
 
   @Test @DisplayName("Should throw error to delete review if it doesn't exists")
-  void deleteCase2() {
+  void delete_ShouldThrowException_WhenReviewDoesNotExist() {
     // Given
     given(repository.existsById(DEFAULT_TEST_ID)).willReturn(false);
 
@@ -268,7 +268,7 @@ public class ReviewServiceTest {
   }
 
   @Test @DisplayName("Should retrieve a page of reviews given an book id")
-  void findByBookID() {
+  void findByBookID_ShouldReturnPageOfReviews_WhenBookIdIsValid() {
     // Given
     Pageable pageable = mock(Pageable.class);
     Review review = new Review();
@@ -289,7 +289,7 @@ public class ReviewServiceTest {
   }
 
   @Test @DisplayName("Should return true if the user is owner of that review given it's username")
-  void isOwnerCase1() {
+  void isOwner_ShouldReturnTrue_WhenUserIsOwner() {
     // Given
     final String username = "user";
 
@@ -309,7 +309,7 @@ public class ReviewServiceTest {
   }
 
   @Test @DisplayName("Should return false if the user is not owner of that review given it's username")
-  void isOwnerCase2() {
+  void isOwner_ShouldReturnFalse_WhenUserIsNotOwner() {
     // Given
     User user = new User();
     user.setUsername("anotherUser");
@@ -327,7 +327,7 @@ public class ReviewServiceTest {
   }
 
   @Test @DisplayName("Should return false if review not found")
-  void isOwnerCase3() {
+  void isOwner_ShouldReturnFalse_WhenReviewNotFound() {
     // Given
     given(repository.findById(DEFAULT_TEST_ID)).willReturn(Optional.empty());
 
