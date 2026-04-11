@@ -2,10 +2,6 @@ spring:
   application:
     name: booker
 
-  docker:
-    compose:
-      enabled: false
-
   jpa:
     show-sql: true
 
