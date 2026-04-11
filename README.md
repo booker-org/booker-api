@@ -9,9 +9,9 @@
 
 #### Run the application from your IDE using the `BookerApplication.java` class or execute `mvn spring-boot:run` in the terminal.
 
-Spring Boot will detect `compose.yaml`, start the PostgreSQL container automatically, and stop it when the app stops.
+When the `dev` profile is active, Spring Boot will detect `compose.yaml`, start the PostgreSQL container automatically, and stop it when the app stops.
 
-To disable this behavior and use an external database instead, set `SPRING_DOCKER_COMPOSE_ENABLED=false`.
+For deploy environments, use an external database and set `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, and `SPRING_DATASOURCE_PASSWORD`.
 
 ##### The application will be available at http://localhost:8080
 

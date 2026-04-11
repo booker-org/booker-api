@@ -8,6 +8,10 @@ spring:
   application:
     name: booker
 
+  docker:
+    compose:
+      enabled: false
+
   data:
     web:
       pageable:
