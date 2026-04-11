@@ -12,6 +12,7 @@ import com.booker.DTO.Book.BookDetailDTO;
 import com.booker.DTO.Review.CreateReviewDTO;
 import com.booker.DTO.Review.UpdateReviewDTO;
 import com.booker.exceptions.BusinessRuleException;
+import com.booker.exceptions.ErrorCode;
 import com.booker.exceptions.ResourceNotFoundException;
 import com.booker.mappers.BookMapper;
 import com.booker.mappers.ReviewMapper;
@@ -48,7 +49,7 @@ public class ReviewService {
 
     try { return repository.save(review); }
     catch (DataIntegrityViolationException exception) {
-      throw new BusinessRuleException("It's not allowed to create more than one review per book");
+      throw new BusinessRuleException("It's not allowed to create more than one review per book", ErrorCode.DUPLICATE_REVIEW);
     }
   }
 

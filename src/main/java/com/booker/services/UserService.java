@@ -6,6 +6,9 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -13,10 +16,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.booker.constants.Auth.ADMIN_ROLE;
+import static com.booker.config.security.SecurityConstants.ROLE_PREFIX;
+
 import com.booker.DTO.Auth.RegisterRequestDTO;
 import com.booker.DTO.User.CreateUserDTO;
 import com.booker.DTO.User.UpdatePasswordDTO;
 import com.booker.DTO.User.UpdateUserDTO;
+import com.booker.exceptions.BusinessRuleException;
+import com.booker.exceptions.ErrorCode;
 import com.booker.exceptions.ResourceNotFoundException;
 import com.booker.models.User;
 import com.booker.models.enums.Role;
@@ -65,10 +73,10 @@ public class UserService implements UserDetailsService {
   @Transactional
   public User save(RegisterRequestDTO data) {
     if (repository.existsByUsername(data.username()))
-      throw new IllegalArgumentException("This username is already in use");
+      throw new BusinessRuleException("This username is already in use", ErrorCode.USERNAME_ALREADY_EXISTS);
 
     if (repository.existsByEmail(data.email()))
-      throw new IllegalArgumentException("This email is already in use");
+      throw new BusinessRuleException("This email is already in use", ErrorCode.EMAIL_ALREADY_EXISTS);
 
     User user = new User();
 
@@ -86,10 +94,10 @@ public class UserService implements UserDetailsService {
   @Transactional
   public User save(CreateUserDTO data) {
     if (repository.existsByUsername(data.username()))
-      throw new IllegalArgumentException("This username is already in use");
+      throw new BusinessRuleException("This username is already in use", ErrorCode.USERNAME_ALREADY_EXISTS);
 
     if (repository.existsByEmail(data.email()))
-      throw new IllegalArgumentException("This email is already in use");
+      throw new BusinessRuleException("This email is already in use", ErrorCode.EMAIL_ALREADY_EXISTS);
 
     User user = new User();
 
@@ -110,15 +118,15 @@ public class UserService implements UserDetailsService {
     User user = findById(id);
 
     if (data.username() != null) {
-      if (repository.existsByUsername(data.username()))
-        throw new IllegalArgumentException("This username is already in use");
+      if (!data.username().equals(user.getUsername()) && repository.existsByUsername(data.username()))
+        throw new BusinessRuleException("This username is already in use", ErrorCode.USERNAME_ALREADY_EXISTS);
 
       user.setUsername(data.username());
     }
 
     if (data.email() != null) {
-      if (repository.existsByEmail(data.email()))
-        throw new IllegalArgumentException("This email is already in use");
+      if (!data.email().equals(user.getEmail()) && repository.existsByEmail(data.email()))
+        throw new BusinessRuleException("This email is already in use", ErrorCode.EMAIL_ALREADY_EXISTS);
 
       user.setEmail(data.email());
     }
@@ -128,6 +136,19 @@ public class UserService implements UserDetailsService {
     if (data.bio() != null)
       user.setBio(data.bio());
 
+    if (data.role() != null) {
+      Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+      boolean isAdmin = auth != null && auth.getAuthorities().stream()
+          .anyMatch(a -> a.getAuthority().equals(ROLE_PREFIX + ADMIN_ROLE));
+
+      if (!isAdmin)
+        throw new AccessDeniedException("Access denied");
+
+      if (data.role() != null)
+        user.setRole(data.role());
+      user.setAccountNonLocked(data.accountNonLocked());
+    }
+
     repository.save(user);
   }
 
@@ -136,7 +157,7 @@ public class UserService implements UserDetailsService {
     User user = findById(id);
 
     if (!passwordEncoder.matches(data.currentPassword(), user.getPassword())) {
-      throw new IllegalArgumentException("Incorrect password");
+      throw new BusinessRuleException("Incorrect password", ErrorCode.INCORRECT_PASSWORD);
     }
 
     user.setPassword(passwordEncoder.encode(data.newPassword()));
@@ -147,5 +168,12 @@ public class UserService implements UserDetailsService {
   @Transactional
   public void delete(UUID id) {
     repository.deleteById(id);
+  }
+
+  @Transactional(readOnly = true)
+  public boolean isSelf(UUID id, String username) {
+    return repository.findById(id)
+        .map(user -> user.getUsername().equals(username))
+        .orElse(false);
   }
 }

@@ -46,10 +46,10 @@ public class User extends BaseEntity implements UserDetails {
   private Role role = Role.USER;
 
   @Column(nullable = false)
-  private Boolean enabled = true;
+  private boolean enabled = true;
 
   @Column(name = "account_non_locked", nullable = false)
-  private Boolean accountNonLocked = true;
+  private boolean accountNonLocked = true;
 
   @OneToMany(
     mappedBy = "user",
