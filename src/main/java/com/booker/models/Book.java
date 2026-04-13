@@ -1,5 +1,6 @@
 package com.booker.models;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -48,7 +49,7 @@ public class Book extends BaseEntity {
     cascade = CascadeType.ALL,
     orphanRemoval = true
   )
-  private List<Review> reviews;
+  private List<Review> reviews = new ArrayList<>();
 
   public Set<Genre> getGenres() {
     return genres != null ? Collections.unmodifiableSet(genres) : Collections.emptySet();
