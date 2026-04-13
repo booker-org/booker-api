@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:18.3
+    image: postgres:17.6
 
     environment:
       POSTGRES_USER: ${SPRING_DATASOURCE_USERNAME}
