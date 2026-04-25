@@ -7,13 +7,11 @@
 - docker-compose / podman-compose
 - A .env file (see `.env.example`)
 
-#### Run the following command from the project root:
+#### Run the application from your IDE using the `BookerApplication.java` class or execute `mvn spring-boot:run` in the terminal.
 
-```bash
-docker compose up
-```
+When the `dev` profile is active, Spring Boot will detect `compose.yaml`, start the PostgreSQL container automatically, and stop it when the app stops.
 
-Then run the application from your IDE using the `BookerApplication.java` class or execute `mvn spring-boot:run` in the terminal.
+For deploy environments, use an external database and set `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, and `SPRING_DATASOURCE_PASSWORD`.
 
 ##### The application will be available at http://localhost:8080
 
