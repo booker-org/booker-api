@@ -25,6 +25,27 @@ Code formatting follows the rules defined in `.editorconfig`. To use it, install
 
 Commits should follow the Conventional Commits convention to help with visibility and semantic versioning.
 
+## Git Hooks
+
+Set hooks path once after clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+On Linux/macOS, ensure execute permission:
+
+```bash
+chmod +x .githooks/pre-commit
+```
+
+Pre-commit policy (predictable and fast):
+- always runs all unit tests before commit
+- excludes integration/e2e tests by naming pattern (`*IT`, `*IntegrationTest`, `*E2ETest`)
+- uses Maven parallel workers (`-T 1C`) for maximum local speed
+
+---
+
 Please open pull requests to contribute and describe your changes in detail.
 
 All tests must be passing before merging a pull request.
