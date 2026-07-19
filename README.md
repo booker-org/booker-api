@@ -19,6 +19,25 @@ For deploy environments, use an external database and set `SPRING_DATASOURCE_URL
 
 This project uses Swagger for API documentation. When running locally, the UI is available at: http://localhost:8080/swagger-ui/index.html#/
 
+## Public Endpoints
+
+Some read-only endpoints are publicly accessible (no authentication required).
+These routes live under the `/public` prefix and are served by the `PublicController`.
+
+| Endpoint | Description |
+|---|---|
+| `GET /public/books` | List all books (paginated, with filters) |
+| `GET /public/books/{id}` | Get a book by ID |
+| `GET /public/genres` | List all genres (paginated) |
+
+All other endpoints require a valid JWT token.
+
+**Why a separate controller?** Endpoints that need to be publicly accessible are
+moved to the `PublicController` instead of being kept in their domain controllers.
+This keeps the security configuration simple (`/public/**` is permitted) and makes
+it easy to add or remove public endpoints in the future — just add or remove methods
+from `PublicController`.
+
 ## Contributing
 
 Code formatting follows the rules defined in `.editorconfig`. To use it, install the **EditorConfig** extension in your editor.

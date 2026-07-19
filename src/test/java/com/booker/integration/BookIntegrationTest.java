@@ -27,9 +27,15 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
-import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 import com.booker.DTO.Book.BookCreateDTO;
@@ -41,6 +47,7 @@ import com.booker.repositories.BookRepository;
 import com.booker.repositories.GenreRepository;
 
 import static com.booker.constants.Auth.ADMIN_ROLE;
+import static com.booker.constants.Domain.PUBLIC_ENDPOINT;
 
 @SpringBootTest @AutoConfigureMockMvc
 @ActiveProfiles("test") @Testcontainers
@@ -212,7 +219,7 @@ class BookIntegrationTest {
     UUID bookId = UUID.fromString(objectMapper.readTree(createResponse).path("id").asText());
 
     // When & Then
-    mockMvc.perform(get("/books/{id}", bookId).with(user("testuser")))
+    mockMvc.perform(get(PUBLIC_ENDPOINT + "/books/{id}", bookId))
       .andExpect(status().isOk())
       .andExpect(content().contentType(MediaType.APPLICATION_JSON))
       .andExpect(jsonPath("$.id").value(bookId.toString()))
@@ -225,7 +232,7 @@ class BookIntegrationTest {
   @Test
   void getBookById_ShouldReturn404_WhenBookNotExists() throws Exception {
     // When & Then
-    mockMvc.perform(get("/books/{id}", UUID.randomUUID()).with(user("testuser")))
+    mockMvc.perform(get(PUBLIC_ENDPOINT + "/books/{id}", UUID.randomUUID()))
       .andExpect(status().isNotFound()
     );
   }
@@ -263,7 +270,7 @@ class BookIntegrationTest {
     );
 
     // When & Then
-    mockMvc.perform(get("/books").with(user("testuser"))
+    mockMvc.perform(get(PUBLIC_ENDPOINT + "/books")
       .param("size", "10")
       .param("page", "0"))
       .andExpect(status().isOk())

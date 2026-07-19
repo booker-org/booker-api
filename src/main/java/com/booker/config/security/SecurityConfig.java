@@ -15,6 +15,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import static com.booker.constants.Domain.PUBLIC_ENDPOINT;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -27,13 +29,14 @@ public class SecurityConfig {
     return config.getAuthenticationManager();
   }
 
-  @Bean @Profile({"dev", "test"})
+  @Bean @Profile({ "dev", "test" })
   SecurityFilterChain devSecurityFilterChain(HttpSecurity http) throws Exception {
     http
       .csrf(AbstractHttpConfigurer::disable)
       .authorizeHttpRequests(auth -> auth
         .requestMatchers(
           "/auth/**",
+          PUBLIC_ENDPOINT + "/**",
           "/swagger-ui/**",
           "/swagger-ui.html",
           "/v3/api-docs/**",
@@ -57,6 +60,7 @@ public class SecurityConfig {
       .authorizeHttpRequests(auth -> auth
         .requestMatchers(
           "/auth/**",
+          PUBLIC_ENDPOINT + "/**",
           "/actuator/health"
         )
         .permitAll()

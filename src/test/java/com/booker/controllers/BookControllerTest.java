@@ -14,9 +14,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
@@ -29,14 +27,18 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 import com.booker.config.security.JwtAuthenticationFilter;
 import com.booker.config.security.SecurityConfig;
 import com.booker.DTO.Book.BookCreateDTO;
-import com.booker.DTO.Book.BookDTO;
 import com.booker.DTO.Book.BookDetailDTO;
 import com.booker.mappers.AuthorMapper;
 import com.booker.mappers.BookMapper;
@@ -88,31 +90,6 @@ class BookControllerTest {
 
   @MockitoBean
   private ReviewService reviewService;
-
-  @Test
-  void getBookById_ShouldReturnBook_WhenBookExists() throws Exception {
-    final UUID bookId = UUID.randomUUID();
-
-    BookDetailDTO bookDTO = new BookDetailDTO(
-      bookId,
-      "Dom Casmurro",
-      "A obra narra a vida de Bento Santiago...",
-      256,
-      null, null,
-      "https://example.com/dom-casmurro.jpg",
-      null, null
-    );
-
-    when(bookService.findById(bookId)).thenReturn(bookDTO);
-
-    mockMvc.perform(get("/books/{id}", bookId).with(user("testuser")))
-      .andExpect(status().isOk())
-      .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-      .andExpect(jsonPath("$.id").value(bookId.toString()))
-      .andExpect(jsonPath("$.title").value("Dom Casmurro"))
-      .andExpect(jsonPath("$.coverUrl").value("https://example.com/dom-casmurro.jpg")
-    );
-  }
 
   @Test
   void createBook_ShouldReturnCreatedBook_WhenValidRequest() throws Exception {
@@ -386,40 +363,6 @@ class BookControllerTest {
 
     mockMvc.perform(delete("/books/{id}", bookId).with(user("testuser").roles(ADMIN_ROLE)))
       .andExpect(status().isNotFound()
-    );
-  }
-
-  @Test
-  void searchByTitle_ShouldReturnPagedResult() throws Exception {
-    BookDTO dto = new BookDTO(
-      UUID.randomUUID(),
-      "Dom Casmurro",
-      null, null, null, null, null, null, null
-    );
-    Page<BookDTO> page = new PageImpl<>(List.of(dto));
-
-    when(bookService.findByTitle(eq("Dom"), any(Pageable.class))).thenReturn(page);
-
-    mockMvc.perform(get("/books").param("title", "Dom").with(user("testuser")))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.content[0].title").value("Dom Casmurro")
-    );
-  }
-
-  @Test
-  void getAllBooks_ShouldReturnPagedResult() throws Exception {
-    BookDTO dto = new BookDTO(
-      UUID.randomUUID(),
-      "Dom Casmurro",
-      null, null, null, null, null, null, null
-    );
-    Page<BookDTO> page = new PageImpl<>(List.of(dto));
-
-    when(bookService.findAll(any(Pageable.class))).thenReturn(page);
-
-    mockMvc.perform(get("/books").with(user("testuser")))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.content").isArray()
     );
   }
 }
