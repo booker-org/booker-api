@@ -1,5 +1,6 @@
 package com.booker.fixtures;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -12,6 +13,7 @@ public final class BookFixtures {
   private static final String DEFAULT_TITLE = "Title";
   private static final String DEFAULT_SYNOPSIS = "Synopsis";
   private static final Integer DEFAULT_PAGE_COUNT = 1;
+  private static final Short DEFAULT_RELEASE_YEAR = (short) 2020;
   private static final String DEFAULT_COVER_URL = "https://placehold.co/400x600";
 
   private BookFixtures() {}
@@ -22,9 +24,12 @@ public final class BookFixtures {
       DEFAULT_TITLE,
       DEFAULT_SYNOPSIS,
       DEFAULT_PAGE_COUNT,
+      DEFAULT_RELEASE_YEAR,
       AuthorFixtures.validAuthorDTO(),
       List.of(GenreFixtures.validGenreDTO()),
       DEFAULT_COVER_URL,
+      BigDecimal.ZERO,
+      0,
       LocalDateTime.now(),
       LocalDateTime.now()
     );
@@ -37,6 +42,7 @@ public final class BookFixtures {
     book.setTitle(DEFAULT_TITLE);
     book.setSynopsis(DEFAULT_SYNOPSIS);
     book.setPageCount(DEFAULT_PAGE_COUNT);
+    book.setReleaseYear(DEFAULT_RELEASE_YEAR);
     book.setAuthor(AuthorFixtures.validAuthor());
     book.setCoverUrl(DEFAULT_COVER_URL);
     book.setCreatedAt(LocalDateTime.now());

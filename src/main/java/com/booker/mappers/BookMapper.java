@@ -25,6 +25,7 @@ public class BookMapper {
     book.setTitle(dto.title());
     book.setSynopsis(dto.synopsis());
     book.setPageCount(dto.pageCount());
+    book.setReleaseYear(dto.releaseYear());
 
     return book;
   }
@@ -38,9 +39,12 @@ public class BookMapper {
     book.setTitle(dto.title());
     book.setSynopsis(dto.synopsis());
     book.setPageCount(dto.pageCount());
+    book.setReleaseYear(dto.releaseYear());
     book.setAuthor(authorMapper.toEntity(dto.author()));
     book.setGenres(dto.genres().stream().map(genreMapper::toEntity).collect(Collectors.toSet()));
     book.setCoverUrl(dto.coverUrl());
+    book.setRating(dto.rating());
+    book.setRatingsCount(dto.ratingsCount());
     book.setCreatedAt(dto.createdAt());
     book.setUpdatedAt(dto.updatedAt());
 
@@ -55,9 +59,12 @@ public class BookMapper {
       book.getTitle(),
       book.getSynopsis(),
       book.getPageCount(),
+      book.getReleaseYear(),
       book.getAuthor() != null ? book.getAuthor().getName() : null,
       book.getGenres().stream().map(g -> g.getName()).toList(),
       book.getCoverUrl(),
+      book.getRating(),
+      book.getRatingsCount(),
       book.getCreatedAt(),
       book.getUpdatedAt()
     );
@@ -71,9 +78,12 @@ public class BookMapper {
       book.getTitle(),
       book.getSynopsis(),
       book.getPageCount(),
+      book.getReleaseYear(),
       authorMapper.toDTO(book.getAuthor()),
       genreMapper.toDTOList(book.getGenres().stream().toList()),
       book.getCoverUrl(),
+      book.getRating(),
+      book.getRatingsCount(),
       book.getCreatedAt(),
       book.getUpdatedAt()
     );
@@ -82,12 +92,14 @@ public class BookMapper {
   public List<BookDTO> toDTOList(List<Book> books) {
     return books.stream()
       .map(this::toDTO)
-      .toList();
+      .toList()
+    ;
   }
 
   public List<BookDetailDTO> toDetailDTOList(List<Book> books) {
     return books.stream()
       .map(this::toDetailDTO)
-      .toList();
+      .toList()
+    ;
   }
 }

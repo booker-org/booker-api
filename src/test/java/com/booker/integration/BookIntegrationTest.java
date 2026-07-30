@@ -128,6 +128,7 @@ class BookIntegrationTest {
       "Dom Casmurro",
       "A obra narra a vida de Bento Santiago...",
       256,
+      (short) 1899,
       savedAuthor.getId(),
       List.of(savedGenre1.getId(), savedGenre2.getId())
     );
@@ -161,6 +162,7 @@ class BookIntegrationTest {
       "A",
       "Sinopse qualquer",
       256,
+      (short) 2000,
       savedAuthor.getId(),
       List.of(savedGenre1.getId())
     );
@@ -182,6 +184,7 @@ class BookIntegrationTest {
       "Título Válido",
       "Sinopse qualquer",
       256,
+      (short) 2000,
       UUID.randomUUID(),
       List.of(savedGenre1.getId())
     );
@@ -202,6 +205,7 @@ class BookIntegrationTest {
       "Dom Casmurro",
       "A obra narra a vida de Bento Santiago...",
       256,
+      (short) 1899,
       savedAuthor.getId(),
       List.of(savedGenre1.getId(), savedGenre2.getId())
     );
@@ -244,6 +248,7 @@ class BookIntegrationTest {
       "Dom Casmurro",
       "Uma história de amor",
       256,
+      (short) 1899,
       savedAuthor.getId(),
       List.of(savedGenre1.getId())
     );
@@ -252,6 +257,7 @@ class BookIntegrationTest {
       "O Cortiço",
       "Aventuras no espaço",
       300,
+      (short) 1890,
       savedAuthor.getId(),
       List.of(savedGenre2.getId())
     );
@@ -291,6 +297,7 @@ class BookIntegrationTest {
       "Dom Casmurro Original",
       "Sinopse original",
       256,
+      (short) 1899,
       savedAuthor.getId(),
       List.of(savedGenre1.getId())
     );
@@ -310,6 +317,7 @@ class BookIntegrationTest {
       "Dom Casmurro - Edição Revisada",
       "Nova sinopse atualizada",
       300,
+      (short) 1899,
       savedAuthor.getId(),
       List.of(savedGenre1.getId())
     );
@@ -334,6 +342,7 @@ class BookIntegrationTest {
       "Título Qualquer",
       "Sinopse qualquer",
       256,
+      (short) 2000,
       savedAuthor.getId(),
       List.of(savedGenre1.getId())
     );
@@ -355,6 +364,7 @@ class BookIntegrationTest {
       "Dom Casmurro",
       "A obra narra a vida de Bento Santiago...",
       256,
+      (short) 1899,
       savedAuthor.getId(),
       List.of(savedGenre1.getId())
     );

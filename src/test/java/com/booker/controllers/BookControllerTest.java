@@ -101,6 +101,7 @@ class BookControllerTest {
       "Dom Casmurro",
       "A obra narra a vida de Bento Santiago...",
       256,
+      (short) 1899,
       authorId,
       List.of(genre1Id, genre2Id)
     );
@@ -111,7 +112,7 @@ class BookControllerTest {
       "Dom Casmurro",
       "A obra narra a vida de Bento Santiago...",
       256,
-      null, null, null, null, null
+      null, null, null, null, null, null, null, null
     );
 
     when(bookService.save(any(Book.class), eq(authorId), eq(List.of(genre1Id, genre2Id))))
@@ -136,6 +137,7 @@ class BookControllerTest {
       null,
       "Sinopse",
       256,
+      null,
       authorId,
       List.of(genreId)
     );
@@ -162,6 +164,7 @@ class BookControllerTest {
       "Dom Casmurro - Updated",
       "Updated synopsis...",
       300,
+      (short) 1899,
       authorId,
       List.of(genre1Id, genre2Id)
     );
@@ -171,7 +174,7 @@ class BookControllerTest {
       "Dom Casmurro - Updated",
       "Updated synopsis...",
       300,
-      null, null, null, null, null
+      null, null, null, null, null, null, null, null
     );
 
     when(bookService.update(eq(bookId), any(Book.class), eq(authorId), eq(List.of(genre1Id, genre2Id))))
@@ -197,6 +200,7 @@ class BookControllerTest {
       "Title",
       "Sinopse",
       200,
+      (short) 2000,
       authorId,
       List.of(genreId)
     );
@@ -221,6 +225,7 @@ class BookControllerTest {
       null,
       null,
       null,
+      null,
       null
     );
 
@@ -229,7 +234,7 @@ class BookControllerTest {
       "Novo Título",
       "A obra narra a vida de Bento Santiago...",
       256,
-      null, null, null, null, null
+      null, null, null, null, null, null, null, null
     );
 
     when(bookService.partialUpdate(eq(bookId), any(Book.class), isNull(), isNull()))
@@ -250,6 +255,7 @@ class BookControllerTest {
 
     BookCreateDTO request = new BookCreateDTO(
       "Novo",
+      null,
       null,
       null,
       null,
@@ -276,9 +282,9 @@ class BookControllerTest {
       "Dom Casmurro",
       null,
       null,
-      null, null,
+      null, null, null,
       "https://example.com/new-cover.jpg",
-      null, null
+      null, null, null, null
     );
 
     MockMultipartFile cover = new MockMultipartFile(

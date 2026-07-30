@@ -102,7 +102,10 @@ INSERT INTO books (
   synopsis,
   page_count,
   author_id,
-  cover_url
+  cover_url,
+  release_year,
+  rating,
+  ratings_count
 )
 VALUES
   (
@@ -111,7 +114,10 @@ VALUES
     'Uma distopia que apresenta um regime político totalitário e manipulador. Winston Smith vive em uma sociedade onde o Grande Irmão tudo vê e controla.',
     328,
     'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
-    'https://covers.openlibrary.org/b/id/7222246-L.jpg'
+    'https://covers.openlibrary.org/b/id/7222246-L.jpg',
+    1949,
+    5.0,
+    1
   ),
   (
     'b0000002-0000-0000-0000-000000000002',
@@ -119,7 +125,10 @@ VALUES
     'Uma fábula satírica sobre uma fazenda onde os animais se rebelam contra os humanos e tentam criar uma sociedade igualitária.',
     144,
     'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
-    'https://covers.openlibrary.org/b/id/8232974-L.jpg'
+    'https://covers.openlibrary.org/b/id/8232974-L.jpg',
+    1945,
+    4.5,
+    1
   ),
   (
     'b0000003-0000-0000-0000-000000000003',
@@ -127,7 +136,10 @@ VALUES
     'Harry Potter descobre que é um bruxo e inicia sua jornada na Escola de Magia e Bruxaria de Hogwarts.',
     309,
     'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
-    'https://covers.openlibrary.org/b/id/10521270-L.jpg'
+    'https://covers.openlibrary.org/b/id/10521270-L.jpg',
+    1997,
+    3.0,
+    1
   ),
   (
     'b0000004-0000-0000-0000-000000000004',
@@ -135,7 +147,10 @@ VALUES
     'A história da família Buendía ao longo de sete gerações na cidade fictícia de Macondo.',
     417,
     'c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f',
-    'https://covers.openlibrary.org/b/id/8564515-L.jpg'
+    'https://covers.openlibrary.org/b/id/8564515-L.jpg',
+    1967,
+    2.0,
+    1
   ),
   (
     'b0000005-0000-0000-0000-000000000005',
@@ -143,7 +158,10 @@ VALUES
     'Bentinho narra sua história de amor e ciúmes por Capitu, questionando sua fidelidade.',
     256,
     'd4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a',
-    'https://covers.openlibrary.org/b/id/8735573-L.jpg'
+    'https://covers.openlibrary.org/b/id/8735573-L.jpg',
+    1900,
+    1.0,
+    1
   ),
   (
     'b0000006-0000-0000-0000-000000000006',
@@ -151,7 +169,10 @@ VALUES
     'Elizabeth Bennet e Mr. Darcy superam suas diferenças e preconceitos para encontrar o amor.',
     432,
     'e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b',
-    'https://covers.openlibrary.org/b/id/8300065-L.jpg'
+    'https://covers.openlibrary.org/b/id/8300065-L.jpg',
+    1813,
+    5.0,
+    1
   ),
   (
     'b0000007-0000-0000-0000-000000000007',
@@ -159,7 +180,10 @@ VALUES
     'A história de Macabéa, uma jovem nordestina que vive no Rio de Janeiro em condições precárias.',
     88,
     'f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c',
-    'https://covers.openlibrary.org/b/id/8723947-L.jpg'
+    'https://covers.openlibrary.org/b/id/8723947-L.jpg',
+    1977,
+    3.5,
+    1
   ),
   (
     'b0000008-0000-0000-0000-000000000008',
@@ -167,7 +191,10 @@ VALUES
     'Jack Torrance torna-se zelador de um hotel isolado durante o inverno, onde forças sobrenaturais ameaçam sua sanidade.',
     447,
     'a7b8c9d0-e1f2-4a3b-4c5d-6e7f8a9b0c1d',
-    'https://covers.openlibrary.org/b/id/8228691-L.jpg'
+    'https://covers.openlibrary.org/b/id/8228691-L.jpg',
+    1977,
+    4.0,
+    1
   ),
   (
     'b0000009-0000-0000-0000-000000000009',
@@ -175,7 +202,10 @@ VALUES
     'Hercule Poirot investiga um assassinato ocorrido em um trem bloqueado pela neve.',
     256,
     'b8c9d0e1-f2a3-4b4c-5d6e-7f8a9b0c1d2e',
-    'https://covers.openlibrary.org/b/id/8234149-L.jpg'
+    'https://covers.openlibrary.org/b/id/8234149-L.jpg',
+    1934,
+    0.5,
+    1
   ),
   (
     'b0000010-0000-0000-0000-000000000010',
@@ -183,7 +213,10 @@ VALUES
     'Frodo Bolseiro inicia sua jornada para destruir o Um Anel e salvar a Terra-média.',
     423,
     'c9d0e1f2-a3b4-4c5d-6e7f-8a9b0c1d2e3f',
-    'https://covers.openlibrary.org/b/id/8235833-L.jpg'
+    'https://covers.openlibrary.org/b/id/8235833-L.jpg',
+    1954,
+    2.5,
+    1
   ),
   (
     'b0000011-0000-0000-0000-000000000011',
@@ -191,7 +224,10 @@ VALUES
     'Santiago, um jovem pastor, viaja em busca de um tesouro nas pirâmides do Egito.',
     208,
     'd0e1f2a3-b4c5-4d6e-7f8a-9b0c1d2e3f4a',
-    'https://covers.openlibrary.org/b/id/8235849-L.jpg'
+    'https://covers.openlibrary.org/b/id/8235849-L.jpg',
+    1988,
+    4.8,
+    1
   ),
   (
     'b0000012-0000-0000-0000-000000000012',
@@ -199,7 +235,10 @@ VALUES
     'Um dia na vida de Clarissa Dalloway, uma mulher da alta sociedade londrina pós-Primeira Guerra Mundial.',
     194,
     'e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b',
-    'https://covers.openlibrary.org/b/id/8235865-L.jpg'
+    'https://covers.openlibrary.org/b/id/8235865-L.jpg',
+    1925,
+    3.2,
+    1
   ),
   (
     'b0000013-0000-0000-0000-000000000013',
@@ -207,7 +246,10 @@ VALUES
     'Um velho pescador cubano luta contra um enorme marlim no Golfo do México.',
     127,
     'f2a3b4c5-d6e7-4f8a-9b0c-1d2e3f4a5b6c',
-    'https://covers.openlibrary.org/b/id/8235878-L.jpg'
+    'https://covers.openlibrary.org/b/id/8235878-L.jpg',
+    1952,
+    5.0,
+    1
   ),
   (
     'b0000014-0000-0000-0000-000000000014',
@@ -215,7 +257,10 @@ VALUES
     'A história de um grupo de meninos de rua em Salvador que vivem de pequenos furtos.',
     280,
     'a3b4c5d6-e7f8-4a9b-0c1d-2e3f4a5b6c7d',
-    'https://covers.openlibrary.org/b/id/8235891-L.jpg'
+    'https://covers.openlibrary.org/b/id/8235891-L.jpg',
+    1937,
+    1.5,
+    1
   ),
   (
     'b0000015-0000-0000-0000-000000000015',
@@ -223,7 +268,10 @@ VALUES
     'Em uma sociedade totalitária futurista, mulheres férteis são forçadas a ter filhos para a elite.',
     311,
     'b4c5d6e7-f8a9-4b0c-1d2e-3f4a5b6c7d8e',
-    'https://covers.openlibrary.org/b/id/8235904-L.jpg'
+    'https://covers.openlibrary.org/b/id/8235904-L.jpg',
+    1985,
+    4.2,
+    1
   )
 ON CONFLICT (id) DO NOTHING;
 

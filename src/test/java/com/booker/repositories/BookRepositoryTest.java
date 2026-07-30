@@ -85,6 +85,7 @@ class BookRepositoryTest {
     book.setTitle(title);
     book.setSynopsis(synopsis);
     book.setPageCount(200);
+    book.setReleaseYear((short) 2000);
     book.setAuthor(author);
     book.setCoverUrl("https://example.com/" + title.toLowerCase().replace(" ", "-") + ".jpg");
 
@@ -98,6 +99,7 @@ class BookRepositoryTest {
     book.setTitle(title);
     book.setSynopsis(synopsis);
     book.setPageCount(200);
+    book.setReleaseYear((short) 2000);
     book.setAuthor(author);
     book.setCoverUrl("https://example.com/" + title.toLowerCase().replace(" ", "-") + ".jpg");
 
@@ -230,6 +232,7 @@ class BookRepositoryTest {
     book.setTitle("Dom Casmurro");
     book.setSynopsis("Romance brasileiro");
     book.setPageCount(256);
+    book.setReleaseYear((short) 1899);
     book.setAuthor(author);
 
     // When

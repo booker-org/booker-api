@@ -15,14 +15,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,12 +31,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.booker.DTO.Book.BookCreateDTO;
 import com.booker.DTO.Book.BookDetailDTO;
-import com.booker.DTO.Review.SimpleReviewDTO;
 import com.booker.mappers.BookMapper;
-import com.booker.mappers.ReviewMapper;
-import com.booker.models.Review;
 import com.booker.services.BookService;
-import com.booker.services.ReviewService;
 
 import static com.booker.constants.Auth.ADMIN_ROLE;
 import static com.booker.constants.Auth.ADMIN_AUTHORIZATION;
@@ -51,9 +43,7 @@ import static com.booker.constants.Auth.ADMIN_AUTHORIZATION;
 @Tag(name = "Books", description = "Book management endpoints")
 public class BookController {
   private final BookService bookService;
-  private final ReviewService reviewService;
   private final BookMapper bookMapper;
-  private final ReviewMapper reviewMapper;
 
   @PostMapping @PreAuthorize(ADMIN_AUTHORIZATION)
   @Operation(summary = "Create new book - " + ADMIN_ROLE, description = "Create a new book")
@@ -102,6 +92,7 @@ public class BookController {
     BookCreateDTO bookData = book != null
       ? book
       : new BookCreateDTO(
+        null,
         null,
         null,
         null,
@@ -169,21 +160,5 @@ public class BookController {
       ? ResponseEntity.noContent().build()
       : ResponseEntity.notFound().build()
     ;
-  }
-
-  @GetMapping("/{id}/reviews")
-  @Operation(summary = "Get reviews for a book", description = "Get paginated list of reviews for a specific book")
-  @ApiResponses(value = {
-    @ApiResponse(responseCode = "200", description = "Reviews found"),
-    @ApiResponse(responseCode = "404", description = "Book not found")
-  })
-  public ResponseEntity<Page<SimpleReviewDTO>> getReviewsForBook(
-    @Parameter(description = "Book ID") @PathVariable UUID id,
-    @ParameterObject Pageable pageable
-  ) {
-    Page<Review> reviews = reviewService.findByBookID(id, pageable);
-    Page<SimpleReviewDTO> result = reviews.map(reviewMapper::toSimpleDTO);
-
-    return ResponseEntity.ok(result);
   }
 }

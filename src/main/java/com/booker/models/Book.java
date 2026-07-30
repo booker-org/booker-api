@@ -1,5 +1,6 @@
 package com.booker.models;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -18,7 +19,18 @@ import lombok.AllArgsConstructor;
 @Entity @Table(name = "books")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 @JsonPropertyOrder({
-  "id", "title", "synopsis", "pageCount", "author", "genres", "coverUrl", "createdAt", "updatedAt"
+  "id",
+  "title",
+  "synopsis",
+  "pageCount",
+  "releaseYear",
+  "author",
+  "genres",
+  "coverUrl",
+  "rating",
+  "ratingsCount",
+  "createdAt",
+  "updatedAt"
 })
 public class Book extends BaseEntity {
   @Column(length = 200, nullable = false)
@@ -35,6 +47,15 @@ public class Book extends BaseEntity {
 
   @Column(length = 2048, name = "cover_url")
   private String coverUrl;
+
+  @Column(name = "release_year", nullable = false)
+  private Short releaseYear;
+
+  @Column(precision = 2, scale = 1)
+  private BigDecimal rating = BigDecimal.ZERO;
+
+  @Column(name = "ratings_count")
+  private Integer ratingsCount = 0;
 
   @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
   @JoinTable(
