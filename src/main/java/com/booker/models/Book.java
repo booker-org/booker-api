@@ -9,7 +9,15 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -51,8 +59,8 @@ public class Book extends BaseEntity {
   @Column(name = "release_year", nullable = false)
   private Short releaseYear;
 
-  @Column(precision = 2, scale = 1)
-  private BigDecimal rating = BigDecimal.ZERO;
+  @Column(name = "rating_sum", precision = 10, scale = 1)
+  private BigDecimal ratingSum = BigDecimal.ZERO;
 
   @Column(name = "ratings_count")
   private Integer ratingsCount = 0;

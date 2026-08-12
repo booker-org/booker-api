@@ -130,9 +130,6 @@ public class ReviewServiceTest {
     given(bookMapper.toEntity(bookDTO)).willReturn(book);
     given(mapper.toEntity(data, currentUser, book)).willReturn(review);
     given(repository.save(review)).willReturn(review);
-    given(bookRepository.findById(book.getId())).willReturn(Optional.of(book));
-    given(repository.findAverageScoreByBookId(book.getId())).willReturn(BigDecimal.ONE);
-    given(repository.countByBookId(book.getId())).willReturn(1L);
 
     // When
     Review result = service.create(data, currentUser);
@@ -147,7 +144,7 @@ public class ReviewServiceTest {
     );
 
     then(repository).should().save(review);
-    then(bookRepository).should().save(book);
+    then(bookRepository).should().adjustRating(book.getId(), review.getScore(), 1);
   }
 
   @Test @DisplayName("Should throw error if already exists a review made by that user for that book")
@@ -171,6 +168,7 @@ public class ReviewServiceTest {
   @Test @DisplayName("Should update a review given valid data - All fields")
   void update_ShouldUpdateAllFields_WhenValidData() {
     // Given
+    final BigDecimal oldScore = BigDecimal.ONE;
     final BigDecimal newScore = BigDecimal.TEN;
     final String newHeadline = "New";
     final String newText = "New text";
@@ -178,7 +176,7 @@ public class ReviewServiceTest {
     Book book = createBookWithId();
 
     Review review = new Review();
-    review.setScore(BigDecimal.ONE);
+    review.setScore(oldScore);
     review.setHeadline("Old");
     review.setText("Old text");
     review.setBook(book);
@@ -186,9 +184,6 @@ public class ReviewServiceTest {
     final UpdateReviewDTO data = new UpdateReviewDTO(newScore, newHeadline, newText);
 
     given(repository.findById(DEFAULT_TEST_ID)).willReturn(Optional.of(review));
-    given(bookRepository.findById(book.getId())).willReturn(Optional.of(book));
-    given(repository.findAverageScoreByBookId(book.getId())).willReturn(newScore);
-    given(repository.countByBookId(book.getId())).willReturn(1L);
 
     // When
     service.update(DEFAULT_TEST_ID, data);
@@ -199,7 +194,7 @@ public class ReviewServiceTest {
     assertEquals(newText, review.getText());
 
     then(repository).should().save(review);
-    then(bookRepository).should().save(book);
+    then(bookRepository).should().adjustRating(book.getId(), newScore.subtract(oldScore), 0);
   }
 
   @Test @DisplayName("Should update a review given valid data - Only given fields")
@@ -207,12 +202,13 @@ public class ReviewServiceTest {
     // Given
     final String oldHeadline = "Old";
     final String oldText = "Old text";
+    final BigDecimal oldScore = BigDecimal.ONE;
     final BigDecimal newScore = BigDecimal.TEN;
 
     Book book = createBookWithId();
 
     Review review = new Review();
-    review.setScore(BigDecimal.ONE);
+    review.setScore(oldScore);
     review.setHeadline(oldHeadline);
     review.setText(oldText);
     review.setBook(book);
@@ -220,9 +216,6 @@ public class ReviewServiceTest {
     final UpdateReviewDTO data = new UpdateReviewDTO(newScore, null, null);
 
     given(repository.findById(DEFAULT_TEST_ID)).willReturn(Optional.of(review));
-    given(bookRepository.findById(book.getId())).willReturn(Optional.of(book));
-    given(repository.findAverageScoreByBookId(book.getId())).willReturn(newScore);
-    given(repository.countByBookId(book.getId())).willReturn(1L);
 
     // When
     service.update(DEFAULT_TEST_ID, data);
@@ -233,6 +226,7 @@ public class ReviewServiceTest {
     assertEquals(oldText, review.getText());
 
     then(repository).should().save(review);
+    then(bookRepository).should().adjustRating(book.getId(), newScore.subtract(oldScore), 0);
   }
 
   @Test @DisplayName("Should not modify a review when all values are null")
@@ -253,9 +247,6 @@ public class ReviewServiceTest {
     final UpdateReviewDTO data = new UpdateReviewDTO(null, null, null);
 
     given(repository.findById(DEFAULT_TEST_ID)).willReturn(Optional.of(review));
-    given(bookRepository.findById(book.getId())).willReturn(Optional.of(book));
-    given(repository.findAverageScoreByBookId(book.getId())).willReturn(oldScore);
-    given(repository.countByBookId(book.getId())).willReturn(1L);
 
     // When
     service.update(DEFAULT_TEST_ID, data);
@@ -266,6 +257,7 @@ public class ReviewServiceTest {
     assertEquals(oldText, review.getText());
 
     then(repository).should().save(review);
+    then(bookRepository).shouldHaveNoInteractions();
   }
 
   @Test @DisplayName("Should throw exception when review not found")
@@ -286,12 +278,10 @@ public class ReviewServiceTest {
 
     Review review = new Review();
     review.setId(DEFAULT_TEST_ID);
+    review.setScore(BigDecimal.ONE);
     review.setBook(book);
 
     given(repository.findById(DEFAULT_TEST_ID)).willReturn(Optional.of(review));
-    given(bookRepository.findById(book.getId())).willReturn(Optional.of(book));
-    given(repository.findAverageScoreByBookId(book.getId())).willReturn(null);
-    given(repository.countByBookId(book.getId())).willReturn(0L);
 
     // When
     service.delete(DEFAULT_TEST_ID);
@@ -299,7 +289,7 @@ public class ReviewServiceTest {
     // Then
     then(repository).should().deleteById(DEFAULT_TEST_ID);
     then(repository).should().flush();
-    then(bookRepository).should().save(book);
+    then(bookRepository).should().adjustRating(book.getId(), BigDecimal.ONE.negate(), -1);
   }
 
   @Test @DisplayName("Should throw error to delete review if it doesn't exists")

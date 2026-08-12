@@ -1,7 +1,6 @@
 package com.booker.services;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.UUID;
 
 import org.springframework.dao.DataIntegrityViolationException;
@@ -54,7 +53,7 @@ public class ReviewService {
     try {
       Review savedReview = repository.save(review);
 
-      recalculateBookRating(book.getId());
+      bookRepository.adjustRating(book.getId(), review.getScore(), 1);
 
       return savedReview;
     }
@@ -65,6 +64,7 @@ public class ReviewService {
 
   public void update(UUID id, UpdateReviewDTO data) {
     Review review = findById(id);
+    BigDecimal oldScore = review.getScore();
 
     if (data.score() != null) review.setScore(data.score());
     if (data.headline() != null) review.setHeadline(data.headline());
@@ -72,7 +72,9 @@ public class ReviewService {
 
     repository.save(review);
 
-    recalculateBookRating(review.getBook().getId());
+    if (data.score() != null) {
+      bookRepository.adjustRating(review.getBook().getId(), data.score().subtract(oldScore), 0);
+    }
   }
 
   public void delete(UUID id) {
@@ -85,7 +87,7 @@ public class ReviewService {
     repository.deleteById(id);
     repository.flush();
 
-    recalculateBookRating(bookId);
+    bookRepository.adjustRating(bookId, review.getScore().negate(), -1);
   }
 
   @Transactional(readOnly = true)
@@ -97,19 +99,5 @@ public class ReviewService {
       .map(review -> review.getUser().getUsername().equals(username))
       .orElse(false)
     ;
-  }
-
-  private void recalculateBookRating(UUID bookId) {
-    Book book = bookRepository.findById(bookId)
-      .orElseThrow(() -> new ResourceNotFoundException("Book not found for ID: " + bookId))
-    ;
-
-    BigDecimal avgScore = repository.findAverageScoreByBookId(bookId);
-    long count = repository.countByBookId(bookId);
-
-    book.setRating(avgScore != null ? avgScore.setScale(1, RoundingMode.HALF_UP) : BigDecimal.ZERO);
-    book.setRatingsCount((int) count);
-
-    bookRepository.save(book);
   }
 }

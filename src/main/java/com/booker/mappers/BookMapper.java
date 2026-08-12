@@ -1,5 +1,7 @@
 package com.booker.mappers;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,7 +45,6 @@ public class BookMapper {
     book.setAuthor(authorMapper.toEntity(dto.author()));
     book.setGenres(dto.genres().stream().map(genreMapper::toEntity).collect(Collectors.toSet()));
     book.setCoverUrl(dto.coverUrl());
-    book.setRating(dto.rating());
     book.setRatingsCount(dto.ratingsCount());
     book.setCreatedAt(dto.createdAt());
     book.setUpdatedAt(dto.updatedAt());
@@ -63,7 +64,7 @@ public class BookMapper {
       book.getAuthor() != null ? book.getAuthor().getName() : null,
       book.getGenres().stream().map(g -> g.getName()).toList(),
       book.getCoverUrl(),
-      book.getRating(),
+      calculateRating(book.getRatingSum(), book.getRatingsCount()),
       book.getRatingsCount(),
       book.getCreatedAt(),
       book.getUpdatedAt()
@@ -82,7 +83,7 @@ public class BookMapper {
       authorMapper.toDTO(book.getAuthor()),
       genreMapper.toDTOList(book.getGenres().stream().toList()),
       book.getCoverUrl(),
-      book.getRating(),
+      calculateRating(book.getRatingSum(), book.getRatingsCount()),
       book.getRatingsCount(),
       book.getCreatedAt(),
       book.getUpdatedAt()
@@ -101,5 +102,11 @@ public class BookMapper {
       .map(this::toDetailDTO)
       .toList()
     ;
+  }
+
+  private BigDecimal calculateRating(BigDecimal ratingSum, Integer ratingsCount) {
+    if (ratingsCount == null || ratingsCount == 0) return BigDecimal.ZERO;
+
+    return ratingSum.divide(BigDecimal.valueOf(ratingsCount), 1, RoundingMode.HALF_UP);
   }
 }

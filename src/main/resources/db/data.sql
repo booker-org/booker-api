@@ -104,7 +104,7 @@ INSERT INTO books (
   author_id,
   cover_url,
   release_year,
-  rating,
+  rating_sum,
   ratings_count
 )
 VALUES
