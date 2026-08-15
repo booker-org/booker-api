@@ -42,6 +42,7 @@ import com.booker.mappers.ReviewMapper;
 import com.booker.models.Book;
 import com.booker.models.Review;
 import com.booker.models.User;
+import com.booker.repositories.BookRepository;
 import com.booker.repositories.ReviewRepository;
 
 import static com.booker.constants.Tests.DEFAULT_TEST_ID;
@@ -55,6 +56,9 @@ public class ReviewServiceTest {
   private ReviewRepository repository;
 
   @Mock
+  private BookRepository bookRepository;
+
+  @Mock
   private BookService bookService;
 
   @Mock
@@ -62,6 +66,14 @@ public class ReviewServiceTest {
 
   @Mock
   private ReviewMapper mapper;
+
+  private Book createBookWithId() {
+    Book book = new Book();
+
+    book.setId(DEFAULT_TEST_ID);
+
+    return book;
+  }
 
   @Test @DisplayName("Should retrieve a page of reviews")
   void findAll_ShouldReturnPageOfReviews() {
@@ -111,7 +123,7 @@ public class ReviewServiceTest {
     CreateReviewDTO data = ReviewFixtures.validCreateReviewDTO();
     User currentUser = mock(User.class);
     BookDetailDTO bookDTO = mock(BookDetailDTO.class);
-    Book book = mock(Book.class);
+    Book book = createBookWithId();
     Review review = ReviewFixtures.validReview();
 
     given(bookService.findById(data.bookID())).willReturn(bookDTO);
@@ -132,6 +144,7 @@ public class ReviewServiceTest {
     );
 
     then(repository).should().save(review);
+    then(bookRepository).should().adjustRating(book.getId(), review.getScore(), 1);
   }
 
   @Test @DisplayName("Should throw error if already exists a review made by that user for that book")
@@ -140,7 +153,7 @@ public class ReviewServiceTest {
     CreateReviewDTO data = ReviewFixtures.validCreateReviewDTO();
     User currentUser = mock(User.class);
     BookDetailDTO bookDTO = mock(BookDetailDTO.class);
-    Book book = mock(Book.class);
+    Book book = createBookWithId();
     Review review = ReviewFixtures.validReview();
 
     given(bookService.findById(data.bookID())).willReturn(bookDTO);
@@ -155,14 +168,18 @@ public class ReviewServiceTest {
   @Test @DisplayName("Should update a review given valid data - All fields")
   void update_ShouldUpdateAllFields_WhenValidData() {
     // Given
+    final BigDecimal oldScore = BigDecimal.ONE;
     final BigDecimal newScore = BigDecimal.TEN;
     final String newHeadline = "New";
     final String newText = "New text";
 
+    Book book = createBookWithId();
+
     Review review = new Review();
-    review.setScore(BigDecimal.ONE);
+    review.setScore(oldScore);
     review.setHeadline("Old");
     review.setText("Old text");
+    review.setBook(book);
 
     final UpdateReviewDTO data = new UpdateReviewDTO(newScore, newHeadline, newText);
 
@@ -177,6 +194,7 @@ public class ReviewServiceTest {
     assertEquals(newText, review.getText());
 
     then(repository).should().save(review);
+    then(bookRepository).should().adjustRating(book.getId(), newScore.subtract(oldScore), 0);
   }
 
   @Test @DisplayName("Should update a review given valid data - Only given fields")
@@ -184,12 +202,16 @@ public class ReviewServiceTest {
     // Given
     final String oldHeadline = "Old";
     final String oldText = "Old text";
+    final BigDecimal oldScore = BigDecimal.ONE;
     final BigDecimal newScore = BigDecimal.TEN;
 
+    Book book = createBookWithId();
+
     Review review = new Review();
-    review.setScore(BigDecimal.ONE);
+    review.setScore(oldScore);
     review.setHeadline(oldHeadline);
     review.setText(oldText);
+    review.setBook(book);
 
     final UpdateReviewDTO data = new UpdateReviewDTO(newScore, null, null);
 
@@ -204,6 +226,7 @@ public class ReviewServiceTest {
     assertEquals(oldText, review.getText());
 
     then(repository).should().save(review);
+    then(bookRepository).should().adjustRating(book.getId(), newScore.subtract(oldScore), 0);
   }
 
   @Test @DisplayName("Should not modify a review when all values are null")
@@ -213,10 +236,13 @@ public class ReviewServiceTest {
     final String oldHeadline = "Old";
     final String oldText = "Old text";
 
+    Book book = createBookWithId();
+
     Review review = new Review();
     review.setScore(oldScore);
     review.setHeadline(oldHeadline);
     review.setText(oldText);
+    review.setBook(book);
 
     final UpdateReviewDTO data = new UpdateReviewDTO(null, null, null);
 
@@ -231,6 +257,7 @@ public class ReviewServiceTest {
     assertEquals(oldText, review.getText());
 
     then(repository).should().save(review);
+    then(bookRepository).shouldHaveNoInteractions();
   }
 
   @Test @DisplayName("Should throw exception when review not found")
@@ -247,19 +274,28 @@ public class ReviewServiceTest {
   @Test @DisplayName("Should delete review if it exists")
   void delete_ShouldDeleteReview_WhenReviewExists() {
     // Given
-    given(repository.existsById(DEFAULT_TEST_ID)).willReturn(true);
+    Book book = createBookWithId();
+
+    Review review = new Review();
+    review.setId(DEFAULT_TEST_ID);
+    review.setScore(BigDecimal.ONE);
+    review.setBook(book);
+
+    given(repository.findById(DEFAULT_TEST_ID)).willReturn(Optional.of(review));
 
     // When
     service.delete(DEFAULT_TEST_ID);
 
     // Then
     then(repository).should().deleteById(DEFAULT_TEST_ID);
+    then(repository).should().flush();
+    then(bookRepository).should().adjustRating(book.getId(), BigDecimal.ONE.negate(), -1);
   }
 
   @Test @DisplayName("Should throw error to delete review if it doesn't exists")
   void delete_ShouldThrowException_WhenReviewDoesNotExist() {
     // Given
-    given(repository.existsById(DEFAULT_TEST_ID)).willReturn(false);
+    given(repository.findById(DEFAULT_TEST_ID)).willReturn(Optional.empty());
 
     // When / Then
     assertThrows(ResourceNotFoundException.class, () -> service.delete(DEFAULT_TEST_ID));

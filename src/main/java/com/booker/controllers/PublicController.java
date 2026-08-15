@@ -25,10 +25,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.booker.DTO.Book.BookDTO;
 import com.booker.DTO.Book.BookDetailDTO;
 import com.booker.DTO.Genre.GenreDTO;
+import com.booker.DTO.Review.SimpleReviewDTO;
 import com.booker.mappers.GenreMapper;
+import com.booker.mappers.ReviewMapper;
 import com.booker.models.Genre;
+import com.booker.models.Review;
 import com.booker.services.BookService;
 import com.booker.services.GenreService;
+import com.booker.services.ReviewService;
 
 import static com.booker.constants.Domain.PUBLIC_ENDPOINT;
 
@@ -40,7 +44,9 @@ import static com.booker.constants.Domain.PUBLIC_ENDPOINT;
 public class PublicController {
   private final BookService bookService;
   private final GenreService genreService;
+  private final ReviewService reviewService;
   private final GenreMapper genreMapper;
+  private final ReviewMapper reviewMapper;
 
   @GetMapping("/books")
   @Operation(summary = "Get all books", description = "Get paginated list of all books (max 100 per page)")
@@ -70,6 +76,22 @@ public class PublicController {
     BookDetailDTO book = bookService.findById(id);
 
     return ResponseEntity.ok(book);
+  }
+
+  @GetMapping("/books/{id}/reviews")
+  @Operation(summary = "Get reviews for a book", description = "Get paginated list of reviews for a specific book")
+  @ApiResponses(value = {
+    @ApiResponse(responseCode = "200", description = "Reviews found"),
+    @ApiResponse(responseCode = "404", description = "Book not found")
+  })
+  public ResponseEntity<Page<SimpleReviewDTO>> getReviewsForBook(
+    @Parameter(description = "Book ID") @PathVariable UUID id,
+    @ParameterObject Pageable pageable
+  ) {
+    Page<Review> reviews = reviewService.findByBookID(id, pageable);
+    Page<SimpleReviewDTO> result = reviews.map(reviewMapper::toSimpleDTO);
+
+    return ResponseEntity.ok(result);
   }
 
   @GetMapping("/genres")

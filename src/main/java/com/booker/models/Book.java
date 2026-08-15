@@ -1,5 +1,6 @@
 package com.booker.models;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -8,7 +9,15 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +27,18 @@ import lombok.AllArgsConstructor;
 @Entity @Table(name = "books")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 @JsonPropertyOrder({
-  "id", "title", "synopsis", "pageCount", "author", "genres", "coverUrl", "createdAt", "updatedAt"
+  "id",
+  "title",
+  "synopsis",
+  "pageCount",
+  "releaseYear",
+  "author",
+  "genres",
+  "coverUrl",
+  "rating",
+  "ratingsCount",
+  "createdAt",
+  "updatedAt"
 })
 public class Book extends BaseEntity {
   @Column(length = 200, nullable = false)
@@ -35,6 +55,15 @@ public class Book extends BaseEntity {
 
   @Column(length = 2048, name = "cover_url")
   private String coverUrl;
+
+  @Column(name = "release_year", nullable = false)
+  private Short releaseYear;
+
+  @Column(name = "rating_sum", precision = 10, scale = 1)
+  private BigDecimal ratingSum = BigDecimal.ZERO;
+
+  @Column(name = "ratings_count")
+  private Integer ratingsCount = 0;
 
   @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
   @JoinTable(

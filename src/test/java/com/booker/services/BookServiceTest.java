@@ -104,7 +104,7 @@ class BookServiceTest {
         testBook.getTitle(),
         testBook.getSynopsis(),
         testBook.getPageCount(),
-        null, null, null, null, null);
+        null, null, null, null, null, null, null, null);
 
     when(bookRepository.findByIdWithGenres(TEST_BOOK_ID)).thenReturn(Optional.of(testBook));
     when(bookMapper.toDetailDTO(testBook)).thenReturn(expectedDTO);
@@ -148,8 +148,8 @@ class BookServiceTest {
     Page<Book> bookPage = new PageImpl<>(books);
     Pageable pageable = PageRequest.of(0, 10);
 
-    BookDTO dto1 = new BookDTO(book1.getId(), book1.getTitle(), null, null, null, null, null, null, null);
-    BookDTO dto2 = new BookDTO(book2.getId(), book2.getTitle(), null, null, null, null, null, null, null);
+    BookDTO dto1 = new BookDTO(book1.getId(), book1.getTitle(), null, null, null, null, null, null, null, null, null, null);
+    BookDTO dto2 = new BookDTO(book2.getId(), book2.getTitle(), null, null, null, null, null, null, null, null, null, null);
 
     when(bookRepository.findByTitleContainingIgnoreCase("Dom", pageable)).thenReturn(bookPage);
     when(bookMapper.toDTO(book1)).thenReturn(dto1);
@@ -174,8 +174,8 @@ class BookServiceTest {
     Page<Book> bookPage = new PageImpl<>(books);
     Pageable pageable = PageRequest.of(0, 10);
 
-    BookDTO dto1 = new BookDTO(testBook.getId(), testBook.getTitle(), null, null, null, null, null, null, null);
-    BookDTO dto2 = new BookDTO(UUID.randomUUID(), book2.getTitle(), null, null, null, null, null, null, null);
+    BookDTO dto1 = new BookDTO(testBook.getId(), testBook.getTitle(), null, null, null, null, null, null, null, null, null, null);
+    BookDTO dto2 = new BookDTO(UUID.randomUUID(), book2.getTitle(), null, null, null, null, null, null, null, null, null, null);
 
     when(bookRepository.findByAuthorId(authorId, pageable)).thenReturn(bookPage);
     when(bookMapper.toDTO(testBook)).thenReturn(dto1);
@@ -197,8 +197,8 @@ class BookServiceTest {
     Page<Book> bookPage = new PageImpl<>(books);
     Pageable pageable = PageRequest.of(0, 10);
 
-    BookDTO dto1 = new BookDTO(testBook.getId(), testBook.getTitle(), null, null, null, null, null, null, null);
-    BookDTO dto2 = new BookDTO(UUID.randomUUID(), book2.getTitle(), null, null, null, null, null, null, null);
+    BookDTO dto1 = new BookDTO(testBook.getId(), testBook.getTitle(), null, null, null, null, null, null, null, null, null, null);
+    BookDTO dto2 = new BookDTO(UUID.randomUUID(), book2.getTitle(), null, null, null, null, null, null, null, null, null, null);
 
     when(bookRepository.findAllWithGenres(pageable)).thenReturn(bookPage);
     when(bookMapper.toDTO(testBook)).thenReturn(dto1);
@@ -243,7 +243,7 @@ class BookServiceTest {
         savedBook.getTitle(),
         savedBook.getSynopsis(),
         savedBook.getPageCount(),
-        null, null, null, null, null);
+        null, null, null, null, null, null, null, null);
 
     // Mock the save
     when(bookRepository.save(any(Book.class))).thenReturn(savedBook);
@@ -428,7 +428,7 @@ class BookServiceTest {
         "Título Atualizado",
         updatedBook.getSynopsis(),
         300,
-        null, null, null, null, null);
+        null, null, null, null, null, null, null, null);
     when(bookMapper.toDetailDTO(updatedBook)).thenReturn(expectedDTO);
 
     // When
@@ -490,7 +490,7 @@ class BookServiceTest {
         "Título Parcialmente Atualizado",
         "Synopsis Original",
         400,
-        null, null, "url-original.jpg", null, null);
+        null, null, null, "url-original.jpg", null, null, null, null);
     when(bookMapper.toDetailDTO(any(Book.class))).thenReturn(expectedDTO);
 
     // When
@@ -581,7 +581,7 @@ class BookServiceTest {
         "Novo Título",
         null,
         null,
-        null, null, null, null, null);
+        null, null, null, null, null, null, null, null);
     when(bookMapper.toDetailDTO(any(Book.class))).thenReturn(expectedDTO);
 
     // When
@@ -667,7 +667,7 @@ class BookServiceTest {
     Page<Book> bookPage = new PageImpl<>(books);
     Pageable pageable = PageRequest.of(0, 10);
 
-    BookDTO dto = new BookDTO(testBook.getId(), testBook.getTitle(), null, null, null, null, null, null, null);
+    BookDTO dto = new BookDTO(testBook.getId(), testBook.getTitle(), null, null, null, null, null, null, null, null, null, null);
 
     when(bookRepository.findByTitleOrSynopsisContaining(query, pageable)).thenReturn(bookPage);
     when(bookMapper.toDTO(testBook)).thenReturn(dto);

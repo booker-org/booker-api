@@ -1,11 +1,13 @@
 package com.booker.repositories;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -27,4 +29,18 @@ public interface BookRepository extends JpaRepository<Book, UUID> {
 
   @Query("SELECT b FROM Book b WHERE b.title LIKE %:title% OR b.synopsis LIKE %:title%")
   Page<Book> findByTitleOrSynopsisContaining(@Param("title") String title, Pageable pageable);
+
+  @Modifying
+  @Query("""
+    UPDATE Book b
+    SET
+      b.ratingSum = b.ratingSum + :sumDelta,
+      b.ratingsCount = b.ratingsCount + :countDelta
+    WHERE b.id = :bookID
+  """)
+  void adjustRating(
+    @Param("bookID") UUID bookID,
+    @Param("sumDelta") BigDecimal sumDelta,
+    @Param("countDelta") int countDelta
+  );
 }

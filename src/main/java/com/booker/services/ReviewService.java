@@ -1,5 +1,6 @@
 package com.booker.services;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import org.springframework.dao.DataIntegrityViolationException;
@@ -19,6 +20,7 @@ import com.booker.mappers.ReviewMapper;
 import com.booker.models.Book;
 import com.booker.models.Review;
 import com.booker.models.User;
+import com.booker.repositories.BookRepository;
 import com.booker.repositories.ReviewRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 @Service @Transactional @RequiredArgsConstructor
 public class ReviewService {
   private final ReviewRepository repository;
+  private final BookRepository bookRepository;
   private final BookService bookService;
   private final BookMapper bookMapper;
   private final ReviewMapper mapper;
@@ -47,7 +50,13 @@ public class ReviewService {
 
     Review review = mapper.toEntity(data, currentUser, book);
 
-    try { return repository.save(review); }
+    try {
+      Review savedReview = repository.save(review);
+
+      bookRepository.adjustRating(book.getId(), review.getScore(), 1);
+
+      return savedReview;
+    }
     catch (DataIntegrityViolationException exception) {
       throw new BusinessRuleException("It's not allowed to create more than one review per book", ErrorCode.DUPLICATE_REVIEW);
     }
@@ -55,18 +64,30 @@ public class ReviewService {
 
   public void update(UUID id, UpdateReviewDTO data) {
     Review review = findById(id);
+    BigDecimal oldScore = review.getScore();
 
     if (data.score() != null) review.setScore(data.score());
     if (data.headline() != null) review.setHeadline(data.headline());
     if (data.text() != null) review.setText(data.text());
 
     repository.save(review);
+
+    if (data.score() != null) {
+      bookRepository.adjustRating(review.getBook().getId(), data.score().subtract(oldScore), 0);
+    }
   }
 
   public void delete(UUID id) {
-    if (!repository.existsById(id)) throw new ResourceNotFoundException("Review not found for ID: " + id);
+    Review review = repository.findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("Review not found for ID: " + id))
+    ;
+
+    UUID bookId = review.getBook().getId();
 
     repository.deleteById(id);
+    repository.flush();
+
+    bookRepository.adjustRating(bookId, review.getScore().negate(), -1);
   }
 
   @Transactional(readOnly = true)

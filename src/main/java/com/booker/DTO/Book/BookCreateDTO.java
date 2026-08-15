@@ -21,6 +21,9 @@ public record BookCreateDTO(
   @Max(value = 50000, message = "Page count must not exceed 50000")
   Integer pageCount,
 
+  @NotNull(message = "Release year is required")
+  Short releaseYear,
+
   @NotNull(message = "Author ID is required")
   UUID authorId,
 

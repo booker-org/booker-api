@@ -33,10 +33,12 @@ import com.booker.config.security.SecurityConfig;
 import com.booker.DTO.Book.BookDTO;
 import com.booker.DTO.Book.BookDetailDTO;
 import com.booker.mappers.GenreMapper;
+import com.booker.mappers.ReviewMapper;
 import com.booker.models.Genre;
 import com.booker.services.BookService;
 import com.booker.services.GenreService;
 import com.booker.services.JwtService;
+import com.booker.services.ReviewService;
 
 import static com.booker.constants.Domain.PUBLIC_ENDPOINT;
 
@@ -68,12 +70,18 @@ class PublicControllerTest {
   @MockitoBean
   private GenreService genreService;
 
+  @MockitoBean
+  private ReviewService reviewService;
+
+  @MockitoBean
+  private ReviewMapper reviewMapper;
+
   @Test
   void getAllBooks_ShouldReturnPagedResult() throws Exception {
     BookDTO dto = new BookDTO(
       UUID.randomUUID(),
       "Dom Casmurro",
-      null, null, null, null, null, null, null
+      null, null, null, null, null, null, null, null, null, null
     );
     Page<BookDTO> page = new PageImpl<>(List.of(dto));
 
@@ -94,9 +102,9 @@ class PublicControllerTest {
       "Dom Casmurro",
       "A obra narra a vida de Bento Santiago...",
       256,
-      null, null,
+      null, null, null,
       "https://example.com/dom-casmurro.jpg",
-      null, null
+      null, null, null, null
     );
 
     when(bookService.findById(bookId)).thenReturn(bookDTO);
@@ -115,7 +123,7 @@ class PublicControllerTest {
     BookDTO dto = new BookDTO(
       UUID.randomUUID(),
       "Dom Casmurro",
-      null, null, null, null, null, null, null
+      null, null, null, null, null, null, null, null, null, null
     );
     Page<BookDTO> page = new PageImpl<>(List.of(dto));
 
